@@ -150,6 +150,12 @@ export {
   primaryKey,
 } from "@/drizzle/onchain.js";
 export { graphql } from "@/graphql/middleware.js";
+export {
+  type CreateBunGraphQLFetchOptions,
+  createBunGraphQLFetch,
+  graphqlPlugin,
+} from "@/graphql/plugin.js";
+
 export type { ReadonlyDrizzle } from "@/types/db.js";
 export {
   type Checkpoint,
