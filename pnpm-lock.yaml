@@ -808,6 +808,9 @@ importers:
       '@escape.tech/graphql-armor-max-tokens':
         specifier: ^2.3.0
         version: 2.4.0
+      '@ponder/schema':
+        specifier: workspace:*
+        version: link:../schema
       '@ponder/utils':
         specifier: workspace:*
         version: link:../utils

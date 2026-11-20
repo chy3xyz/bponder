@@ -3,6 +3,7 @@ type BunSqlClient = {
     strings: TemplateStringsArray,
     ...values: unknown[]
   ): Promise<Record<string, unknown>[]>;
+  unsafe(query: string): Promise<unknown>;
   close(): Promise<void>;
 };
 
