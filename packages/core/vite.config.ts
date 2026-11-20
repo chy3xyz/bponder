@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   test: {
+    exclude: ["**/*.bun.test.ts"],
     globalSetup: ["src/_test/globalSetup.ts"],
     pool: "threads",
     maxWorkers: 4,

@@ -5,9 +5,11 @@ type Registration = {
   fn: IndexingFunction;
 };
 
+const fns: Registration[] = [];
+
 export const ponder = {
-  fns: [] as Registration[],
-  on(name: string, fn: IndexingFunction) {
-    this.fns.push({ name, fn });
+  fns,
+  on: (name: string, fn: IndexingFunction) => {
+    fns.push({ name, fn });
   },
 };
