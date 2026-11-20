@@ -1,21 +1,16 @@
 "use client";
 
 import type { Client } from "@ponder/client";
-import { createContext, createElement } from "react";
-import type { ResolvedSchema } from "./index.js";
+import { createContext, createElement, type ReactNode } from "react";
 
-export const PonderContext = createContext<Client<ResolvedSchema> | undefined>(
-  undefined,
-);
+export const PonderContext = createContext<Client | undefined>(undefined);
 
 type PonderProviderProps = {
-  client: Client<ResolvedSchema>;
+  client: Client;
+  children?: ReactNode;
 };
 
-export function PonderProvider(
-  parameters: React.PropsWithChildren<PonderProviderProps>,
-) {
+export function PonderProvider(parameters: PonderProviderProps) {
   const { children, client } = parameters;
-  const props = { value: client };
-  return createElement(PonderContext.Provider, props, children);
+  return createElement(PonderContext.Provider, { value: client }, children);
 }

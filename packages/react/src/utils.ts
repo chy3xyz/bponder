@@ -1,31 +1,48 @@
-import { type Client, compileQuery } from "@ponder/client";
+import type { Client } from "@ponder/client";
 import type { QueryKey } from "@tanstack/react-query";
-import { stringify } from "superjson";
-import type { ResolvedSchema } from "./index.js";
 
-export type SQLWrapper = Exclude<Parameters<typeof compileQuery>[0], string>;
+export type PonderQuerySource =
+  | { sql: string; query?: never }
+  | { query: string; sql?: never };
 
-export function getPonderQueryOptions<T>(
-  client: Client<ResolvedSchema>,
-  queryFn: (db: Client<ResolvedSchema>["db"]) => T,
+export type PonderQueryResult<TRow = Record<string, unknown>> = {
+  rows: TRow[];
+};
+
+export type ResolvedPonderQuerySource = {
+  method: "sql" | "query";
+  text: string;
+};
+
+export const ponderStatusQueryKey: QueryKey = ["__ponder_react", "status"];
+
+export function resolvePonderQuerySource(
+  source: PonderQuerySource | string,
+): ResolvedPonderQuerySource {
+  if (typeof source === "string") {
+    return { method: "sql", text: source };
+  }
+  if ("sql" in source && typeof source.sql === "string") {
+    return { method: "sql", text: source.sql };
+  }
+  return { method: "query", text: source.query };
+}
+
+export function getPonderQueryOptions<TRow = Record<string, unknown>>(
+  client: Client,
+  source: PonderQuerySource | string,
 ): {
   queryKey: QueryKey;
-  queryFn: () => T;
+  queryFn: () => Promise<PonderQueryResult<TRow>>;
 } {
-  const queryPromise = queryFn(client.db);
-
-  // @ts-expect-error
-  if ("getSQL" in queryPromise === false) {
-    throw new Error(
-      '"queryFn" must return SQL. You may have to remove `.execute()` from your query.',
-    );
-  }
-
-  const query = compileQuery(queryPromise as unknown as SQLWrapper);
-  const queryKey = ["__ponder_react", query.sql, stringify(query.params)];
+  const { method, text } = resolvePonderQuerySource(source);
+  const queryKey: QueryKey = ["__ponder_react", method, text];
 
   return {
     queryKey,
-    queryFn: () => queryPromise,
+    queryFn: () =>
+      (method === "sql" ? client.sql(text) : client.query(text)) as Promise<
+        PonderQueryResult<TRow>
+      >,
   };
 }

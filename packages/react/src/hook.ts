@@ -10,47 +10,49 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useContext, useEffect, useMemo } from "react";
-import { decodeCheckpoint } from "./checkpoint.js";
 import { PonderContext } from "./context.js";
-import type { ResolvedSchema } from "./index.js";
-import { getPonderQueryOptions } from "./utils.js";
+import {
+  getPonderQueryOptions,
+  type PonderQueryResult,
+  type PonderQuerySource,
+  ponderStatusQueryKey,
+  resolvePonderQuerySource,
+} from "./utils.js";
 
 export function usePonderQuery<
-  queryFnData = unknown,
-  error = DefaultError,
-  data = queryFnData,
+  TRow = Record<string, unknown>,
+  TError = DefaultError,
+  TData = PonderQueryResult<TRow>,
 >(
-  params: {
-    queryFn: (db: Client<ResolvedSchema>["db"]) => Promise<queryFnData>;
+  params: PonderQuerySource & {
     live?: boolean;
-  } & Omit<UseQueryOptions<queryFnData, error, data>, "queryFn" | "queryKey">,
-): UseQueryResult<data, error> {
+  } & Omit<
+      UseQueryOptions<PonderQueryResult<TRow>, TError, TData>,
+      "queryFn" | "queryKey"
+    >,
+): UseQueryResult<TData, TError> {
   const live = params.live ?? true;
   const queryClient = useQueryClient();
-
   const client = usePonderClient();
+  const { method, text } = resolvePonderQuerySource(params);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: client identity is not expected to change.
   const queryOptions = useMemo(
-    () => getPonderQueryOptions(client, params.queryFn),
-    [params.queryFn],
+    () =>
+      getPonderQueryOptions<TRow>(
+        client,
+        method === "sql" ? { sql: text } : { query: text },
+      ),
+    [client, method, text],
   );
 
   useEffect(() => {
     if (live === false || params.enabled === false) return;
 
-    const { unsubscribe } = client.live(queryOptions.queryFn, (data) => {
-      queryClient.setQueryData(queryOptions.queryKey, data);
+    const { unsubscribe } = client.live(() => {
+      void queryClient.invalidateQueries({ queryKey: queryOptions.queryKey });
     });
     return unsubscribe;
-  }, [
-    live,
-    params.enabled,
-    client,
-    queryOptions.queryFn,
-    queryOptions.queryKey,
-    queryClient,
-  ]);
+  }, [live, params.enabled, client, queryOptions.queryKey, queryClient]);
 
   return useQuery({
     ...params,
@@ -62,7 +64,7 @@ export function usePonderQuery<
   });
 }
 
-export function usePonderClient(): Client<ResolvedSchema> {
+export function usePonderClient(): Client {
   const client = useContext(PonderContext);
   if (client === undefined) {
     throw new Error("PonderProvider not found");
@@ -70,52 +72,41 @@ export function usePonderClient(): Client<ResolvedSchema> {
   return client;
 }
 
-export function usePonderQueryOptions<T>(
-  queryFn: (db: Client<ResolvedSchema>["db"]) => T,
+export function usePonderQueryOptions<TRow = Record<string, unknown>>(
+  source: PonderQuerySource | string,
 ): {
   queryKey: QueryKey;
-  queryFn: () => T;
+  queryFn: () => Promise<PonderQueryResult<TRow>>;
 } {
   const client = usePonderClient();
-  return getPonderQueryOptions(client, queryFn);
+  return getPonderQueryOptions<TRow>(client, source);
 }
 
-export function usePonderStatus<error = DefaultError>(
+export function usePonderStatus<TError = DefaultError>(
   params?: { live?: boolean } & Omit<
-    UseQueryOptions<
-      { chain_name: string; chain_id: number; latest_checkpoint: string }[],
-      error,
-      Status
-    >,
-    "queryFn" | "queryKey" | "select"
+    UseQueryOptions<Status, TError>,
+    "queryFn" | "queryKey"
   >,
-): UseQueryResult<Status, error> {
-  return usePonderQuery<
-    { chain_name: string; chain_id: number; latest_checkpoint: string }[],
-    error,
-    Status
-  >({
-    ...params,
-    queryFn: (db) => db.execute("SELECT * FROM _ponder_checkpoint"),
-    select(checkpoints) {
-      const status: Status = {};
-      for (const {
-        chain_name,
-        chain_id,
-        latest_checkpoint,
-      } of checkpoints.sort((a, b) => (a.chain_id > b.chain_id ? 1 : -1))) {
-        status[chain_name] = {
-          id: chain_id,
-          block: {
-            number: Number(decodeCheckpoint(latest_checkpoint).blockNumber),
-            timestamp: Number(
-              decodeCheckpoint(latest_checkpoint).blockTimestamp,
-            ),
-          },
-        };
-      }
+): UseQueryResult<Status, TError> {
+  const live = params?.live ?? true;
+  const queryClient = useQueryClient();
+  const client = usePonderClient();
 
-      return status;
-    },
+  useEffect(() => {
+    if (live === false || params?.enabled === false) return;
+
+    const { unsubscribe } = client.live((status) => {
+      queryClient.setQueryData(ponderStatusQueryKey, status);
+    });
+    return unsubscribe;
+  }, [live, params?.enabled, client, queryClient]);
+
+  return useQuery({
+    ...params,
+    queryKey: ponderStatusQueryKey,
+    queryFn: () => client.getStatus(),
+    staleTime: live
+      ? (params?.staleTime ?? Number.POSITIVE_INFINITY)
+      : params?.staleTime,
   });
 }

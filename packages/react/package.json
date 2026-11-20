@@ -10,8 +10,9 @@
   },
   "scripts": {
     "build": "tsx build.ts",
-    "test": "vitest",
-    "test:typecheck": "vitest --typecheck.only",
+    "test": "bun test",
+    "test:bun": "bun test",
+    "test:typecheck": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "files": [
@@ -19,6 +20,7 @@
     "!dist/**/*.tsbuildinfo",
     "src/**/*.ts",
     "!src/**/*.test.ts",
+    "!src/**/*.bun.test.ts",
     "!src/**/*.test-d.ts",
     "!src/_test/**/*",
     "README.md",
@@ -35,9 +37,6 @@
       "types": "./dist/types/index.d.ts",
       "default": "./dist/esm/index.js"
     }
-  },
-  "dependencies": {
-    "superjson": "^2.2.2"
   },
   "peerDependencies": {
     "@ponder/client": ">=0.18.9",
@@ -60,7 +59,6 @@
     "picocolors": "^1.0.0",
     "react": "^18.2.0",
     "rimraf": "^5.0.5",
-    "tsx": "^4.19.2",
-    "vitest": "5.0.2"
+    "tsx": "^4.19.2"
   }
 }

@@ -997,10 +997,6 @@ importers:
         version: 5.0.2(@edge-runtime/vm@3.2.0)(@types/node@22.20.1)(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/react:
-    dependencies:
-      superjson:
-        specifier: ^2.2.2
-        version: 2.2.2
     devDependencies:
       '@ponder/client':
         specifier: workspace:*
@@ -1032,9 +1028,6 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.23.15
-      vitest:
-        specifier: 5.0.2
-        version: 5.0.2(@edge-runtime/vm@3.2.0)(@types/node@22.20.1)(vite@8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
   packages/schema: {}
 

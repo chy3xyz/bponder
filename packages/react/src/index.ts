@@ -5,13 +5,11 @@ export {
   usePonderQueryOptions,
   usePonderStatus,
 } from "./hook.js";
-export { getPonderQueryOptions } from "./utils.js";
-
-// biome-ignore lint/suspicious/noEmptyInterface: Required for module augmentation.
-export interface Register {}
-
-export type ResolvedSchema = Register extends { schema: infer schema }
-  ? schema
-  : {
-      [name: string]: unknown;
-    };
+export {
+  getPonderQueryOptions,
+  type PonderQueryResult,
+  type PonderQuerySource,
+  ponderStatusQueryKey,
+  type ResolvedPonderQuerySource,
+  resolvePonderQuerySource,
+} from "./utils.js";
