@@ -1,6 +1,6 @@
 type IndexingFunction = (...args: any[]) => any;
 
-type Registration = {
+export type Registration = {
   name: string;
   fn: IndexingFunction;
 };
