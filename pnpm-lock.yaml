@@ -312,6 +312,15 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
+  examples/feature-bun-slice:
+    dependencies:
+      '@ponder/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
+      ponder:
+        specifier: workspace:*
+        version: link:../../packages/core
+
   examples/feature-call-traces:
     dependencies:
       hono:

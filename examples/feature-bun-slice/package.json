@@ -1,0 +1,15 @@
+{
+  "name": "ponder-examples-feature-bun-slice",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke": "bun run scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@ponder/schema": "workspace:*",
+    "ponder": "workspace:*"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  }
+}

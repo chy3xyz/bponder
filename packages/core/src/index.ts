@@ -10,6 +10,20 @@ export { ponder } from "@/app/ponder.js";
 export { factory } from "@/config/address.js";
 export { defineConfig, type PonderConfig } from "@/config/defineConfig.js";
 export { createConfig } from "@/config/index.js";
+export {
+  type BunSqlDatabase,
+  createBunSqlDatabase,
+} from "@/database/bunSql.js";
+export { migrateUser } from "@/database/migrateUser.js";
+export {
+  createBunHistoricalStatusFetch,
+  syncBunHistoricalEvents,
+} from "@/runtime/bunHistoricalSlice.js";
+export {
+  type BunServer,
+  startBunServer,
+  stopBunServer,
+} from "@/server/bunServe.js";
 export type {
   Block,
   Log,
