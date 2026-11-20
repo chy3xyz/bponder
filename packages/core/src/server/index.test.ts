@@ -289,7 +289,10 @@ test("kill closes idle keep-alive connections", async () => {
     },
   );
   expect(response.statusCode).toBe(200);
-  expect(response.headers.connection).toBe("keep-alive");
+  // Bun.serve does not emit Connection: keep-alive; Node's http.Server does.
+  if (!("bun" in process.versions)) {
+    expect(response.headers.connection).toBe("keep-alive");
+  }
 
   const start = Date.now();
   await context.common.apiShutdown.kill();
