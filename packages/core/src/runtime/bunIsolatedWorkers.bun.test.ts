@@ -162,5 +162,55 @@ if (skip) {
         await destroyHarness(harness);
       }
     });
+
+    test("stops the flush queue after a failure without leftover checkpoint rows", async () => {
+      const harness = await createHarness();
+      const originalBegin = harness.database.user.begin.bind(
+        harness.database.user,
+      );
+      let beginCount = 0;
+      harness.database.user.begin = ((callback) => {
+        beginCount += 1;
+        if (beginCount === 1) {
+          return Promise.reject(new Error("forced flush failure"));
+        }
+        return originalBegin(callback);
+      }) as typeof harness.database.user.begin;
+
+      try {
+        await expect(
+          syncBunIsolatedEvents({
+            database: harness.database,
+            table: harness.transfer,
+            shards: [chain1Events, chain2Events],
+            beforeFlush: () => Bun.sleep(25),
+          }),
+        ).rejects.toThrow("forced flush failure");
+
+        const rows = await harness.database.user`
+          SELECT id, "chainId" FROM transfer ORDER BY "chainId", "blockNumber"
+        `;
+        const meta = await harness.database.admin`
+          SELECT value FROM ponder_bun_meta WHERE key = ${"isolated_checkpoint"}
+        `;
+        const stored =
+          typeof meta[0]?.value === "string"
+            ? (JSON.parse(meta[0].value) as {
+                chains: Record<string, unknown>;
+              })
+            : undefined;
+        const checkpointChainIds = Object.keys(stored?.chains ?? {})
+          .map(Number)
+          .sort((a, b) => a - b);
+        const rowChainIds = [
+          ...new Set(rows.map((row) => Number(row.chainId))),
+        ].sort((a, b) => a - b);
+
+        expect(checkpointChainIds).toEqual(rowChainIds);
+        expect(beginCount).toBe(1);
+      } finally {
+        await destroyHarness(harness);
+      }
+    });
   });
 }

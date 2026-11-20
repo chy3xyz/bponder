@@ -189,28 +189,27 @@ export const syncBunIsolatedEvents = async ({
     const run = flushTail.then(async () => {
       await beforeFlush?.();
       try {
-        if (result.checkpoint !== undefined) {
-          checkpoint = mergeCheckpoint(checkpoint, result.checkpoint);
-        }
-        if (result.rows.length === 0 && checkpoint === undefined) return;
+        const nextCheckpoint =
+          result.checkpoint === undefined
+            ? checkpoint
+            : mergeCheckpoint(checkpoint, result.checkpoint);
+        if (result.rows.length === 0 && nextCheckpoint === undefined) return;
 
         await database.user.begin(async (sql) => {
           await flushRows({ sql, table, rows: result.rows });
-          if (checkpoint === undefined) return;
+          if (nextCheckpoint === undefined) return;
           await sql`
             INSERT INTO ponder_bun_meta (key, value)
-            VALUES (${checkpointKey}, ${JSON.stringify(checkpoint)})
+            VALUES (${checkpointKey}, ${JSON.stringify(nextCheckpoint)})
             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
           `;
         });
+        checkpoint = nextCheckpoint;
       } finally {
         await afterFlush?.();
       }
     });
-    flushTail = run.then(
-      () => undefined,
-      () => undefined,
-    );
+    flushTail = run;
     return run;
   };
 
@@ -237,6 +236,11 @@ export const syncBunIsolatedEvents = async ({
 
     return checkpoint;
   } finally {
+    try {
+      await flushTail;
+    } catch {
+      // Keep the original error; the in-flight flush has settled.
+    }
     for (const worker of workers) worker.terminate();
   }
 };
