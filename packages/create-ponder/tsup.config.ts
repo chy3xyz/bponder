@@ -1,4 +1,10 @@
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,6 +21,9 @@ export default defineConfig({
   external: Object.keys(dependencies),
   format: ["esm"],
   platform: "node",
+  banner: {
+    js: "#!/usr/bin/env bun",
+  },
   async onSuccess() {
     const __dirname = fileURLToPath(new URL(".", import.meta.url));
     const examplesPath = path.join(__dirname, "../..", "examples");
@@ -36,24 +45,30 @@ export default defineConfig({
       targetPath,
       {
         filter: (file) => file.name !== ".env.local",
-        rename: (name) =>
-          name === ".env.example"
-            ? "_dot_env.local"
-            : name.replace(/^\./, "_dot_"),
+        rename: (name) => name.replace(/^\./, "_dot_"),
       },
     );
 
     readdirSync(targetPath)
       .filter((d) => d !== "default" && d !== "etherscan")
       .forEach((d) => {
-        const contents = readFileSync(
-          path.join(targetPath, d, "_dot_env.local"),
-          "utf-8",
-        );
-        writeFileSync(
-          path.join(targetPath, d, "_dot_env.local"),
-          contents.replace(/PONDER_RPC_URL_(\d+)=.*/, "PONDER_RPC_URL_$1="),
-        );
+        const dir = path.join(targetPath, d);
+        const envExample = path.join(dir, "_dot_env.example");
+        const envLocal = path.join(dir, "_dot_env.local");
+        const blankRpc = (contents: string) =>
+          contents.replace(/PONDER_RPC_URL_(\d+)=.*/, "PONDER_RPC_URL_$1=");
+
+        if (existsSync(envExample)) {
+          writeFileSync(
+            envExample,
+            blankRpc(readFileSync(envExample, "utf-8")),
+          );
+        }
+        if (existsSync(envLocal)) {
+          writeFileSync(envLocal, blankRpc(readFileSync(envLocal, "utf-8")));
+        } else if (existsSync(envExample)) {
+          copyFileSync(envExample, envLocal);
+        }
       });
   },
 });

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -334,14 +334,16 @@ export async function run({
   const packageJson = await fs.readJSON(path.join(projectPath, "package.json"));
   packageJson.name = projectName;
   packageJson.dependencies.ponder = `^${rootPackageJson.version}`;
-  if ("bun" in process.versions) {
-    packageJson.scripts = addBunFlagToScripts(packageJson.scripts ?? {});
-  }
+  packageJson.engines = {
+    bun: rootPackageJson.engines?.bun ?? ">=1.4.0",
+  };
 
   await fs.writeFile(
     path.join(projectPath, "package.json"),
     JSON.stringify(packageJson, null, 2),
   );
+
+  await ensureBunScaffold(projectPath);
 
   const packageManager = getPackageManager({ options });
 
@@ -426,58 +428,80 @@ export async function run({
   log();
 }
 
-function addBunFlagToScripts(scripts: Record<string, string>) {
-  const ret: Record<string, string> = {};
-  for (const [k, v] of Object.entries(scripts)) {
-    if (v.startsWith("ponder")) ret[k] = `bun --bun ${v}`;
-    else ret[k] = v;
+async function ensureBunScaffold(projectPath: string) {
+  const bunfigPath = path.join(projectPath, "bunfig.toml");
+  if (!(await fs.pathExists(bunfigPath))) {
+    await fs.writeFile(
+      bunfigPath,
+      "# Ponder requires Bun >=1.4.0 (https://bun.sh).\n# `ponder` uses a Bun shebang, so `bun run dev` is enough — no `--bun` flag.\n",
+    );
   }
-  return ret;
+
+  const envLocal = path.join(projectPath, ".env.local");
+  const envExample = path.join(projectPath, ".env.example");
+  const localExists = await fs.pathExists(envLocal);
+  const exampleExists = await fs.pathExists(envExample);
+  if (localExists && !exampleExists) {
+    await fs.copy(envLocal, envExample);
+  } else if (exampleExists && !localExists) {
+    await fs.copy(envExample, envLocal);
+  }
 }
 
-(async () => {
-  const cli = cac(rootPackageJson.name)
-    .version(rootPackageJson.version)
-    .usage(`${pico.green("<directory>")} [options]`)
-    .option(
-      "-t, --template [id]",
-      `Use a template. Options: ${templates.map(({ id }) => id).join(", ")}`,
-    )
-    .option("--npm", "Use npm as your package manager")
-    .option("--pnpm", "Use pnpm as your package manager")
-    .option("--yarn", "Use yarn as your package manager")
-    .option("--skip-git", "Skip initializing a git repository")
-    .option("--skip-install", "Skip installing packages")
-    .help();
-
-  // Check Nodejs version
-  const _nodeVersion = process.version.split(".");
-  const nodeVersion = [
-    Number(_nodeVersion[0]!.slice(1)),
-    Number(_nodeVersion[1]),
-    Number(_nodeVersion[2]),
-  ];
-  if (nodeVersion[0]! < 22 || (nodeVersion[0] === 22 && nodeVersion[1]! < 12))
-    throw new Error(
-      pico.red(
-        `Node version:${process.version} does not meet the >=22.12 requirement`,
-      ),
-    );
-
-  const { args, options } = cli.parse(process.argv);
-
+function isCliEntrypoint(): boolean {
+  const meta = import.meta as ImportMeta & { main?: boolean };
+  if (typeof meta.main === "boolean") return meta.main;
+  const entry = process.argv[1];
+  if (!entry) return false;
   try {
-    await run({ args, options });
-    log();
-    await notifyUpdate({ options });
-  } catch (error) {
-    log(
-      error instanceof ValidationError
-        ? error.message
-        : pico.red((<Error>error).message),
-    );
-    log();
-    await notifyUpdate({ options });
-    process.exit(1);
+    return path.resolve(entry) === fileURLToPath(import.meta.url);
+  } catch {
+    return false;
   }
-})();
+}
+
+function assertBunRuntime(): void {
+  if (process.versions.bun !== undefined) return;
+  process.stderr.write(
+    "create-ponder requires Bun >=1.4.0. Run with `bun` (https://bun.sh).\n",
+  );
+  process.exit(1);
+}
+
+if (isCliEntrypoint()) {
+  void (async () => {
+    const cli = cac(rootPackageJson.name)
+      .version(rootPackageJson.version)
+      .usage(`${pico.green("<directory>")} [options]`)
+      .option(
+        "-t, --template [id]",
+        `Use a template. Options: ${templates.map(({ id }) => id).join(", ")}`,
+      )
+      .option("--bun", "Use bun as your package manager (default)")
+      .option("--pnpm", "Use pnpm as your package manager")
+      .option("--npm", "Use npm as your package manager")
+      .option("--yarn", "Use yarn as your package manager")
+      .option("--skip-git", "Skip initializing a git repository")
+      .option("--skip-install", "Skip installing packages")
+      .help();
+
+    assertBunRuntime();
+
+    const { args, options } = cli.parse(process.argv);
+
+    try {
+      await run({ args, options });
+      log();
+      await notifyUpdate({ options });
+    } catch (error) {
+      log(
+        error instanceof ValidationError
+          ? error.message
+          : pico.red((<Error>error).message),
+      );
+      log();
+      await notifyUpdate({ options });
+      process.exit(1);
+    }
+  })();
+}

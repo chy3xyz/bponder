@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "bun test",
     "test:bun": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -50,6 +50,6 @@
     "vitest": "5.0.2"
   },
   "engines": {
-    "node": ">=22.12"
+    "bun": ">=1.4.0"
   }
 }

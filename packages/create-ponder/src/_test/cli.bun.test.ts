@@ -1,16 +1,19 @@
+import { afterEach, beforeEach, expect, test } from "bun:test";
 import { randomUUID } from "node:crypto";
-import { mkdirSync, readdirSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { rimrafSync } from "rimraf";
-import { beforeEach, expect, test } from "vitest";
-import { run } from "@/index.js";
+import { run } from "../index.js";
 
 const tempDir = path.join(os.tmpdir(), randomUUID());
 
 beforeEach(() => {
   mkdirSync(tempDir, { recursive: true });
-  return () => rimrafSync(tempDir);
+});
+
+afterEach(() => {
+  rimrafSync(tempDir);
 });
 
 test("create empty", async () => {
@@ -25,8 +28,10 @@ test("create empty", async () => {
 
   expect(files).toEqual(
     expect.arrayContaining([
+      ".env.example",
       ".env.local",
       ".gitignore",
+      "bunfig.toml",
       "package.json",
       "ponder-env.d.ts",
       "ponder.config.ts",
@@ -37,4 +42,18 @@ test("create empty", async () => {
       path.join("src", "api", "index.ts"),
     ]),
   );
+
+  const pkg = JSON.parse(
+    readFileSync(path.join(rootDir, "package.json"), "utf8"),
+  ) as {
+    engines?: Record<string, string>;
+    scripts?: Record<string, string>;
+  };
+
+  expect(pkg.engines).toEqual({ bun: ">=1.4.0" });
+  expect(pkg.engines?.node).toBeUndefined();
+  expect(pkg.scripts?.dev).toBe("ponder dev");
+  for (const script of Object.values(pkg.scripts ?? {})) {
+    expect(script).not.toContain("bun --bun");
+  }
 });

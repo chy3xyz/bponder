@@ -1,0 +1,2 @@
+# Ponder requires Bun >=1.4.0 (https://bun.sh).
+# `ponder` uses a Bun shebang, so `bun run dev` is enough — no `--bun` flag.

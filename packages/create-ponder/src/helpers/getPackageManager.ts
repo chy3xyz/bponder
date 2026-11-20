@@ -1,18 +1,14 @@
-import pico from "picocolors";
-
 import type { CLIOptions } from "../index.js";
 
 export const getPackageManager = ({
   options,
 }: {
   options?: CLIOptions;
-}): "bun" | "pnpm" | "npm" | "yarn" => {
-  if (options) {
-    if (options.bun) return "bun";
-    if (options.pnpm) return "pnpm";
-    if (options.npm) return "npm";
-    if (options.yarn) return "yarn";
-  }
+} = {}): "bun" | "pnpm" | "npm" | "yarn" => {
+  if (options?.bun) return "bun";
+  if (options?.pnpm) return "pnpm";
+  if (options?.npm) return "npm";
+  if (options?.yarn) return "yarn";
 
   const userAgent = process.env.npm_config_user_agent;
   if (userAgent) {
@@ -22,5 +18,5 @@ export const getPackageManager = ({
     if (userAgent.includes("yarn")) return "yarn";
   }
 
-  throw new Error(pico.red("Undetectable package manager"));
+  return "bun";
 };
