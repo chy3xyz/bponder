@@ -1,0 +1,8 @@
+data/
+dist/
+.ponder/
+generated/
+!apps/subgraph-reth/generated/
+!apps/subgraph-univ2/generated/
+.env.local
+ponder-env.d.ts

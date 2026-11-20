@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "scripts": {
+    "bench:ponder:ci": "pnpm --filter \"./benchmarks\" bench:ponder:ci",
+    "bench:subgraph:ci": "pnpm --filter \"./benchmarks\" bench:subgraph:ci",
+    "build": "pnpm --filter \"./packages/**\" --recursive build",
+    "format": "biome format . --write",
+    "lint": "biome check .",
+    "lint:fix": "pnpm lint --write",
+    "test": "pnpm --parallel --no-bail test",
+    "test:bun": "pnpm --parallel --no-bail test:bun",
+    "typecheck": "pnpm --filter \"./packages/**\" --recursive typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.4",
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.3",
+    "drizzle-kit": "^0.30.6",
+    "hono": "4.5.0",
+    "typescript": "5.4.5",
+    "viem": "2.35.0"
+  },
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=12"
+  }
+}

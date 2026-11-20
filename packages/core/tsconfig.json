@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.build.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@ponder/client": ["../client/src"],
+      "@ponder/utils": ["../utils/src"]
+    }
+  }
+}

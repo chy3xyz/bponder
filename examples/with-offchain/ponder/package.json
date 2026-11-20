@@ -1,0 +1,27 @@
+{
+  "private": true,
+  "name": "ponder-examples-with-offchain-ponder",
+  "type": "module",
+  "scripts": {
+    "dev": "ponder dev",
+    "start": "ponder start",
+    "db": "ponder db",
+    "codegen": "ponder codegen",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.41.0",
+    "hono": "^4.5.0",
+    "pg": "^8.16.2",
+    "ponder": "workspace:*",
+    "viem": "2.35.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.10.9",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}
