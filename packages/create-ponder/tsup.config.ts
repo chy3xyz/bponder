@@ -21,9 +21,6 @@ export default defineConfig({
   external: Object.keys(dependencies),
   format: ["esm"],
   platform: "node",
-  banner: {
-    js: "#!/usr/bin/env bun",
-  },
   async onSuccess() {
     const __dirname = fileURLToPath(new URL(".", import.meta.url));
     const examplesPath = path.join(__dirname, "../..", "examples");
