@@ -6,8 +6,8 @@ import {
   startBunServer,
   stopBunServer,
   syncBunHistoricalEvents,
-} from "ponder";
-import { transfer } from "../ponder.schema";
+} from "../../../packages/core/src/index.ts";
+import { transfer } from "../ponder.schema.ts";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -54,6 +54,12 @@ try {
     ],
     registrations: ponder.fns,
   });
+
+  const rows = await database.user`SELECT id FROM transfer`;
+  assert(
+    Array.isArray(rows) && rows.length >= 1,
+    `expected ≥1 transfer row after sync, got ${rows.length}`,
+  );
 
   server = startBunServer({
     port: 0,

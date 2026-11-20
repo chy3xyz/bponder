@@ -1,4 +1,4 @@
-import { integer, onchainTable, text } from "@ponder/schema";
+import { integer, onchainTable, text } from "../../packages/schema/src/index.ts";
 
 export const transfer = onchainTable("transfer", {
   id: text(),
