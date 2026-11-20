@@ -6,7 +6,9 @@ export {
   rateLimit,
   replaceBigInts,
 } from "@ponder/utils";
+export { ponder } from "@/app/ponder.js";
 export { factory } from "@/config/address.js";
+export { defineConfig, type PonderConfig } from "@/config/defineConfig.js";
 export { createConfig } from "@/config/index.js";
 export type {
   Block,
