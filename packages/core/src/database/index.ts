@@ -46,6 +46,13 @@ import {
 } from "./actions.js";
 import { createQB, type QB } from "./queryBuilder.js";
 
+export {
+  type BunSqlDatabase,
+  type CreateBunSqlDatabaseParameters,
+  createBunSqlDatabase,
+  getBunSqlState,
+} from "./bunSql.js";
+
 export type Database = {
   driver: PostgresDriver | PGliteDriver;
   syncQB: QB<typeof PONDER_SYNC>;
