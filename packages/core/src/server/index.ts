@@ -10,7 +10,7 @@ import type { Common } from "@/internal/common.js";
 import type { ApiBuild, Status } from "@/internal/types.js";
 import { decodeCheckpoint } from "@/utils/checkpoint.js";
 import { startClock } from "@/utils/timer.js";
-import { startBunServer } from "./bunServe.js";
+import { startBunServer, stopBunServer } from "./bunServe.js";
 import { onError } from "./error.js";
 
 export type Server = {
@@ -143,7 +143,9 @@ export async function createServer({
     endpoint: "/health",
   });
 
-  common.apiShutdown.add(() => bunServer.stop(true));
+  // Drain active requests first, then force-close sockets after the same
+  // timeout used by the old Node server. Bun still waits for fetch handlers.
+  common.apiShutdown.add(() => stopBunServer(bunServer));
 
   return { hono };
 }

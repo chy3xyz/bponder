@@ -7,6 +7,24 @@ export type BunServer = {
   stop: (force?: boolean) => Promise<void>;
 };
 
+export async function stopBunServer(
+  server: BunServer,
+  timeoutMs = 1_000,
+): Promise<void> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const forceStop = new Promise<void>((resolve, reject) => {
+    timeout = setTimeout(() => {
+      server.stop(true).then(resolve, reject);
+    }, timeoutMs);
+  });
+
+  try {
+    await Promise.race([server.stop(), forceStop]);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 type BunRuntime = {
   serve: (options: {
     fetch: BunFetchHandler;

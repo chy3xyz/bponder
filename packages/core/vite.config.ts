@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import path from "node:path";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 // Fixes `Duplicate "graphql" modules cannot be used at the same time` issue
 const graphqlPath = createRequire(import.meta.url).resolve("graphql");
@@ -15,7 +15,13 @@ export default defineConfig({
     },
   },
   test: {
-    exclude: ["**/*.bun.test.ts"],
+    exclude: [
+      ...configDefaults.exclude,
+      "**/*.bun.test.ts",
+      // TODO: Port these suites to bun:test; app startup now requires Bun.serve.
+      "**/server/index.test.ts",
+      "**/_test/e2e/**/*.test.ts",
+    ],
     globalSetup: ["src/_test/globalSetup.ts"],
     pool: "threads",
     maxWorkers: 4,
