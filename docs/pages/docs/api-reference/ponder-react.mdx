@@ -5,15 +5,19 @@ This is a low-level reference. For an introduction, visit the
 [SQL over HTTP](/docs/query/sql-over-http) page.
 :::
 
-The `@ponder/react` package provides React hooks for subscribing to live updates from your database.
+The `@ponder/react` package provides React hooks for querying a Ponder app over the Bun `/v1` contract.
 
-This package uses [`@ponder/client`](/docs/api-reference/ponder-client) to execute SQL queries over HTTP, and integrates with [TanStack Query](https://tanstack.com/query) for async state management.
+This package uses [`@ponder/client`](/docs/api-reference/ponder-client) and [TanStack Query](https://tanstack.com/query) for async state. `usePonderQuery` takes a SQL string (`{ sql }` or `{ query }`), not a Drizzle `queryFn`.
 
 ## Installation
 
 `@ponder/react` has peer dependencies on `@ponder/client` and `@tanstack/react-query`.
 
 :::code-group
+
+```bash [bun]
+bun add @ponder/react @ponder/client @tanstack/react-query
+```
 
 ```bash [pnpm]
 pnpm add @ponder/react @ponder/client @tanstack/react-query
@@ -27,12 +31,7 @@ yarn add @ponder/react @ponder/client @tanstack/react-query
 npm add @ponder/react @ponder/client @tanstack/react-query
 ```
 
-```bash [bun]
-bun add @ponder/react @ponder/client @tanstack/react-query
-```
-
 :::
-
 
 ## `PonderProvider`
 
@@ -66,22 +65,16 @@ function App() {
 
 ## `usePonderQuery`
 
-Hook to run a custom SQL query over HTTP with live updates.
+Hook to run a SQL string over HTTP. Live updates invalidate the query when `/v1/live` emits a status event.
 
 #### Usage
 
 ```tsx [Client project]
 import { usePonderQuery } from "@ponder/react";
-import { schema } from "../lib/ponder";
 
 function AccountList() {
   const { data, isLoading, error } = usePonderQuery({
-    queryFn: (db) =>
-      db
-        .select()
-        .from(schema.account)
-        .orderBy(schema.account.createdAt)
-        .limit(10),
+    sql: "SELECT * FROM account LIMIT 10",
   });
 
   if (isLoading) return <div>Loading...</div>;
@@ -89,7 +82,9 @@ function AccountList() {
 
   return (
     <ul>
-      {data?.map((account) => <li key={account.id}>{account.address}</li>)}
+      {data?.rows.map((account) => (
+        <li key={String(account.id)}>{String(account.address)}</li>
+      ))}
     </ul>
   );
 }
@@ -97,11 +92,14 @@ function AccountList() {
 
 #### Parameters
 
-| Parameter        | Type                                                     | Description                                             |
-| ---------------- | -------------------------------------------------------- | ------------------------------------------------------- |
-| `params.queryFn` | `(db: Client["db"]) => Promise<Result>`                  | Required query builder callback using the `db` argument |
-| `params.live`    | `boolean`                                                | Whether to subscribe to live updates (default: `true`) |
-| `...params`      | `Omit<UseQueryOptions<Result>, "queryFn" \| "queryKey">` | All `useQuery` options except `queryFn` and `queryKey`  |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `params.sql` | `string` | SQL `SELECT` sent as `{ sql }` |
+| `params.query` | `string` | SQL `SELECT` sent as `{ query }` (alias of `sql`) |
+| `params.live` | `boolean` | Invalidate on `/v1/live` status events (default: `true`) |
+| `...params` | `Omit<UseQueryOptions, "queryFn" \| "queryKey">` | Other `useQuery` options except `queryFn` and `queryKey` |
+
+Pass either `sql` or `query`, not both. Data is `{ rows }`.
 
 #### Returns
 
@@ -109,13 +107,13 @@ Returns a normal TanStack `useQuery` result object. [Read more](https://tanstack
 
 #### Implementation notes
 
-- Uses [`client.live`](/docs/api-reference/ponder-client#clientlive) to automatically refetch data when new blocks are indexed
-- Subscribes to updates on mount and unsubscribes on unmount
+- Uses [`client.live`](/docs/api-reference/ponder-client#clientlive) to invalidate when a new checkpoint is indexed
+- Subscribes on mount and unsubscribes on unmount
 - Requires `PonderProvider` in the component tree
 
 ## `usePonderStatus`
 
-Hook to query the indexing status of the Ponder server over HTTP with live updates.
+Hook to query `GET /v1/status` with live updates from `/v1/live`.
 
 #### Usage
 
@@ -129,17 +127,8 @@ function IndexingStatus() {
 
   return (
     <div>
-      {Object.entries(data).map(([chain, status]) => (
-        <div key={chain}>
-          <h3>{chain}</h3>
-          {status.block && (
-            <p>
-              Block: {status.block.number} (
-              {new Date(status.block.timestamp * 1000).toLocaleString()})
-            </p>
-          )}
-        </div>
-      ))}
+      checkpoint: {data?.checkpoint?.id ?? "none"} (block{" "}
+      {data?.checkpoint?.blockNumber ?? "—"})
     </div>
   );
 }
@@ -147,43 +136,42 @@ function IndexingStatus() {
 
 #### Parameters
 
-| Parameter | Type                                                     | Description                                            |
-| --------- | -------------------------------------------------------- | ------------------------------------------------------ |
-| `params`  | `Omit<UseQueryOptions<Status>, "queryFn" \| "queryKey">` | All `useQuery` options except `queryFn` and `queryKey` |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `params.live` | `boolean` | Apply `/v1/live` status events (default: `true`) |
+| `params` | `Omit<UseQueryOptions<Status>, "queryFn" \| "queryKey">` | Other `useQuery` options except `queryFn` and `queryKey` |
 
 #### Returns
 
-Returns a normal TanStack `useQuery` result containing the indexing [status object](/docs/advanced/observability#indexing-status). [Read more](https://tanstack.com/query/latest/docs/framework/react/reference/useQuery) in the TanStack documentation.
+Returns a TanStack `useQuery` result containing `{ checkpoint: { blockNumber, id } | null }`.
 
 ## `getPonderQueryOptions`
 
-Helper function to build the TanStack Query `queryFn` and `queryKey` for a SQL over HTTP query.
+Helper to build the TanStack Query `queryFn` and `queryKey` for a SQL string.
 
 ```tsx [index.ts]
 import { getPonderQueryOptions } from "@ponder/react";
-import { client, schema } from "../lib/ponder";
+import { client } from "../lib/ponder";
 
-const accountsQueryOptions = getPonderQueryOptions(client, (db) =>
-  db.select().from(schema.account).limit(10)
+const accountsQueryOptions = getPonderQueryOptions(
+  client,
+  "SELECT * FROM account LIMIT 10",
 );
-
-const query = usePonderQuery(accountsQueryOptions);
 ```
 
 #### Parameters
 
-| Parameter | Type                                    | Description                                                                         |
-| --------- | --------------------------------------- | ----------------------------------------------------------------------------------- |
-| `client`  | `Client`                                | A client instance created by `createClient`                                         |
-| `queryFn` | `(db: Client["db"]) => Promise<Result>` | Function that receives the Drizzle query builder and returns a query result promise |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `client` | `Client` | A client instance created by `createClient` |
+| `source` | `string \| { sql: string } \| { query: string }` | SQL text |
 
 #### Returns
 
-| Property   | Type                    | Description                                                                                                                                      |
-| ---------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `queryKey` | `QueryKey`              | A TanStack Query [Key](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys) that encodes the SQL statement                  |
-| `queryFn`  | `() => Promise<Result>` | A TanStack Query [Function](https://tanstack.com/query/latest/docs/framework/react/guides/query-functions) that executes the SQL query over HTTP |
-
+| Property   | Type | Description |
+| ---------- | ---- | ----------- |
+| `queryKey` | `QueryKey` | Encodes the SQL statement |
+| `queryFn`  | `() => Promise<{ rows }>` | Executes the SQL query over HTTP |
 
 ## `usePonderQueryOptions`
 
@@ -191,27 +179,11 @@ Same as [`getPonderQueryOptions`](#getponderqueryoptions), but uses the `PonderP
 
 ```tsx [index.ts]
 import { usePonderQueryOptions } from "@ponder/react";
-import { schema } from "../lib/ponder";
 
-const accountsQueryOptions = usePonderQueryOptions((db) =>
-  db.select().from(schema.account).limit(10)
+const accountsQueryOptions = usePonderQueryOptions(
+  "SELECT * FROM account LIMIT 10",
 );
-
-const query = usePonderQuery(accountsQueryOptions);
 ```
-
-#### Parameters
-
-| Parameter | Type                                    | Description                                                                         |
-| --------- | --------------------------------------- | ----------------------------------------------------------------------------------- |
-| `queryFn` | `(db: Client["db"]) => Promise<Result>` | Function that receives the Drizzle query builder and returns a query result promise |
-
-#### Returns
-
-| Property   | Type                    | Description                                                                                                                                      |
-| ---------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `queryKey` | `QueryKey`              | A TanStack Query [Key](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys) that encodes the SQL statement                  |
-| `queryFn`  | `() => Promise<Result>` | A TanStack Query [Function](https://tanstack.com/query/latest/docs/framework/react/guides/query-functions) that executes the SQL query over HTTP |
 
 ## `usePonderClient`
 

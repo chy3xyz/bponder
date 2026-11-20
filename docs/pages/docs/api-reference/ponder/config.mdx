@@ -9,7 +9,7 @@ The `ponder.config.ts` file defines chain IDs, RPC URLs, contract addresses & AB
 
 ## File requirements
 
-The `ponder.config.ts` file must **default export** the object returned by `createConfig`.
+The `ponder.config.ts` file must **default export** the object returned by `createConfig` (or `defineConfig`). `defineConfig` is the new config helper; `createConfig` still drives the current CLI load path.
 
 {/* prettier-ignore */}
 ```ts [ponder.config.ts] {1,4}
@@ -64,7 +64,7 @@ export default createConfig({
 | :------------------- | :-------------------------------------------------: | :------------------------------------------------------------------------ |
 | **kind**             |                    `"postgres"`                     |                                                                           |
 | **connectionString** |                      `string`                       | **Default: `DATABASE_URL` env var**. Postgres database connection string. |
-| **poolConfig**       | [`PoolConfig`](https://node-postgres.com/apis/pool) | **Default: `{ max: 30 }`**. Pool configuration passed to `node-postgres`. |
+| **poolConfig**       | [`PoolConfig`](https://node-postgres.com/apis/pool) | **Default: `{ max: 30 }`**. Pool configuration passed to `pg` (node-postgres). The production driver is still `pg`; `Bun.SQL` is not the default yet. |
 
 ```ts [ponder.config.ts] {4-10}
 import { createConfig } from "ponder";

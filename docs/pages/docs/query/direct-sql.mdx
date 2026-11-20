@@ -47,7 +47,7 @@ SET search_path TO my_ponder_project, "$user", public;
 
 ### Drizzle (`setDatabaseSchema`)
 
-If you're writing direct SQL queries using Drizzle (e.g. from a downstream Node.js application), you can use the `setDatabaseSchema` utility function to target a specific database schema.
+If you're writing direct SQL queries using Drizzle (e.g. from a downstream application), you can use the `setDatabaseSchema` utility function to target a specific database schema.
 
 This function mutates a Drizzle schema such that any queries built using that schema will target the specified database schema. [Read more](https://orm.drizzle.team/docs/schemas) in the Drizzle documentation.
 

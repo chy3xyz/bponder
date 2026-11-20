@@ -3,7 +3,7 @@
 Ponder supports querying onchain data (Ponder-managed tables) alongside offchain data (other tables in the same PostgreSQL database) using Drizzle.
 
 :::info
-  Ponder does not support reading or writing offchain data within indexing functions. This guide only applies to read-only SQL queries from custom API endpoints or standalone Node.js code.
+  Ponder does not support reading or writing offchain data within indexing functions. This guide only applies to read-only SQL queries from custom API endpoints or standalone application code.
 :::
 
 ## Setup
@@ -91,9 +91,9 @@ export const schema = {
 
 ## Query
 
-### From Node.js
+### From application code
 
-Once you've defined the combined schema, you can start writing queries from any Node.js code.
+Once you've defined the combined schema, you can start writing queries from any application process.
 
 ```ts [index.ts]
 import { drizzle } from "drizzle-orm/node-postgres";

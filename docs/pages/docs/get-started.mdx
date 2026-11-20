@@ -14,9 +14,13 @@ Once indexed, you can query the data through GraphQL, SQL over HTTP, or directly
 
 ### Run `create-ponder`
 
-The quickest way to create a new Ponder project is `create-ponder`, which sets up everything automatically for you.
+The quickest way to create a new Ponder project is `create-ponder`, which sets up everything automatically for you. Ponder is Bun-native: run `create-ponder` with Bun. [Read more](/docs/requirements).
 
 :::code-group
+
+```bash [bun]
+bun create ponder
+```
 
 ```bash [pnpm]
 pnpm create ponder
@@ -28,10 +32,6 @@ yarn create ponder
 
 ```bash [npm]
 npm init ponder@latest
-```
-
-```bash [bun]
-bun --bun create ponder
 ```
 
 :::
@@ -66,6 +66,10 @@ After installation, start the local development server.
 
 :::code-group
 
+```bash [bun]
+bun run dev
+```
+
 ```bash [pnpm]
 pnpm dev
 ```
@@ -76,10 +80,6 @@ yarn dev
 
 ```bash [npm]
 npm run dev
-```
-
-```bash [bun]
-bun dev
 ```
 
 :::

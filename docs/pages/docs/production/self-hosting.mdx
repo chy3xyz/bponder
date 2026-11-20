@@ -1,6 +1,6 @@
 # Self-hosting [Host a Ponder app on your own infrastructure]
 
-In general, hosting a Ponder app is similar to hosting an ordinary Node.js web server. This section describes the key Ponder-specific quirks to consider when self-hosting in production.
+In general, hosting a Ponder app is similar to hosting an ordinary Bun HTTP server. The process must be [Bun](https://bun.sh) `>=1.4.0` — Node.js is not a supported runtime. This section describes the key Ponder-specific quirks to consider when self-hosting in production.
 
 ## Database connection
 
@@ -23,6 +23,8 @@ Your app will likely have performance issues if the roundtrip database latency
 is greater than **50ms**. This is common when using a database in a different region or network.
 :::
 
+The production CLI still uses the `pg` driver for this connection. [Read more](/docs/database) about the current driver cutover.
+
 ## Database schema
 
 Ponder uses **database schemas** to isolate deployments. Each deployment must use a different schema.
@@ -44,13 +46,13 @@ Ponder natively supports this pattern in two ways.
 - **Standalone CLI command**: The `ponder db create-views` CLI command creates (or updates) views in the target schema to point at the specified deployment's tables.
   <div className="h-3" />
   ```bash
-  pnpm db create-views --schema=deployment-123 --views-schema=project-name
+  bun run db create-views --schema=deployment-123 --views-schema=project-name
   ```
   <div className="h-3" />
 - **Automated**: The `ponder start` command also accepts the `--views-schema` CLI flag. When specified, the deployment will run the `ponder db create-views` command automatically as soon as it becomes ready (when the backfill is complete).
   <div className="h-3" />
   ```bash
-  pnpm start --schema=deployment-123 --views-schema=project-name
+  bun run start --schema=deployment-123 --views-schema=project-name
   ```
   <div className="h-3" />
 
@@ -87,9 +89,13 @@ If a Ponder app running `ponder start` crashes and restarts using the same datab
 
 ### Resource Usage
 
-Ponder dynamically adjusts it's memory usage based on availability. To adjust the memory limit, set the `--max-old-space-size` flag for Node.js. [Read more](https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-mib).
+Ponder dynamically adjusts its memory usage based on availability. To cap the Bun heap, pass `--max-heap-size` (MiB) to `bun`:
 
-When using `ordering: "experimental_isolated"`, Ponder will use up to 4 CPU cores to index blocks in parallel. 
+```bash
+bun --max-heap-size=4096 run start --schema=deployment-123
+```
+
+When using `ordering: "experimental_isolated"`, Ponder will use up to 4 CPU cores to index blocks in parallel.
 
 ### Scale the HTTP server
 

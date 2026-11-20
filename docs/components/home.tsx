@@ -121,7 +121,7 @@ export function Home() {
                 </div>
                 <CardTitle>One-click deploys</CardTitle>
                 <CardDescription>
-                  Deploy anywhere that runs Node.js with{" "}
+                  Deploy anywhere that runs Bun with{" "}
                   <strong>zero downtime</strong> &{" "}
                   <strong>horizontal scaling</strong>
                 </CardDescription>

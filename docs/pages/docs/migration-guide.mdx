@@ -1,5 +1,93 @@
 # Migration guide [Upgrade to a new version of Ponder]
 
+## Bun-native major
+
+This is an in-place **major**. Ponder is now a Bun-only indexing runtime. Node.js is not a supported runtime. There is no dual-runtime compatibility layer and no API compatibility promise with Node Ponder.
+
+### Runtime and toolchain
+
+1. Install [Bun](https://bun.sh) `>=1.4.0`.
+2. Set `engines` to Bun only. Remove `engines.node`.
+
+```json [package.json]
+{
+  "engines": {
+    "bun": ">=1.4.0" // [!code ++]
+  }
+}
+```
+
+3. Run the CLI with Bun. The `ponder` and `create-ponder` bins use `#!/usr/bin/env bun`.
+
+```json [package.json]
+"scripts": {
+  "dev": "bun --bun ponder dev", // [!code --]
+  "start": "bun --bun ponder start", // [!code --]
+  "dev": "ponder dev", // [!code ++]
+  "start": "ponder start" // [!code ++]
+}
+```
+
+**Do not** use `bun --bun`. That flag existed so Bun would ignore the old Node shebang. It is not required, and it is not the supported way to start an app.
+
+```bash [shell]
+bun run dev
+bun run start --schema my_schema
+```
+
+`create-ponder` also requires Bun (`bun create ponder`). You can still install packages with pnpm, npm, or yarn; the process that runs `ponder` must be Bun. [Read more](/docs/requirements).
+
+### `@ponder/client` `/v1` contract
+
+`@ponder/client` talks to versioned Bun HTTP routes. Pass the **app origin**, not a `/sql` path. The client appends `/v1/*`.
+
+```ts
+import { createClient } from "@ponder/client";
+
+const client = createClient("http://localhost:42069/sql", { schema }); // [!code --]
+const client = createClient({ url: "http://localhost:42069" }); // [!code ++]
+
+const result = await client.db.select().from(schema.account); // [!code --]
+const { rows } = await client.sql("SELECT * FROM account LIMIT 10"); // [!code ++]
+```
+
+| Old | New |
+| --- | --- |
+| `createClient(baseUrl, { schema })` | `createClient({ url, fetch? })` |
+| `POST /sql` (Drizzle pg-proxy) | `POST /v1/sql` with `{ sql }` or `{ query }` |
+| status on `/status` | `GET /v1/status` |
+| live query SSE | `GET /v1/live` status events |
+| `client.db` query builder | `client.sql` / `client.query` returning `{ rows }` |
+
+`@ponder/react` follows the same contract: `usePonderQuery({ sql })` instead of a Drizzle `queryFn`. [Read more](/docs/query/sql-over-http).
+
+### `defineConfig`
+
+`defineConfig` is exported from `ponder` as the new config helper (`chains`, `database`, `indexing`, `ordering`, `server`). Prefer it for new apps.
+
+`createConfig` still drives the current CLI load path. Swap default exports to `defineConfig` when your app is on the Bun config surface; both names are exported during the cutover.
+
+```ts [ponder.config.ts]
+import { defineConfig } from "ponder"; // [!code ++]
+import { createConfig } from "ponder"; // [!code --]
+
+export default defineConfig({ // [!code ++]
+export default createConfig({ // [!code --]
+  chains: { /* ... */ },
+  contracts: { /* ... */ },
+});
+```
+
+### Honest cutover notes (Vite / `pg`)
+
+These Node-era pieces are **not fully gone** from `ponder start` / `ponder dev` yet. The Bun replacements exist as slices but are not the default CLI path.
+
+- **Vite SSR loader.** User indexing functions still load through Vite and `ponder:*` virtual modules (`ponder:registry`, `ponder:schema`, `ponder:api`). A Bun `import()` loader is not wired to those commands yet. Keep `ponder-env.d.ts` until that lands.
+- **`pg` (node-postgres).** Production Postgres still uses `pg`. `Bun.SQL` lives in-tree and is not the default `createDatabase` driver. `database.poolConfig` is still a node-postgres pool shape.
+- **Isolated indexing.** `ordering: "experimental_isolated"` still uses Node `worker_threads` on the CLI controller. `Bun.Worker` is not the `ponder start` path yet.
+
+Do not expect deleting Vite, `pg`, or `ponder:*` imports to work until those paths are wired. Track the deferred list in `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`.
+
 ## 0.18
 
 ### Breaking changes

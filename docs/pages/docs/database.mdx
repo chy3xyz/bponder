@@ -2,12 +2,12 @@
 
 Ponder supports two database options, [**PGlite**](https://pglite.dev/) and Postgres.
 
-- **PGlite**: An embedded Postgres database. PGlite runs in the same Node.js process as Ponder, and stores data in the `.ponder` directory. **Only suitable for local development**.
-- **PostgreSQL**: A traditional Postgres database server. Required for production, can be used for local development.
+- **PostgreSQL**: A traditional Postgres database server. **Required for production**, and the recommended local database.
+- **PGlite**: An embedded Postgres database. PGlite runs in the same Bun process as Ponder, and stores data in the `.ponder` directory. **Only suitable for local development**.
 
 ## Choose a database
 
-Ponder uses PGlite by default. To use Postgres, set the `DATABASE_URL` environment variable to a Postgres connection string, or use explicit configuration in `ponder.config.ts`.
+Ponder uses PGlite by default when `DATABASE_URL` is unset. To use Postgres, set the `DATABASE_URL` environment variable to a Postgres connection string, or use explicit configuration in `ponder.config.ts`.
 
 ```ts
 import { createConfig } from "ponder";
@@ -23,6 +23,10 @@ export default createConfig({
 
 [Read more](/docs/api-reference/ponder/config#database) about database configuration in the `ponder.config.ts` API reference.
 
+:::info
+The production `ponder start` / `ponder dev` path still uses the `pg` (node-postgres) driver today. A `Bun.SQL` adapter exists in-tree but is not the default `createDatabase` driver yet. Pool options such as `database.poolConfig` are still the node-postgres [`PoolConfig`](https://node-postgres.com/apis/pool) shape.
+:::
+
 ## Database schema
 
 Ponder uses **database schemas** to organize data. Each instance must use a different schema.
@@ -36,7 +40,7 @@ DATABASE_SCHEMA=my_schema
 ```
 
 ```bash [CLI]
-ponder start --schema my_schema
+bun run start --schema my_schema
 ```
 
 :::

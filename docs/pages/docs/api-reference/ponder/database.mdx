@@ -9,7 +9,7 @@ This page describes internal details of the Ponder instance lifecycle, which may
 
 ## Instance lifecycle
 
-Here's an overview of the instance lifecycle. Here, _instance_ refers to a Node.js process running `ponder dev` or `ponder start`.
+Here's an overview of the instance lifecycle. Here, _instance_ refers to a Bun process running `ponder dev` or `ponder start`.
 
 1. Start returning `200` from the `/health` endpoint. Return `503` from the `/ready` endpoint.
 2. Build all user code (config, schema, indexing functions), then generate a `build_id` by hashing the build artifacts.

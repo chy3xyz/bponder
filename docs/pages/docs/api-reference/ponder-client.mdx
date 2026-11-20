@@ -5,11 +5,15 @@ This is a low-level reference. For an introduction, visit the
 [SQL over HTTP](/docs/query/sql-over-http) page.
 :::
 
-The `@ponder/client` package provides a typed SQL over HTTP client for querying your Ponder database from client applications.
+The `@ponder/client` package queries a Ponder app over the Bun `/v1` HTTP contract (`POST /v1/sql`, `GET /v1/status`, `GET /v1/live`).
 
 ## Installation
 
 :::code-group
+
+```bash [bun]
+bun add @ponder/client
+```
 
 ```bash [pnpm]
 pnpm add @ponder/client
@@ -23,145 +27,110 @@ yarn add @ponder/client
 npm add @ponder/client
 ```
 
-```bash [bun]
-bun add @ponder/client
-```
-
 :::
 
 ## `createClient`
 
-Create a client object connected to a Ponder server.
+Create a client connected to a Ponder server. Pass the **app origin**; the client appends `/v1/*`. Do not include `/sql` in the URL.
 
 #### Usage
 
 ```ts [Client project]
 import { createClient } from "@ponder/client";
-import * as schema from "../../ponder/ponder.schema";
 
-const client = createClient("https://.../sql", { schema });
+const client = createClient({ url: "http://localhost:42069" });
 
-export { client, schema };
+export { client };
 ```
 
 #### Parameters
 
-| Parameter        | Type                  | Description                                                |
-| ---------------- | --------------------- | ---------------------------------------------------------- |
-| `baseUrl`        | `string`              | Ponder server URL where the `client` middleware is running |
-| `options.schema` | `Schema \| undefined` | The schema exported by `ponder.schema.ts`                  |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `url` | `string` | Ponder app origin (for example `http://localhost:42069`) |
+| `fetch` | `typeof fetch` (optional) | Fetch implementation. Defaults to `globalThis.fetch`. |
 
 #### Returns
 
-Returns a `Client` object with methods for querying the database.
+Returns a `Client` with `getStatus`, `sql`, `query`, and `live`.
 
-## `client.db`
+## `client.sql` / `client.query`
 
-Build a SQL query using Drizzle and execute it over HTTP.
+`POST /v1/sql` with `{ sql }` or `{ query }`. Both return `{ rows }`. Only `SELECT` statements are allowed.
 
 #### Usage
 
 ```ts [Client project]
-import { client, schema } from "../lib/ponder";
-import { eq } from "@ponder/client";
+import { client } from "../lib/ponder";
 
-const result = await client.db.select().from(schema.account).limit(10);
+const { rows } = await client.sql("SELECT * FROM account LIMIT 10");
 
-const filteredResults = await client.db
-  .select()
-  .from(schema.account)
-  .where(eq(schema.account.id, "0x123..."));
+const also = await client.query("SELECT * FROM account WHERE id = '0x123'");
 ```
 
 #### Returns
 
-Returns an array of objects according to the query.
+```ts
+type SqlResult = {
+  rows: Record<string, unknown>[];
+};
+```
 
 ## `client.live`
 
-Subscribe to live updates from the database using server-sent events (SSE).
+Subscribe to `GET /v1/live` server-sent `status` events. The callback receives checkpoint status, not query rows — refetch SQL yourself (React hooks do this automatically).
 
 #### Usage
 
 ```ts [Client project]
-import { client, schema } from "../lib/ponder";
+import { client } from "../lib/ponder";
 
 const { unsubscribe } = client.live(
-  (db) => db.select().from(schema.account),
-  (result) => {
-    console.log("Updated accounts:", result);
+  (status) => {
+    console.log("checkpoint", status.checkpoint);
   },
   (error) => {
     console.error("Subscription error:", error);
-  }
+  },
 );
 
-// Later, to stop receiving updates:
 unsubscribe();
 ```
 
 #### Parameters
 
-| Parameter | Type                                | Description                                          |
-| --------- | ----------------------------------- | ---------------------------------------------------- |
-| `queryFn` | `(db: ClientDb) => Promise<Result>` | A query builder callback using the `db` argument     |
-| `onData`  | `(result: Result) => void`          | Callback that receives each new query result         |
-| `onError` | `(error: Error) => void`            | Optional callback that handles any errors that occur |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `onStatus` | `(status: Status) => void` | Called for each SSE `status` event |
+| `onError` | `(error: Error) => void` | Optional error handler |
 
 #### Returns
 
-Returns an object with an `unsubscribe` method that can be called to stop receiving updates.
-
-#### Implementation notes
-
-- Each `createClient` instance multiplexes all live queries over a single SSE connection.
-- The server notifies the client whenever a new block gets indexed. If a query result is no longer valid, the client immediately refetches it to receive the latest result.
+An object with `unsubscribe()`.
 
 ## `client.getStatus`
 
-Fetch the indexing progress of each chain.
+`GET /v1/status`.
 
 #### Usage
 
 ```ts [Client project]
-import { client, schema } from "../lib/ponder";
+import { client } from "../lib/ponder";
 
 const status = await client.getStatus();
 
-console.log("Mainnet indexing status:", status.mainnet);
+console.log("checkpoint", status.checkpoint);
 ```
 
 #### Returns
 
-Returns a Promise that resolves to an object containing the indexing status of each chain.
-
 ```ts
-type Status = {
-  [chain: string]: {
-    id: number;
-    block: { number: number; timestamp: number } | null;
-  };
+type Checkpoint = {
+  blockNumber: number;
+  id: string;
 };
-```
 
-## Drizzle utility functions
-
-The `@ponder/client` package exports all relevant Drizzle utility functions ([full list](https://github.com/ponder-sh/ponder/blob/main/packages/client/src/index.ts#L176)). You shouldn't need to install `drizzle-orm` separately.
-
-#### Usage
-
-```ts [Client project]
-import { client, schema } from "../lib/ponder";
-import { eq, gte, and, desc } from "@ponder/client"; // [!code focus]
-
-const result = await client.db
-  .select()
-  .from(schema.transfers)
-  .where(
-    and(
-      gte(schema.transfers.value, 1000000n),
-      eq(schema.transfers.from, "0x123...")
-    )
-  )
-  .orderBy(desc(schema.transfers.blockNumber));
+type Status = {
+  checkpoint: Checkpoint | null;
+};
 ```

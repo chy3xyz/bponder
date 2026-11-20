@@ -2,11 +2,31 @@
 
 The `create-ponder` CLI is the easiest way to [get started](/docs/get-started) with Ponder. If it runs without error, your system likely meets the requirements.
 
+Ponder is a **Bun-native** indexing runtime. Apps run on [Bun](https://bun.sh), not Node.js. Node is not a supported runtime.
+
 ## System requirements
 
 - macOS, Linux, or Windows (including WSL).
-- [Node.js](https://nodejs.org/en) 22.12 or later.
-- [PostgreSQL](https://www.postgresql.org/download/) version 14, 15, 16 or 17.
+- [Bun](https://bun.sh) 1.4.0 or later. The `ponder` and `create-ponder` CLIs use a Bun shebang (`#!/usr/bin/env bun`).
+- [PostgreSQL](https://www.postgresql.org/download/) version 14, 15, 16 or 17 for production. Local development can use PGlite (no server required) or Postgres.
+
+Confirm the runtime:
+
+```bash [shell]
+bun --version
+```
+
+## Create a project
+
+```bash [shell]
+bun create ponder
+```
+
+`create-ponder` must be invoked with Bun. After scaffold, generated `package.json` files set `engines.bun` to `>=1.4.0` and scripts stay as `ponder dev` / `ponder start` — **do not** wrap them in `bun --bun`. The CLI shebang already selects Bun, so `bun run dev` is enough.
+
+You can still install packages with pnpm, npm, or yarn (`create-ponder --pnpm`, `--npm`, or `--yarn`). The process that runs `ponder` must be Bun.
+
+[Read more](/docs/api-reference/create-ponder) in the `create-ponder` API reference. Existing Node apps should follow the [migration guide](/docs/migration-guide).
 
 ## TypeScript
 
@@ -24,7 +44,7 @@ This file powers Ponder's zero-codegen type system. It contains a declaration fo
 
 After upgrading to a new version of `ponder`, the dev server might make changes to `ponder-env.d.ts`. When this happens, please accept and commit the changes.
 
-### VSCode
+### VSCode / Cursor
 
 By default, VSCode's TypeScript language features use an internal version of TypeScript. Sometimes, this version does not meet Ponder's requirement of `>=5.0.4`.
 

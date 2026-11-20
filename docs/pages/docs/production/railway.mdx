@@ -19,7 +19,13 @@ From the Railway console:
 3. Create a public domain. In **Settings** → **Networking**, click **Generate Domain**.
 4. Update the start command. In **Settings** → **Deploy**, set the **Custom Start Command** to include the `--schema` option. This is required to enable zero-downtime deployments. [Read more](/docs/database#database-schema).
 
+The start command must run on Bun (`>=1.4.0`). Node.js is not a supported runtime.
+
 :::code-group
+
+```bash [bun]
+bun run start --schema $RAILWAY_DEPLOYMENT_ID
+```
 
 ```bash [pnpm]
 pnpm start --schema $RAILWAY_DEPLOYMENT_ID
@@ -33,10 +39,6 @@ yarn start --schema $RAILWAY_DEPLOYMENT_ID
 npm run start -- --schema $RAILWAY_DEPLOYMENT_ID
 ```
 
-```bash [bun]
-bun start --schema $RAILWAY_DEPLOYMENT_ID
-```
-
 :::
 
 5. Set the healthcheck path and timeout. In **Settings** → **Deploy**, set the **Healthcheck Path** to `/ready` and the **Healthcheck Timeout** to `3600` seconds (1 hour, the maximum allowed).
@@ -44,7 +46,7 @@ bun start --schema $RAILWAY_DEPLOYMENT_ID
 :::info
 _Monorepo users:_ Use the **Root Directory** and **Start Command** options
 to run `ponder start` at the Ponder project root. For example, set the root directory
-to `packages/ponder` or set the start command to `cd packages/ponder && pnpm start`.
+to `packages/ponder` or set the start command to `cd packages/ponder && bun run start`.
 :::
 
 ### Create a Postgres database

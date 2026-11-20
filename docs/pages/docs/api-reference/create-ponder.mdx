@@ -4,7 +4,13 @@ The `create-ponder` CLI tool is the easiest way to get started with Ponder.
 
 It asks a few questions, then creates a new Ponder project in the specified directory including all required files (`package.json`, `ponder.config.ts`, ABIs, etc).
 
+`create-ponder` requires [Bun](https://bun.sh) `>=1.4.0`. Do not pass `bun --bun` — the CLI shebang already selects Bun.
+
 :::code-group
+
+```bash [bun]
+bun create ponder {...options}
+```
 
 ```bash [pnpm]
 pnpm create ponder {...options}
@@ -18,10 +24,6 @@ yarn create ponder {...options}
 npm init ponder@latest {...options}
 ```
 
-```bash [bun]
-bun --bun create ponder {...options}
-```
-
 :::
 
 ## Options
@@ -32,6 +34,7 @@ Usage:
 
 Options:
   -t, --template [id]             Use a template
+  --bun                           Use bun as your package manager (default)
   --npm                           Use npm as your package manager
   --pnpm                          Use pnpm as your package manager
   --yarn                          Use yarn as your package manager
@@ -52,6 +55,10 @@ For example, this command creates a project using the `feature-factory` example 
 
 :::code-group
 
+```bash [bun]
+bun create ponder --template feature-factory
+```
+
 ```bash [pnpm]
 pnpm create ponder --template feature-factory
 ```
@@ -62,10 +69,6 @@ yarn create ponder --template feature-factory
 
 ```bash [npm]
 npm init ponder@latest --template feature-factory
-```
-
-```bash [bun]
-bun --bun create ponder --template feature-factory
 ```
 
 :::
