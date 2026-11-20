@@ -1,9 +1,13 @@
-type BunSqlClient = {
+export type BunSqlTransaction = {
   (
     strings: TemplateStringsArray,
     ...values: unknown[]
   ): Promise<Record<string, unknown>[]>;
   unsafe(query: string, values?: unknown[]): Promise<unknown>;
+};
+
+type BunSqlClient = BunSqlTransaction & {
+  begin<T>(callback: (sql: BunSqlTransaction) => Promise<T>): Promise<T>;
   close(): Promise<void>;
 };
 

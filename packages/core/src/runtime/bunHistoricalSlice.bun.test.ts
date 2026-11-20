@@ -52,8 +52,11 @@ if (skip) {
     beforeAll(async () => {
       database = createBunSqlDatabase({ url });
       await database.admin.unsafe(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
-      await database.admin.unsafe(`SET search_path TO ${schema}`);
-      await database.user.unsafe(`SET search_path TO ${schema}`);
+      await database.close();
+
+      const schemaUrl = new URL(url);
+      schemaUrl.searchParams.set("options", `-csearch_path=${schema}`);
+      database = createBunSqlDatabase({ url: schemaUrl.toString() });
       await database.migrate();
       await migrateUser(database, transfer);
     });
@@ -125,6 +128,28 @@ if (skip) {
       } finally {
         await server.stop();
       }
+
+      await database.admin`DROP TABLE ponder_bun_meta`;
+      await expect(
+        syncBunHistoricalEvents({
+          database,
+          table: transfer,
+          events: [
+            {
+              name: "Token:Transfer",
+              id: "104-0",
+              blockNumber: 104,
+              args: { from: "dave", to: "erin", value: 1 },
+            },
+          ],
+          registrations: ponder.fns,
+        }),
+      ).rejects.toThrow();
+
+      const rolledBackRows = await database.user`
+        SELECT id FROM transfer WHERE id = '104-0'
+      `;
+      expect(rolledBackRows).toEqual([]);
     });
   });
 }

@@ -1,6 +1,6 @@
 import type { OnchainTable } from "@ponder/schema";
 import type { Registration } from "../app/ponder.js";
-import type { BunSqlDatabase } from "../database/bunSql.js";
+import type { BunSqlDatabase, BunSqlTransaction } from "../database/bunSql.js";
 import type { BunFetchHandler } from "../server/bunServe.js";
 
 export type BunHistoricalEvent = {
@@ -27,11 +27,11 @@ const postgresType = {
 } as const;
 
 const flushRows = async ({
-  database,
+  sql,
   table,
   rows,
 }: {
-  database: BunSqlDatabase;
+  sql: BunSqlTransaction;
   table: OnchainTable;
   rows: Record<string, unknown>[];
 }) => {
@@ -44,7 +44,7 @@ const flushRows = async ({
     .join(", ");
   const values = columns.map(([name]) => rows.map((row) => row[name]));
 
-  await database.user.unsafe(
+  await sql.unsafe(
     `INSERT INTO ${quoteIdentifier(table.name)} (${columnSql})
      SELECT * FROM UNNEST(${unnestSql})`,
     values,
@@ -73,8 +73,6 @@ export const syncBunHistoricalEvents = async ({
     }
   }
 
-  await flushRows({ database, table, rows });
-
   const event = events.reduce<BunHistoricalEvent | undefined>(
     (latest, candidate) =>
       latest === undefined || candidate.blockNumber >= latest.blockNumber
@@ -85,11 +83,14 @@ export const syncBunHistoricalEvents = async ({
   if (event === undefined) return undefined;
 
   const checkpoint = { blockNumber: event.blockNumber, id: event.id };
-  await database.admin`
-    INSERT INTO ponder_bun_meta (key, value)
-    VALUES (${checkpointKey}, ${JSON.stringify(checkpoint)})
-    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-  `;
+  await database.user.begin(async (sql) => {
+    await flushRows({ sql, table, rows });
+    await sql`
+      INSERT INTO ponder_bun_meta (key, value)
+      VALUES (${checkpointKey}, ${JSON.stringify(checkpoint)})
+      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+    `;
+  });
 
   return checkpoint;
 };
