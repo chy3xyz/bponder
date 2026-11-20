@@ -1,5 +1,5 @@
-#!/usr/bin/env node
-import { readFileSync } from "node:fs";
+#!/usr/bin/env bun
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Command } from "@commander-js/extra-typings";
@@ -16,7 +16,11 @@ import { start } from "./commands/start.js";
 dotenv.config({ path: ".env.local" });
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const packageJsonPath = resolve(__dirname, "../../../package.json");
+const sourcePackageJsonPath = resolve(__dirname, "../../package.json");
+const distPackageJsonPath = resolve(__dirname, "../../../package.json");
+const packageJsonPath = existsSync(sourcePackageJsonPath)
+  ? sourcePackageJsonPath
+  : distPackageJsonPath;
 const packageJson = JSON.parse(
   readFileSync(packageJsonPath, { encoding: "utf8" }),
 );
