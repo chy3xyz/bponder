@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { satisfies } from "semver";
 import { createBuild } from "@/build/index.js";
 import { createDatabase, SCHEMATA } from "@/database/index.js";
 import { createLogger } from "@/internal/logger.js";
@@ -8,6 +7,7 @@ import { buildOptions } from "@/internal/options.js";
 import { createShutdown } from "@/internal/shutdown.js";
 import { createServer } from "@/server/index.js";
 import type { CliOptions } from "../ponder.js";
+import { assertBunRuntime } from "../utils/assertBun.js";
 import { createExit } from "../utils/exit.js";
 
 export async function serve({ cliOptions }: { cliOptions: CliOptions }) {
@@ -18,14 +18,7 @@ export async function serve({ cliOptions }: { cliOptions: CliOptions }) {
     mode: options.logFormat,
   });
 
-  if (!satisfies(process.versions.node, ">=22.12")) {
-    logger.error({
-      msg: "Invalid Node.js version",
-      version: process.versions.node,
-      expected: ">=22.12",
-    });
-    process.exit(1);
-  }
+  assertBunRuntime(logger);
 
   const metrics = new MetricsService();
   const shutdown = createShutdown();

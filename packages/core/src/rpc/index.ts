@@ -24,7 +24,6 @@ import {
   TimeoutError,
   webSocket,
 } from "viem";
-import { WebSocket } from "ws";
 import type { Common } from "@/internal/common.js";
 import type { Logger } from "@/internal/logger.js";
 import type { Chain, SyncBlock, SyncBlockHeader } from "@/internal/types.js";
@@ -34,6 +33,15 @@ import { startClock } from "@/utils/timer.js";
 import { wait } from "@/utils/wait.js";
 import type { DebugRpcSchema } from "../utils/debug.js";
 import { getHttpRpcClient } from "./http.js";
+
+const websocketMessageText = (data: unknown): string => {
+  if (typeof data === "string") return data;
+  if (data instanceof ArrayBuffer) return new TextDecoder().decode(data);
+  if (ArrayBuffer.isView(data)) {
+    return new TextDecoder().decode(data);
+  }
+  return String(data);
+};
 
 export type RpcSchema = [
   ...PublicRpcSchema,
@@ -752,7 +760,7 @@ export const createRpc = ({
           await new Promise<void>((resolve) => {
             ws = new WebSocket(chain.ws!);
 
-            ws.on("open", () => {
+            ws.addEventListener("open", () => {
               common.logger.debug({
                 msg: "Created JSON-RPC WebSocket connection",
                 chain: chain.name,
@@ -769,9 +777,9 @@ export const createRpc = ({
               ws?.send(JSON.stringify(subscriptionRequest));
             });
 
-            ws.on("message", (data: Buffer) => {
+            ws.addEventListener("message", (event) => {
               try {
-                const msg = JSON.parse(data.toString());
+                const msg = JSON.parse(websocketMessageText(event.data));
                 if (
                   msg.method === "eth_subscription" &&
                   msg.params.subscription === subscriptionId
@@ -852,7 +860,8 @@ export const createRpc = ({
               }
             });
 
-            ws.on("error", async (error) => {
+            ws.addEventListener("error", async () => {
+              const error = new Error("WebSocket error");
               common.logger.warn({
                 msg: "Failed JSON-RPC WebSocket subscription",
                 chain: chain.name,
@@ -862,21 +871,21 @@ export const createRpc = ({
                   params: ["newHeads"],
                 }),
                 retry_count: webSocketErrorCount + 1,
-                error: error as Error,
+                error,
               });
 
               if (webSocketErrorCount < RETRY_COUNT) {
                 webSocketErrorCount += 1;
               }
 
-              if (ws && ws.readyState === ws.OPEN) {
+              if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.close();
               } else {
                 resolve();
               }
             });
 
-            ws.on("close", async () => {
+            ws.addEventListener("close", async () => {
               common.logger.debug({
                 msg: "Closed JSON-RPC WebSocket connection",
                 chain: chain.name,

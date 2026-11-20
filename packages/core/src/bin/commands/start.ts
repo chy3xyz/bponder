@@ -1,4 +1,3 @@
-import { satisfies } from "semver";
 import { runCodegen } from "@/bin/utils/codegen.js";
 import { createBuild } from "@/build/index.js";
 import { createDatabase, type Database } from "@/database/index.js";
@@ -20,6 +19,7 @@ import { runOmnichain } from "@/runtime/omnichain.js";
 import { createServer } from "@/server/index.js";
 import { isolatedController } from "../isolatedController.js";
 import type { CliOptions } from "../ponder.js";
+import { assertBunRuntime } from "../utils/assertBun.js";
 import { createExit } from "../utils/exit.js";
 
 export type PonderApp = {
@@ -47,14 +47,7 @@ export async function start({
     mode: options.logFormat,
   });
 
-  if (!satisfies(process.versions.node, ">=22.12")) {
-    logger.error({
-      msg: "Invalid Node.js version",
-      version: process.versions.node,
-      expected: ">=22.12",
-    });
-    process.exit(1);
-  }
+  assertBunRuntime(logger);
 
   const metrics = new MetricsService();
   const shutdown = createShutdown();

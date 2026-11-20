@@ -843,9 +843,6 @@ importers:
       pg-connection-string:
         specifier: ^2.6.2
         version: 2.9.1
-      pg-copy-streams:
-        specifier: ^6.0.6
-        version: 6.0.6
       pg-query-emscripten:
         specifier: 5.1.0
         version: 5.1.0
@@ -873,9 +870,6 @@ importers:
       vite:
         specifier: 8.3.1
         version: 8.3.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
-      ws:
-        specifier: ^8.18.3
-        version: 8.18.3
     devDependencies:
       '@pgsql/types':
         specifier: 16.0.0
@@ -895,15 +889,9 @@ importers:
       '@types/pg':
         specifier: ^8.10.9
         version: 8.10.9
-      '@types/pg-copy-streams':
-        specifier: ^1.2.5
-        version: 1.2.5
       '@types/semver':
         specifier: ^7.5.8
         version: 7.5.8
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
       '@viem/anvil':
         specifier: ^0.0.6
         version: 0.0.6(debug@4.4.3(supports-color@7.2.0))

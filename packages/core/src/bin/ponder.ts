@@ -12,6 +12,9 @@ import { list } from "./commands/list.js";
 import { prune } from "./commands/prune.js";
 import { serve } from "./commands/serve.js";
 import { start } from "./commands/start.js";
+import { assertBunRuntime } from "./utils/assertBun.js";
+
+assertBunRuntime();
 
 dotenv.config({ path: ".env.local" });
 

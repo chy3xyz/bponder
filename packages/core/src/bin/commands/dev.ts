@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { satisfies } from "semver";
 import { createBuild } from "@/build/index.js";
 import { createDatabase, type Database } from "@/database/index.js";
 import type { Common } from "@/internal/common.js";
@@ -22,6 +21,7 @@ import { createQueue } from "@/utils/queue.js";
 import type { Result } from "@/utils/result.js";
 import { isolatedController } from "../isolatedController.js";
 import type { CliOptions } from "../ponder.js";
+import { assertBunRuntime } from "../utils/assertBun.js";
 import { runCodegen } from "../utils/codegen.js";
 import { createExit } from "../utils/exit.js";
 
@@ -33,14 +33,7 @@ export async function dev({ cliOptions }: { cliOptions: CliOptions }) {
     mode: options.logFormat,
   });
 
-  if (!satisfies(process.versions.node, ">=22.12")) {
-    logger.error({
-      msg: "Invalid Node.js version",
-      version: process.versions.node,
-      expected: ">=22.12",
-    });
-    process.exit(1);
-  }
+  assertBunRuntime(logger);
 
   if (!fs.existsSync(path.join(options.rootDir, ".env.local"))) {
     logger.warn({

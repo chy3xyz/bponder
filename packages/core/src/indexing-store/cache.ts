@@ -7,7 +7,6 @@ import {
   type Table,
 } from "drizzle-orm";
 import { getTableConfig } from "drizzle-orm/pg-core";
-import copy from "pg-copy-streams";
 import type { QB } from "@/database/queryBuilder.js";
 import { getPrimaryKeyColumns } from "@/drizzle/index.js";
 import { getColumnCasing } from "@/drizzle/kit/index.js";
@@ -280,41 +279,27 @@ export const getCopyText = (table: Table, rows: Row[]) => {
 };
 
 export const getCopyHelper = (qb: QB, chainId?: number) => {
-  if (qb.$dialect === "pglite") {
-    return async (table: Table, text: string, includeSchema = true) => {
-      const target = includeSchema
-        ? `"${getTableConfig(table).schema ?? "public"}"."${chainId === undefined ? getTableName(table) : getPartitionName(table, chainId)}"`
-        : `"${chainId === undefined ? getTableName(table) : getPartitionName(table, chainId)}"`;
-      await qb.$client
-        .query(`COPY ${target} FROM '/dev/blob'`, [], {
-          blob: new Blob([text]),
-        })
-        // Note: `TransactionError` is applied because the query
-        // uses the low-level `$client.query` method.
-        .catch((error) => {
-          throw new CopyFlushError(error.message);
-        });
-    };
-  } else {
-    return async (table: Table, text: string, includeSchema = true) => {
-      const target = includeSchema
-        ? `"${getTableConfig(table).schema ?? "public"}"."${chainId === undefined ? getTableName(table) : getPartitionName(table, chainId)}"`
-        : `"${chainId === undefined ? getTableName(table) : getPartitionName(table, chainId)}"`;
-      const copyStream = qb.$client.query(
-        copy.from(`COPY ${target} FROM STDIN`),
-      );
+  if (qb.$dialect !== "pglite") {
+    // Postgres COPY FROM STDIN used `pg-copy-streams` (removed). Large
+    // flushes fall back to Drizzle insert / ON CONFLICT until Bun.SQL COPY
+    // or UNNEST lands on the production indexing path.
+    return undefined;
+  }
 
-      await new Promise((resolve, reject) => {
-        copyStream.on("finish", resolve);
-        copyStream.on("error", reject);
-
-        copyStream.write(text);
-        copyStream.end();
-      }).catch((error) => {
+  return async (table: Table, text: string, includeSchema = true) => {
+    const target = includeSchema
+      ? `"${getTableConfig(table).schema ?? "public"}"."${chainId === undefined ? getTableName(table) : getPartitionName(table, chainId)}"`
+      : `"${chainId === undefined ? getTableName(table) : getPartitionName(table, chainId)}"`;
+    await qb.$client
+      .query(`COPY ${target} FROM '/dev/blob'`, [], {
+        blob: new Blob([text]),
+      })
+      // Note: `TransactionError` is applied because the query
+      // uses the low-level `$client.query` method.
+      .catch((error) => {
         throw new CopyFlushError(error.message);
       });
-    };
-  }
+  };
 };
 
 export const recoverBatchError = async <T>(
@@ -559,7 +544,7 @@ export const createIndexingCache = ({
         if (insertValues.length > 0) {
           const endClock = startClock();
 
-          if (insertValues.length > LOW_BATCH_THRESHOLD) {
+          if (insertValues.length > LOW_BATCH_THRESHOLD && copy !== undefined) {
             const text = getCopyText(
               table,
               insertValues.map(({ row }) => row),
@@ -602,7 +587,7 @@ export const createIndexingCache = ({
 
           const endClock = startClock();
 
-          if (updateValues.length > LOW_BATCH_THRESHOLD) {
+          if (updateValues.length > LOW_BATCH_THRESHOLD && copy !== undefined) {
             // Steps for flushing "update" entries:
             // 1. Create temp table
             // 2. Copy into temp table
