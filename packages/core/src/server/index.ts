@@ -1,5 +1,3 @@
-import http from "node:http";
-import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createMiddleware } from "hono/factory";
@@ -12,6 +10,7 @@ import type { Common } from "@/internal/common.js";
 import type { ApiBuild, Status } from "@/internal/types.js";
 import { decodeCheckpoint } from "@/utils/checkpoint.js";
 import { startClock } from "@/utils/timer.js";
+import { startBunServer } from "./bunServe.js";
 import { onError } from "./error.js";
 
 export type Server = {
@@ -126,55 +125,25 @@ export async function createServer({
 
   const endClock = startClock();
 
-  // Create nodejs server
-
-  const httpServer = await new Promise<http.Server>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new Error("HTTP server failed to start within 5 seconds."));
-    }, 5_000);
-
-    const httpServer = serve(
-      {
-        fetch: hono.fetch,
-        createServer: http.createServer,
-        port: apiBuild.port,
-        // Note that common.options.hostname can be undefined if the user did not specify one.
-        // In this case, Node.js uses `::` if IPv6 is available and `0.0.0.0` otherwise.
-        // https://nodejs.org/api/net.html#serverlistenport-host-backlog-callback
-        hostname: apiBuild.hostname,
-      },
-      () => {
-        clearTimeout(timeout);
-        common.metrics.port = apiBuild.port;
-        common.logger.info({
-          msg: "Created HTTP server",
-          port: apiBuild.port,
-          hostname: apiBuild.hostname,
-          duration: endClock(),
-        });
-        common.logger.info({
-          msg: "Started returning 200 responses",
-          endpoint: "/health",
-        });
-        resolve(httpServer as http.Server);
-      },
-    );
+  const bunServer = startBunServer({
+    fetch: (request) => hono.fetch(request),
+    port: apiBuild.port,
+    hostname: apiBuild.hostname ?? "::",
   });
 
-  common.apiShutdown.add(
-    () =>
-      new Promise<void>((resolve) => {
-        const timeout = setTimeout(
-          () => httpServer.closeAllConnections(),
-          1_000,
-        );
-        httpServer.close(() => {
-          clearTimeout(timeout);
-          resolve();
-        });
-        httpServer.closeIdleConnections();
-      }),
-  );
+  common.metrics.port = bunServer.port;
+  common.logger.info({
+    msg: "Created HTTP server",
+    port: bunServer.port,
+    hostname: apiBuild.hostname,
+    duration: endClock(),
+  });
+  common.logger.info({
+    msg: "Started returning 200 responses",
+    endpoint: "/health",
+  });
+
+  common.apiShutdown.add(() => bunServer.stop(true));
 
   return { hono };
 }

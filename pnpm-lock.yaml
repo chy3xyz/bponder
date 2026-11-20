@@ -808,9 +808,6 @@ importers:
       '@escape.tech/graphql-armor-max-tokens':
         specifier: ^2.3.0
         version: 2.4.0
-      '@hono/node-server':
-        specifier: 1.19.5
-        version: 1.19.5(hono@4.5.0)
       '@ponder/utils':
         specifier: workspace:*
         version: link:../utils
@@ -2092,12 +2089,6 @@ packages:
     engines: {node: '>=10'}
     peerDependencies:
       vue: ^3.2.0
-
-  '@hono/node-server@1.19.5':
-    resolution: {integrity: sha512-iBuhh+uaaggeAuf+TftcjZyWh2GEgZcVGXkNtskLVoWaXhnJtC5HLHrU8W1KHDoucqO1MswwglmkWLFyiDn4WQ==}
-    engines: {node: '>=18.14.1'}
-    peerDependencies:
-      hono: ^4
 
   '@hono/node-server@2.1.5':
     resolution: {integrity: sha512-MgP/I06GdvsilDspMk/qmRzpk8LOUStP6jFAbSRi40W09DhoyUn+Mj7eyKICPqeYKybOjVFLVIAQzvu1bfIa7Q==}
@@ -8851,10 +8842,6 @@ snapshots:
     dependencies:
       '@tanstack/vue-virtual': 3.13.48(vue@3.5.44(typescript@5.9.3))
       vue: 3.5.44(typescript@5.9.3)
-
-  '@hono/node-server@1.19.5(hono@4.5.0)':
-    dependencies:
-      hono: 4.5.0
 
   '@hono/node-server@2.1.5(hono@4.13.13)':
     dependencies:
