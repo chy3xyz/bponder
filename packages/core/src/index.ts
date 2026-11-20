@@ -24,6 +24,12 @@ export {
   startBunServer,
   stopBunServer,
 } from "@/server/bunServe.js";
+export {
+  type BunV1ApiDependencies,
+  type BunV1Status,
+  createBunV1ApiFetch,
+} from "@/server/bunV1Api.js";
+
 export type {
   Block,
   Log,
