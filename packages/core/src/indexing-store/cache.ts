@@ -23,6 +23,7 @@ import type {
   Event,
   SchemaBuild,
 } from "@/internal/types.js";
+import { chunk } from "@/utils/chunk.js";
 import { dedupe } from "@/utils/dedupe.js";
 import { prettyPrint } from "@/utils/print.js";
 import { promiseAllSettledWithThrow } from "@/utils/promiseAllSettledWithThrow.js";
@@ -89,6 +90,11 @@ export type IndexingCache = {
 const SAMPLING_RATE = 10;
 const PREDICTION_THRESHOLD = 0.25;
 const LOW_BATCH_THRESHOLD = 20;
+
+const getInsertBatchSize = (table: Table, maxQueryParameters: number) => {
+  const columnCount = Math.max(Object.keys(getTableColumns(table)).length, 1);
+  return Math.max(1, Math.floor(maxQueryParameters / columnCount));
+};
 
 /**
  * Database row.
@@ -522,6 +528,49 @@ export const createIndexingCache = ({
 
       const copy = getCopyHelper(qb, chainId);
 
+      const insertRowBatches = async (table: Table, rows: Row[]) => {
+        if (rows.length === 0) return;
+        const batchSize = getInsertBatchSize(
+          table,
+          common.options.databaseMaxQueryParameters,
+        );
+        for (const batch of chunk(rows, batchSize)) {
+          await qb.wrap((db) => db.insert(table).values(batch), context);
+        }
+      };
+
+      const upsertRowBatches = async (table: Table, rows: Row[]) => {
+        if (rows.length === 0) return;
+        const primaryKeys = getPrimaryKeyColumns(table);
+        const batchSize = getInsertBatchSize(
+          table,
+          common.options.databaseMaxQueryParameters,
+        );
+        for (const batch of chunk(rows, batchSize)) {
+          await qb.wrap(
+            (db) =>
+              db
+                .insert(table)
+                .values(batch)
+                .onConflictDoUpdate({
+                  // @ts-expect-error
+                  target: primaryKeys.map(({ js }) => table[js]!),
+                  set: Object.fromEntries(
+                    Object.entries(getTableColumns(table)).map(
+                      ([columnName, column]) => [
+                        columnName,
+                        sql.raw(
+                          `excluded."${getColumnCasing(column, "snake_case")}"`,
+                        ),
+                      ],
+                    ),
+                  ),
+                }),
+            context,
+          );
+        }
+      };
+
       const flushTable = async (table: Table) => {
         const shouldRecordBytes = cache.get(table)!.isCacheComplete;
         if (
@@ -554,10 +603,9 @@ export const createIndexingCache = ({
 
             await copy(table, text);
           } else {
-            await qb.wrap(
-              (db) =>
-                db.insert(table).values(insertValues.map(({ row }) => row)),
-              context,
+            await insertRowBatches(
+              table,
+              insertValues.map(({ row }) => row),
             );
           }
 
@@ -629,26 +677,9 @@ export const createIndexingCache = ({
               context,
             );
           } else {
-            await qb.wrap(
-              (db) =>
-                db
-                  .insert(table)
-                  .values(updateValues.map(({ row }) => row))
-                  .onConflictDoUpdate({
-                    // @ts-expect-error
-                    target: primaryKeys.map(({ js }) => table[js]!),
-                    set: Object.fromEntries(
-                      Object.entries(getTableColumns(table)).map(
-                        ([columnName, column]) => [
-                          columnName,
-                          sql.raw(
-                            `excluded."${getColumnCasing(column, "snake_case")}"`,
-                          ),
-                        ],
-                      ),
-                    ),
-                  }),
-              context,
+            await upsertRowBatches(
+              table,
+              updateValues.map(({ row }) => row),
             );
           }
 
@@ -735,11 +766,18 @@ export const createIndexingCache = ({
               insertValues,
               async (values) => {
                 await qb.wrap((db) => db.execute("ROLLBACK to flush"), context);
-                const text = getCopyText(
-                  table,
-                  values.map(({ row }) => row),
-                );
-                await copy(table, text);
+                if (copy !== undefined) {
+                  const text = getCopyText(
+                    table,
+                    values.map(({ row }) => row),
+                  );
+                  await copy(table, text);
+                } else {
+                  await insertRowBatches(
+                    table,
+                    values.map(({ row }) => row),
+                  );
+                }
 
                 await qb.wrap((db) => db.execute("SAVEPOINT flush"), context);
               },
@@ -795,27 +833,38 @@ export const createIndexingCache = ({
 
             const endClock = startClock();
 
-            await qb.wrap((db) => db.execute(createTempTableQuery), context);
+            if (copy !== undefined) {
+              await qb.wrap((db) => db.execute(createTempTableQuery), context);
+            }
             await qb.wrap((db) => db.execute("SAVEPOINT flush"), context);
 
             const result = await recoverBatchError(
               updateValues,
               async (values) => {
                 await qb.wrap((db) => db.execute("ROLLBACK to flush"), context);
-                const text = getCopyText(
-                  table,
-                  values.map(({ row }) => row),
-                );
-                await copy(table, text, false);
+                if (copy !== undefined) {
+                  const text = getCopyText(
+                    table,
+                    values.map(({ row }) => row),
+                  );
+                  await copy(table, text, false);
+                } else {
+                  await upsertRowBatches(
+                    table,
+                    values.map(({ row }) => row),
+                  );
+                }
 
                 await qb.wrap((db) => db.execute("SAVEPOINT flush"), context);
               },
             );
 
-            await qb.wrap(
-              (db) => db.execute(`TRUNCATE TABLE "${target}"`),
-              context,
-            );
+            if (copy !== undefined) {
+              await qb.wrap(
+                (db) => db.execute(`TRUNCATE TABLE "${target}"`),
+                context,
+              );
+            }
 
             if (result.status === "error") {
               error = new DelayedInsertError(result.error.message);
