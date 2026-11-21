@@ -33,9 +33,22 @@ bun run dev
 
 [Read more](/docs/requirements) in Requirements. Existing Node Ponder apps should follow the [migration guide](/docs/migration-guide).
 
+## Bun-native `ponder start` and `ponder dev`
+
+Under Bun, `ponder start` and `ponder dev` use the Bun-native indexing path by default: they load `ponder.config.ts` and `ponder.schema.ts` with Bun `import()`, resolve `ponder:registry` / `ponder:schema` with a Bun plugin, and run indexing (`createDatabase`, `migrate`, `migrateSync`, then `runOmnichain` or `runMultichain`) without Vite. `--native` and `PONDER_BUN_NATIVE=1` still enable that path explicitly.
+
+To force the classic Vite path:
+
+```bash [shell]
+PONDER_USE_VITE=1 ponder start
+PONDER_USE_VITE=1 ponder dev
+```
+
+`ordering: "experimental_isolated"` is not supported on the native path — set `PONDER_USE_VITE=1`. If the compiled database is Postgres, native `start` / `dev` also start the Bun-native `/v1` HTTP server. `--schema` / `DATABASE_SCHEMA` is required for `ponder start`.
+
 ## Bun-native `ponder serve`
 
-`ponder start` and `ponder dev` still serve the classic Vite/Hono HTTP API unless you pass `--native`. To serve the Bun-native `/v1` stack (`Bun.SQL` + `Bun.serve`, no Vite or Hono) instead:
+`ponder serve` still uses the classic Vite/Hono HTTP API unless you pass `--native` or set `PONDER_BUN_NATIVE=1`. To serve the Bun-native `/v1` stack (`Bun.SQL` + `Bun.serve`, no Vite or Hono) without indexing:
 
 ```bash [shell]
 # Requires DATABASE_URL
@@ -45,16 +58,6 @@ PONDER_BUN_NATIVE=1 ponder serve
 ```
 
 This starts `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` SSE, then prints the listen URL. Port and hostname still come from `-p` / `-H` (or `PORT`). `--schema` / `DATABASE_SCHEMA` selects the Postgres schema (`public` by default); invalid identifiers exit with an error. Classic `ponder serve` without `--native` is unchanged.
-
-## Bun-native `ponder start`
-
-```bash [shell]
-ponder start --native
-# or
-PONDER_BUN_NATIVE=1 ponder start
-```
-
-This loads `ponder.config.ts` and `ponder.schema.ts` with Bun `import()`, resolves `ponder:registry` / `ponder:schema` with a Bun plugin, and runs production indexing (`createDatabase`, `migrate`, `migrateSync`, then `runOmnichain` or `runMultichain`) without Vite. `ordering: "experimental_isolated"` is not supported on this path — use classic `ponder start` without `--native`. If the compiled database is Postgres, it also starts the Bun-native `/v1` HTTP server. `--schema` / `DATABASE_SCHEMA` is required, matching classic `ponder start`. Classic `ponder start` without `--native` is unchanged.
 
 ## Known limitations
 

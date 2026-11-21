@@ -84,7 +84,7 @@ const devCommand = new Command("dev")
   .option("--disable-ui", "Disable the terminal UI")
   .option(
     "--native",
-    "Start Bun-native indexing without Vite, loading config, schema, and handlers via import()",
+    "Start Bun-native indexing without Vite (default under Bun; set PONDER_USE_VITE=1 for Vite)",
   )
   .showHelpAfterError()
   .action(async (_, command) => {
@@ -111,7 +111,7 @@ const startCommand = new Command("start")
   )
   .option(
     "--native",
-    "Start Bun-native indexing without Vite, loading config, schema, and handlers via import()",
+    "Start Bun-native indexing without Vite (default under Bun; set PONDER_USE_VITE=1 for Vite)",
   )
   .showHelpAfterError()
   .action(async (_, command) => {

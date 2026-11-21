@@ -28,7 +28,7 @@ import { safeBuildSchema } from "./schema.js";
 const BUILD_ID_VERSION = "2";
 
 export const BUN_NATIVE_ISOLATED_ORDERING_ERROR =
-  "The Bun-native 'ponder start --native' command does not support ordering: \"experimental_isolated\". Use classic 'ponder start' without --native.";
+  'The Bun-native ponder start command does not support ordering: "experimental_isolated". Set PONDER_USE_VITE=1 to run classic ponder start.';
 
 const defaultRegistryFile = fileURLToPath(
   new URL("../app/ponder.ts", import.meta.url),

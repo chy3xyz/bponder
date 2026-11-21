@@ -14,7 +14,34 @@ import { createBunV1ApiFetch } from "@/server/bunV1Api.js";
 const TRUTHY_ENV = new Set(["1", "true", "yes"]);
 
 export const bunNativeServeEnvName = "PONDER_BUN_NATIVE";
+export const bunUseViteEnvName = "PONDER_USE_VITE";
 
+function isTruthyEnvValue(value: string | undefined): boolean {
+  if (typeof value !== "string") return false;
+  return TRUTHY_ENV.has(value.trim().toLowerCase());
+}
+
+/**
+ * Bun-native indexing for `ponder start` / `ponder dev`.
+ * On when `process.versions.bun` is set, unless `PONDER_USE_VITE=1`.
+ * `--native` / `PONDER_BUN_NATIVE=1` still enable explicitly.
+ */
+export function isBunNativeEnabled({
+  native,
+  env = process.env,
+  versions = process.versions,
+}: {
+  native?: boolean;
+  env?: NodeJS.Dict<string>;
+  versions?: { bun?: string };
+} = {}): boolean {
+  if (native === true) return true;
+  if (isTruthyEnvValue(env[bunUseViteEnvName])) return false;
+  if (isTruthyEnvValue(env[bunNativeServeEnvName])) return true;
+  return versions.bun !== undefined;
+}
+
+/** Opt-in Bun-native `/v1` for `ponder serve` (no indexing). Never default-on. */
 export function isBunNativeServeEnabled({
   native,
   env = process.env,
@@ -23,11 +50,7 @@ export function isBunNativeServeEnabled({
   env?: NodeJS.Dict<string>;
 } = {}): boolean {
   if (native === true) return true;
-
-  const value = env[bunNativeServeEnvName];
-  if (typeof value !== "string") return false;
-
-  return TRUTHY_ENV.has(value.trim().toLowerCase());
+  return isTruthyEnvValue(env[bunNativeServeEnvName]);
 }
 
 /** Returns an invalid identifier if `--schema` / DATABASE_SCHEMA cannot be used as a schema name. */

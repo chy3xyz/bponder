@@ -16,7 +16,7 @@ import type { CliOptions } from "../ponder.js";
 import { formatBunNativeOrigin } from "./bunNativeServe.js";
 import { createExit } from "./exit.js";
 
-/** Shared `ponder start --native` / `ponder dev --native` indexing + `/v1` path. */
+/** Shared Bun-native `ponder start` / `ponder dev` indexing + `/v1` path. */
 export async function runBunNativeApp({
   cliOptions,
   options,

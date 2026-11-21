@@ -23,7 +23,7 @@ import { isolatedController } from "../isolatedController.js";
 import type { CliOptions } from "../ponder.js";
 import { assertBunRuntime } from "../utils/assertBun.js";
 import { runBunNativeApp } from "../utils/bunNativeApp.js";
-import { isBunNativeServeEnabled } from "../utils/bunNativeServe.js";
+import { isBunNativeEnabled } from "../utils/bunNativeServe.js";
 import { runCodegen } from "../utils/codegen.js";
 import { createExit } from "../utils/exit.js";
 
@@ -43,7 +43,7 @@ export async function dev({ cliOptions }: { cliOptions: CliOptions }) {
     });
   }
 
-  if (isBunNativeServeEnabled({ native: cliOptions.native })) {
+  if (isBunNativeEnabled({ native: cliOptions.native })) {
     return runBunNativeApp({ cliOptions, options, logger });
   }
 

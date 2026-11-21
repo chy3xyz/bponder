@@ -33,6 +33,8 @@ Wiring landed after `d331479` / `c9ecc10`. The original checklist above is uncha
 | `16050ae` | `createBunSqlDatabase` creates non-public schemas and sets a durable `search_path`; `ponder serve --native --schema` passes through | Production `createDatabase` still defaults to `pg` |
 | `e7912e1` | `ponder start --native` loads config/schema with `bunLoader` (Bun `import()`) and can start the Bun `/v1` stack | Classic `ponder start` / `ponder dev` still use Vite SSR + `ponder:*` |
 | `812eef2` | `isolatedController` spawns via `createIndexingWorker`; under Bun that is `Bun.Worker` + `isolatedWorker.bun.ts` | Full `runIsolated` is not ported; the Bun entry is kill/done only, so isolated indexing does not process events |
+| `b0a59dc` | Unified `/v1` on `start --native` through `createDatabase` `readonlyQB` | Vite still the default loader for unflagged `start` / `dev` |
+| prod default | `ponder start` / `ponder dev` default to Bun-native indexing when `process.versions.bun` is set; `PONDER_USE_VITE=1` is the Vite escape hatch | `ponder serve` still requires `--native` / `PONDER_BUN_NATIVE=1`; Vite loader remains in-tree |
 
 ---
 
@@ -116,10 +118,10 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 | Deferred | Why it remains | Where |
 |---|---|---|
 | `pg` + `createDatabase` | Production indexing still uses node-postgres / Drizzle; `createBunSqlDatabase` supports schema/`search_path` but is not the default | `packages/core/src/database/index.ts`, `packages/core/src/utils/pg.ts` |
-| Vite SSR loader + `ponder:*` | `createBuild` still boots Vite; no Bun `import()` loader on `ponder dev` / `ponder start` | `packages/core/src/build/index.ts`, `plugin.ts` |
+| Vite SSR loader + `ponder:*` | Default `ponder start` / `ponder dev` use Bun `import()`; Vite is the `PONDER_USE_VITE=1` escape hatch. `createBuild` still boots Vite on that path and for classic `ponder serve` | `packages/core/src/build/index.ts`, `plugin.ts` |
 | `worker_threads` CLI | Isolated indexing still uses Node `Worker`; `Bun.Worker` exists but is not the CLI controller | `packages/core/src/bin/isolatedController.ts`, `isolatedWorker.ts` |
 
-`@hono/node-server`, `pg-copy-streams`, and the `ws` package are already gone from the production graph. Default `ponder serve` / `dev` / `start` still use the Vite/Hono API; the Bun `/v1` stack is opt-in (`ponder serve --native`).
+`@hono/node-server`, `pg-copy-streams`, and the `ws` package are already gone from the production graph. Under Bun, `ponder start` / `ponder dev` default to the native indexing path; Vite is escape-hatch only (`PONDER_USE_VITE=1`). Default `ponder serve` still uses the Vite/Hono API; the Bun `/v1` stack without indexing remains opt-in (`ponder serve --native`).
 
 ---
 

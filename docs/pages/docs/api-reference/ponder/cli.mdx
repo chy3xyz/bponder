@@ -40,8 +40,11 @@ Options:
   --disable-ui               Disable the terminal UI
   -p, --port <PORT>          Port for the web server (default: 42069)
   -H, --hostname <HOSTNAME>  Hostname for the web server (default: "0.0.0.0" or "::")
+  --native                   Start the Bun-native path without Vite (default under Bun)
   -h, --help                 display help for command
 ```
+
+Under Bun, `ponder dev` uses the Bun-native indexing path by default. Pass `--native` or set `PONDER_BUN_NATIVE=1` to enable it explicitly. Set `PONDER_USE_VITE=1` to force the classic Vite path. [Read more](/docs/guides/bun#bun-native-ponder-start-and-ponder-dev).
 
 ## start
 
@@ -60,11 +63,11 @@ Options:
   --views-schema <SCHEMA>    Views database schema (max: 45 characters)
   -p, --port <PORT>          Port for the web server (default: 42069)
   -H, --hostname <HOSTNAME>  Hostname for the web server (default: "0.0.0.0" or "::")
-  --native                   Start the Bun-native path without Vite
+  --native                   Start the Bun-native path without Vite (default under Bun)
   -h, --help                 display help for command
 ```
 
-Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip Vite and run production indexing on the Bun-native path: config/schema via `import()`, indexing files via a Bun plugin for `ponder:registry` and `ponder:schema`, then `createDatabase` / `migrate` / `migrateSync` and `runOmnichain` or `runMultichain`. `ordering: "experimental_isolated"` errors and asks for classic `ponder start`. If the compiled database is Postgres, it also starts the Bun-native `/v1` HTTP server. `--schema` / `DATABASE_SCHEMA` is required. Classic `ponder start` without `--native` is unchanged. [Read more](/docs/guides/bun#bun-native-ponder-start).
+Under Bun, `ponder start` uses the Bun-native indexing path by default: config/schema via `import()`, indexing files via a Bun plugin for `ponder:registry` and `ponder:schema`, then `createDatabase` / `migrate` / `migrateSync` and `runOmnichain` or `runMultichain`. `--native` and `PONDER_BUN_NATIVE=1` still enable that path explicitly. Set `PONDER_USE_VITE=1` to force the classic Vite path. `ordering: "experimental_isolated"` errors and asks for `PONDER_USE_VITE=1`. If the compiled database is Postgres, it also starts the Bun-native `/v1` HTTP server. `--schema` / `DATABASE_SCHEMA` is required. [Read more](/docs/guides/bun#bun-native-ponder-start-and-ponder-dev).
 
 ## serve
 
@@ -88,7 +91,7 @@ Options:
   -h, --help                 display help for command
 ```
 
-Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip the Vite/Hono API and serve `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` over `Bun.serve`. Requires `DATABASE_URL`. `--schema` / `DATABASE_SCHEMA` must be omitted or `public`. `ponder dev` still uses the classic HTTP server. [Read more](/docs/guides/bun#bun-native-ponder-serve).
+Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip the Vite/Hono API and serve `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` over `Bun.serve`. Requires `DATABASE_URL`. `--schema` / `DATABASE_SCHEMA` must be omitted or `public`. Unlike `ponder start` / `ponder dev`, `ponder serve` does **not** default to native under Bun. [Read more](/docs/guides/bun#bun-native-ponder-serve).
 
 ## codegen
 
