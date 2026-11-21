@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { createBunSqlDatabase } from "../../database/bunSql.js";
 import {
   formatBunNativeOrigin,
+  getUnsupportedBunNativeSchema,
   isBunNativeServeEnabled,
   startBunNativeServe,
 } from "./bunNativeServe.js";
@@ -27,6 +28,46 @@ test("isBunNativeServeEnabled honors PONDER_BUN_NATIVE", () => {
   expect(isBunNativeServeEnabled({ env: { PONDER_BUN_NATIVE: "0" } })).toBe(
     false,
   );
+});
+
+test("getUnsupportedBunNativeSchema allows public, default, and unset", () => {
+  expect(getUnsupportedBunNativeSchema({ env: {} })).toBeUndefined();
+  expect(
+    getUnsupportedBunNativeSchema({ schema: undefined, env: {} }),
+  ).toBeUndefined();
+  expect(
+    getUnsupportedBunNativeSchema({ schema: "public", env: {} }),
+  ).toBeUndefined();
+  expect(
+    getUnsupportedBunNativeSchema({ schema: "  public  ", env: {} }),
+  ).toBeUndefined();
+  expect(
+    getUnsupportedBunNativeSchema({ env: { DATABASE_SCHEMA: "public" } }),
+  ).toBeUndefined();
+  expect(
+    getUnsupportedBunNativeSchema({ schema: "", env: {} }),
+  ).toBeUndefined();
+});
+
+test("getUnsupportedBunNativeSchema rejects non-public schemas", () => {
+  expect(getUnsupportedBunNativeSchema({ schema: "ponder", env: {} })).toBe(
+    "ponder",
+  );
+  expect(
+    getUnsupportedBunNativeSchema({ env: { DATABASE_SCHEMA: "expected" } }),
+  ).toBe("expected");
+  expect(
+    getUnsupportedBunNativeSchema({
+      schema: "public",
+      env: { DATABASE_SCHEMA: "other" },
+    }),
+  ).toBeUndefined();
+  expect(
+    getUnsupportedBunNativeSchema({
+      schema: "other",
+      env: { DATABASE_SCHEMA: "public" },
+    }),
+  ).toBe("other");
 });
 
 test("formatBunNativeOrigin uses localhost for wildcard binds", () => {

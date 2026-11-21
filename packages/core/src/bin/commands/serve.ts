@@ -9,6 +9,7 @@ import { createServer } from "@/server/index.js";
 import type { CliOptions } from "../ponder.js";
 import { assertBunRuntime } from "../utils/assertBun.js";
 import {
+  getUnsupportedBunNativeSchema,
   isBunNativeServeEnabled,
   startBunNativeServe,
 } from "../utils/bunNativeServe.js";
@@ -25,7 +26,7 @@ export async function serve({ cliOptions }: { cliOptions: CliOptions }) {
   assertBunRuntime(logger);
 
   if (isBunNativeServeEnabled({ native: cliOptions.native })) {
-    return serveBunNative({ options, logger });
+    return serveBunNative({ cliOptions, options, logger });
   }
 
   const metrics = new MetricsService();
@@ -221,9 +222,11 @@ export async function serve({ cliOptions }: { cliOptions: CliOptions }) {
 }
 
 async function serveBunNative({
+  cliOptions,
   options,
   logger,
 }: {
+  cliOptions: CliOptions;
   options: Options;
   logger: Logger;
 }) {
@@ -237,6 +240,18 @@ async function serveBunNative({
     },
     options,
   });
+
+  const unsupportedSchema = getUnsupportedBunNativeSchema({
+    schema: cliOptions.schema,
+  });
+  if (unsupportedSchema !== undefined) {
+    logger.error({
+      msg: "The Bun-native 'ponder serve --native' command does not support --schema yet",
+      schema: unsupportedSchema,
+    });
+    await exit({ code: 1 });
+    return;
+  }
 
   const databaseUrl = process.env.DATABASE_URL?.trim();
   if (databaseUrl === undefined || databaseUrl.length === 0) {

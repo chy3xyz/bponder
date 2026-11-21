@@ -85,7 +85,7 @@ Options:
   -h, --help                 display help for command
 ```
 
-Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip the Vite/Hono API and serve `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` over `Bun.serve`. Requires `DATABASE_URL`. `ponder start` and `ponder dev` still use the classic HTTP server. [Read more](/docs/guides/bun#bun-native-ponder-serve).
+Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip the Vite/Hono API and serve `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` over `Bun.serve`. Requires `DATABASE_URL`. `--schema` / `DATABASE_SCHEMA` must be omitted or `public`. `ponder start` and `ponder dev` still use the classic HTTP server. [Read more](/docs/guides/bun#bun-native-ponder-serve).
 
 ## codegen
 

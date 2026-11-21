@@ -10,6 +10,7 @@ import {
 import { createBunV1ApiFetch } from "@/server/bunV1Api.js";
 
 const TRUTHY_ENV = new Set(["1", "true", "yes"]);
+const DEFAULT_DATABASE_SCHEMA = "public";
 
 export const bunNativeServeEnvName = "PONDER_BUN_NATIVE";
 
@@ -26,6 +27,25 @@ export function isBunNativeServeEnabled({
   if (typeof value !== "string") return false;
 
   return TRUTHY_ENV.has(value.trim().toLowerCase());
+}
+
+/** Returns a non-default schema if `--schema` / DATABASE_SCHEMA would be silently ignored. */
+export function getUnsupportedBunNativeSchema({
+  schema,
+  env = process.env,
+}: {
+  schema?: string;
+  env?: NodeJS.Dict<string>;
+} = {}): string | undefined {
+  const requested = schema ?? env.DATABASE_SCHEMA;
+  if (typeof requested !== "string") return undefined;
+
+  const trimmed = requested.trim();
+  if (trimmed.length === 0 || trimmed === DEFAULT_DATABASE_SCHEMA) {
+    return undefined;
+  }
+
+  return trimmed;
 }
 
 export function formatBunNativeOrigin({
