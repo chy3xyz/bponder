@@ -166,7 +166,7 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 
 **Docs:** `docs/pages/docs/requirements.mdx` and `docs/pages/docs/guides/bun.mdx` state Bun is the only supported runtime. CLI reference documents `--native`.
 
-**CI:** `.github/workflows/main.yml` and `windows.yml` use `bun install --frozen-lockfile` and path filters (`bun run --filter './packages/core' test:bun`, etc.) with `oven-sh/setup-bun` **1.4.5**. Postgres vs PGlite matrix is retained. The monorepo uses Bun workspaces (`packageManager: bun@1.4.5`, `bun.lock`); Node remains only where npm publish / changesets need a registry setup.
+**CI:** `.github/workflows/main.yml` and `windows.yml` use `bun install --frozen-lockfile` and `bun run --cwd packages/…` (avoids Bun 1.4.x Linux `--filter` `FileNotFound` when a workspace glob is missing) with `oven-sh/setup-bun` **1.4.5**. Postgres vs PGlite matrix is retained. The monorepo uses Bun workspaces (`packageManager: bun@1.4.5`, `bun.lock`); Node remains only where npm publish / changesets need a registry setup.
 
 ---
 

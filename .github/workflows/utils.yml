@@ -28,7 +28,7 @@ jobs:
       - run: bun add -d -w viem@${{ matrix.viem-version }}
 
       - name: Test
-        run: bun run --filter './packages/utils' test src/_test
+        run: bun run --cwd packages/utils test src/_test
         env:
           RPC_URL_ALCHEMY_1: ${{ secrets.RPC_URL_ALCHEMY_1 }}
           RPC_URL_INFURA_1: ${{ secrets.RPC_URL_INFURA_1 }}

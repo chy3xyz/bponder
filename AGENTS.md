@@ -11,10 +11,10 @@
 - Build publishable packages: `bun run build`.
 - Lint and format use Biome: `bun run lint`, `bun run format`, `bun run lint:fix`.
 - Root typecheck covers `packages/**` only: `bun run typecheck`.
-- Focused package checks: `bun run --filter ponder typecheck`, `bun run --filter @ponder/client typecheck`, `bun run --filter @ponder/utils typecheck`, `bun run --filter create-ponder typecheck`.
-- Focused tests: `CI=1 bun run --filter ponder test src/path.test.ts`, `CI=1 bun run --filter @ponder/client test src/index.test.ts`, `bun run --filter create-ponder test`.
-- Type-level Vitest suites use separate scripts where present: `bun run --filter ponder test:typecheck`, `bun run --filter @ponder/client test:typecheck`, `bun run --filter @ponder/react test:typecheck`.
-- `bun run test` / `bun run test:bun` run matching workspace scripts in parallel (`--no-exit-on-error`); several package scripts are plain `vitest`, so set `CI=1` for one-shot local runs and prefer `--filter` to avoid unrelated network-heavy suites.
+- Focused package checks: `bun run --cwd packages/core typecheck`, `bun run --cwd packages/client typecheck`, `bun run --cwd packages/utils typecheck`, `bun run --cwd packages/create-ponder typecheck`.
+- Focused tests: `CI=1 bun test packages/core/src/path.test.ts`, `CI=1 bun run --cwd packages/client test src/index.test.ts`, `bun run --cwd packages/create-ponder test`.
+- Type-level Vitest suites use separate scripts where present: `bun run --cwd packages/core test:typecheck`, `bun run --cwd packages/client test:typecheck`, `bun run --cwd packages/react test:typecheck`.
+- Prefer `bun run --cwd <pkg>` over `bun run --filter` in CI/scripts: Bun 1.4.x on Linux can abort `--filter` with bare `FileNotFound` when a workspace glob points at a missing path (e.g. former `tmp/*`). Set `CI=1` for one-shot local Vitest runs.
 
 ## Tests And Environment
 - Core Vitest setup (`packages/core/vite.config.ts`) caps threads at 4, loads `packages/core/src/_test/setup.ts`, and runs `packages/core/src/_test/globalSetup.ts`.
@@ -35,8 +35,8 @@
 - Biome intentionally ignores `docs/`, `dist/`, generated folders, `.ponder`, cache/out directories, Solidity files, and `bun.lock`.
 
 ## Docs, Examples, Releases
-- Docs are a Vocs app in `docs`; use `bun run --filter ponder-docs dev` or `bun run --filter ponder-docs build`.
-- CI separately verifies the Next.js frontend example with `bun run --filter ponder-examples-with-nextjs-frontend build` after `bun run build`.
+- Docs are a Vocs app in `docs`; use `bun run --cwd docs dev` or `bun run --cwd docs build`.
+- CI separately verifies the Next.js frontend example with `bun run --cwd examples/with-nextjs/frontend build` after `bun run build`.
 
 ## Changesets
 - Changesets are fixed for `ponder`, `create-ponder`, `@ponder/client`, and `@ponder/react`; docs/examples are ignored. Create changesets with `bunx changeset`. Public API or bug-fix PRs normally need a patch changeset.
