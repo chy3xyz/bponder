@@ -1,18 +1,16 @@
 /**
- * Bun.Worker entry for isolated indexing.
+ * Bun.Worker entry for isolated indexing (Vite-free).
  *
- * Parity with isolatedWorker.ts: createBuild → createDatabase → runIsolated
- * per chainId. Messages:
- *   parent → worker: `{ type: "kill" }`
- *   worker → parent: `{ type: "ready" | "done", chainId }`, `{ type: "error" }`,
- *   plus a test ping: `{ type: "ping" }` → `{ type: "pong", worker: "bun" }`.
+ * Uses compileBunNative (Bun import + plugin) instead of createBuild/Vite.
+ * Messages:
+ *   parent → worker: `{ type: "kill" }` | `{ type: "ping" }`
+ *   worker → parent: `{ type: "ready" | "done", chainId }`, `{ type: "done" }`,
+ *     `{ type: "error" }`, `{ type: "pong", worker: "bun" }`
  *
- * Initial payload comes from `Worker.data` (Bun's workerData equivalent).
- * Uses the same Vite-backed createBuild as the Node worker so protocol and
- * indexing stay shared; Bun-native compile without Vite is a follow-up.
+ * Initial payload: `Worker.data` (Bun's workerData equivalent).
  */
 
-import { createBuild } from "@/build/index.js";
+import { compileBunNative } from "@/build/bunNativeBuild.js";
 import { createDatabase } from "@/database/index.js";
 import type { Common } from "@/internal/common.js";
 import { createLogger } from "@/internal/logger.js";
@@ -33,7 +31,7 @@ type IsolatedWorkerData = {
   namespaceBuild: NamespaceBuild;
   crashRecoveryCheckpoint: CrashRecoveryCheckpoint;
   chainIds: number[];
-  cliOptions: unknown;
+  cliOptions?: unknown;
 };
 
 const post = (message: unknown) => {
@@ -78,108 +76,63 @@ async function run() {
     }
   };
 
-  const build = await createBuild({
-    common,
-    cliOptions: workerData.cliOptions as Parameters<
-      typeof createBuild
-    >[0]["cliOptions"],
-  });
-
   globalThis.PONDER_NAMESPACE_BUILD = namespaceBuild;
 
-  const configResult = await build.executeConfig();
-  if (configResult.status === "error") {
-    throw configResult.error;
-  }
-
-  const schemaResult = await build.executeSchema();
-  if (schemaResult.status === "error") {
-    throw schemaResult.error;
-  }
-  const preBuildResult = build.preCompile(configResult.result);
-  if (preBuildResult.status === "error") {
-    throw preBuildResult.error;
-  }
-
-  const schemaBuildResult = build.compileSchema({
-    ...schemaResult.result,
-    preBuild: preBuildResult.result,
+  const buildResult = await compileBunNative({
+    common,
+    schema: namespaceBuild.schema,
+    viewsSchema: namespaceBuild.viewsSchema,
   });
-  if (schemaBuildResult.status === "error") {
-    throw schemaBuildResult.error;
+  if (buildResult.status === "error") {
+    throw buildResult.error;
   }
 
-  const configBuildResult = build.compileConfig({
-    configResult: configResult.result,
-  });
-  if (configBuildResult.status === "error") {
-    throw configBuildResult.error;
-  }
-
-  const indexingResult = await build.executeIndexingFunctions();
-  if (indexingResult.status === "error") {
-    throw indexingResult.error;
-  }
-
-  const indexingBuildResult = await build.compileIndexing({
-    configResult: configResult.result,
-    schemaResult: schemaResult.result,
-    indexingResult: indexingResult.result,
-    configBuild: configBuildResult.result,
-  });
-  if (indexingBuildResult.status === "error") {
-    throw indexingBuildResult.error;
-  }
+  const { preBuild, schemaBuild, indexingBuild: fullIndexingBuild } =
+    buildResult.result;
 
   options.indexingCacheMaxBytes = Math.floor(
-    options.indexingCacheMaxBytes / indexingBuildResult.result.chains.length,
+    options.indexingCacheMaxBytes / fullIndexingBuild.chains.length,
   );
   options.rpcMaxConcurrency = Math.floor(
-    options.rpcMaxConcurrency / indexingBuildResult.result.chains.length,
+    options.rpcMaxConcurrency / fullIndexingBuild.chains.length,
   );
   options.syncEventsQuerySize = Math.floor(
-    options.syncEventsQuerySize / indexingBuildResult.result.chains.length,
+    options.syncEventsQuerySize / fullIndexingBuild.chains.length,
   );
 
   const database = createDatabase({
     common,
     namespace: namespaceBuild,
-    preBuild: preBuildResult.result,
-    schemaBuild: schemaBuildResult.result,
+    preBuild,
+    schemaBuild,
   });
 
   await Promise.all(
     chainIds.map(async (chainId) => {
-      const chainIndex = indexingBuildResult.result.chains.findIndex(
+      const chainIndex = fullIndexingBuild.chains.findIndex(
         (c) => c.id === chainId,
       );
 
       const indexingBuild = {
-        ...indexingBuildResult.result,
-        chains: [indexingBuildResult.result.chains[chainIndex]!],
-        rpcs: [indexingBuildResult.result.rpcs[chainIndex]!],
-        finalizedBlocks: [
-          indexingBuildResult.result.finalizedBlocks[chainIndex]!,
-        ],
-        eventCallbacks: [
-          indexingBuildResult.result.eventCallbacks[chainIndex]!,
-        ],
-        setupCallbacks: [
-          indexingBuildResult.result.setupCallbacks[chainIndex]!,
-        ],
-        contracts: [indexingBuildResult.result.contracts[chainIndex]!],
+        ...fullIndexingBuild,
+        chains: [fullIndexingBuild.chains[chainIndex]!],
+        rpcs: [fullIndexingBuild.rpcs[chainIndex]!],
+        finalizedBlocks: [fullIndexingBuild.finalizedBlocks[chainIndex]!],
+        eventCallbacks: [fullIndexingBuild.eventCallbacks[chainIndex]!],
+        setupCallbacks: [fullIndexingBuild.setupCallbacks[chainIndex]!],
+        contracts: [fullIndexingBuild.contracts[chainIndex]!],
       };
 
       common.metrics.initializeIndexingMetrics({
         indexingBuild,
-        schemaBuild: schemaBuildResult.result,
+        schemaBuild,
       });
 
       await runIsolated({
         common,
-        preBuild: preBuildResult.result,
+        preBuild,
         namespaceBuild,
-        schemaBuild: schemaBuildResult.result,
+        schemaBuild,
         indexingBuild,
         crashRecoveryCheckpoint,
         database,

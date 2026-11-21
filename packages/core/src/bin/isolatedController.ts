@@ -3,6 +3,7 @@ import type { Worker } from "node:worker_threads";
 import { isTable, isView, sql } from "drizzle-orm";
 import { createIndexes, createViews } from "@/database/actions.js";
 import { type Database, getPonderMetaTable } from "@/database/index.js";
+import { jsonbSetOnValue } from "@/database/jsonb.js";
 import type { Common } from "@/internal/common.js";
 import {
   NonRetryableUserError,
@@ -117,7 +118,9 @@ export async function isolatedController({
       await database.adminQB.wrap({ label: "update_ready" }, (db) =>
         db
           .update(getPonderMetaTable(namespaceBuild.schema))
-          .set({ value: sql`jsonb_set(value, '{is_ready}', to_jsonb(1))` }),
+          .set({
+            value: jsonbSetOnValue("{is_ready}", sql`to_jsonb(1)`),
+          }),
       );
 
       common.logger.info({

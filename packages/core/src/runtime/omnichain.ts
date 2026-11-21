@@ -15,6 +15,7 @@ import {
   getPonderCheckpointTable,
   getPonderMetaTable,
 } from "@/database/index.js";
+import { jsonbSetOnValue } from "@/database/jsonb.js";
 import { getLiveQueryTempTableName } from "@/drizzle/onchain.js";
 import { createCachedViemClient } from "@/indexing/client.js";
 import {
@@ -611,7 +612,9 @@ export async function runOmnichain({
   await database.adminQB.wrap({ label: "update_ready" }, (db) =>
     db
       .update(PONDER_META)
-      .set({ value: sql`jsonb_set(value, '{is_ready}', to_jsonb(1))` }),
+      .set({
+        value: jsonbSetOnValue("{is_ready}", sql`to_jsonb(1)`),
+      }),
   );
 
   common.logger.info({

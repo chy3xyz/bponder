@@ -53,6 +53,7 @@ import {
   isBunSqlDatabaseDriver,
   resolveBunSqlConnectionUrl,
 } from "./bunSqlDriver.js";
+import { asJsonb, jsonbSetOnValue } from "./jsonb.js";
 import { createQB, type QB } from "./queryBuilder.js";
 
 export {
@@ -275,7 +276,9 @@ export const createDatabase = ({
         await adminQB.wrap({ label: "unlock" }, (db) =>
           db
             .update(PONDER_META)
-            .set({ value: sql`jsonb_set(value, '{is_locked}', to_jsonb(0))` }),
+            .set({
+              value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
+            }),
         );
       }
 
@@ -394,7 +397,9 @@ export const createDatabase = ({
         await adminQB.wrap({ label: "unlock" }, (db) =>
           db
             .update(PONDER_META)
-            .set({ value: sql`jsonb_set(value, '{is_locked}', to_jsonb(0))` }),
+            .set({
+              value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
+            }),
         );
       }
 
@@ -523,7 +528,9 @@ export const createDatabase = ({
         await adminQB.wrap({ label: "unlock" }, (db) =>
           db
             .update(PONDER_META)
-            .set({ value: sql`jsonb_set(value, '{is_locked}', to_jsonb(0))` }),
+            .set({
+              value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
+            }),
         );
       }
 
@@ -941,7 +948,10 @@ CREATE TABLE IF NOT EXISTS "${namespace.schema}"."${PONDER_CHECKPOINT_TABLE_NAME
 
             await tx.wrap(
               (tx) =>
-                tx.insert(PONDER_META).values({ key: "app", value: metadata }),
+                tx.insert(PONDER_META).values({
+                  key: "app",
+                  value: asJsonb(metadata),
+                }),
               context,
             );
             return {
@@ -1069,7 +1079,10 @@ CREATE TABLE IF NOT EXISTS "${namespace.schema}"."${PONDER_CHECKPOINT_TABLE_NAME
 
             await tx.wrap(
               (tx) =>
-                tx.insert(PONDER_META).values({ key: "app", value: metadata }),
+                tx.insert(PONDER_META).values({
+                  key: "app",
+                  value: asJsonb(metadata),
+                }),
               context,
             );
             return {
@@ -1193,7 +1206,8 @@ CREATE TABLE IF NOT EXISTS "${namespace.schema}"."${PONDER_CHECKPOINT_TABLE_NAME
           // in the runtime script.
 
           await tx.wrap(
-            (tx) => tx.update(PONDER_META).set({ value: metadata }),
+            (tx) =>
+              tx.update(PONDER_META).set({ value: asJsonb(metadata) }),
             context,
           );
           return { status: "success", crashRecoveryCheckpoint } as const;
@@ -1228,7 +1242,10 @@ CREATE TABLE IF NOT EXISTS "${namespace.schema}"."${PONDER_CHECKPOINT_TABLE_NAME
 
           await adminQB.wrap({ label: "update_heartbeat" }, (db) =>
             db.update(PONDER_META).set({
-              value: sql`jsonb_set(value, '{heartbeat_at}', ${heartbeat})`,
+              value: jsonbSetOnValue(
+                "{heartbeat_at}",
+                sql`to_jsonb(${heartbeat})`,
+              ),
             }),
           );
 
