@@ -312,6 +312,15 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
+  examples/feature-bun-live:
+    dependencies:
+      '@ponder/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
+      ponder:
+        specifier: workspace:*
+        version: link:../../packages/core
+
   examples/feature-bun-slice:
     dependencies:
       '@ponder/schema':
@@ -3895,9 +3904,6 @@ packages:
   '@types/node@24.19.2':
     resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
 
-  '@types/pg-copy-streams@1.2.5':
-    resolution: {integrity: sha512-7D6/GYW2uHIaVU6S/5omI+6RZnwlZBpLQDZAH83xX1rjxAOK0f6/deKyyUTewxqts145VIGn6XWYz1YGf50G5g==}
-
   '@types/pg@8.10.9':
     resolution: {integrity: sha512-UksbANNE/f8w0wOMxVKKIrLCbEMV+oM1uKejmwXr39olg4xqcfBDbXxObJAt6XxHbDa4XTKOlUEcEltXDX+XLQ==}
 
@@ -3947,9 +3953,6 @@ packages:
 
   '@types/web-bluetooth@0.0.21':
     resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
-
-  '@types/ws@8.18.1':
-    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@typescript/vfs@1.6.5':
     resolution: {integrity: sha512-gobLHQLmvQGJInFk31NvgMd1uYzRXsd8qgnOssyLD055R2QPnw1ubRbBQ4+T+5qC7IQVuYXdvNDE2G7tMDVHgw==}
@@ -6506,9 +6509,6 @@ packages:
 
   pg-connection-string@2.9.1:
     resolution: {integrity: sha512-nkc6NpDcvPVpZXxrreI/FOtX3XemeLl8E0qFr6F2Lrm/I8WOnaWNhIPK2Z7OHpw7gh5XJThi6j6ppgNoaT1w4w==}
-
-  pg-copy-streams@6.0.6:
-    resolution: {integrity: sha512-Z+Dd2C2NIDTsjyFKmc6a9QLlpM8tjpERx+43RSx0WmL7j3uNChERi3xSvZUL0hWJ1oRUn4S3fhyt3apdSrTyKQ==}
 
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
@@ -10838,11 +10838,6 @@ snapshots:
     dependencies:
       undici-types: 7.24.6
 
-  '@types/pg-copy-streams@1.2.5':
-    dependencies:
-      '@types/node': 22.20.1
-      '@types/pg': 8.10.9
-
   '@types/pg@8.10.9':
     dependencies:
       '@types/node': 22.20.1
@@ -10892,10 +10887,6 @@ snapshots:
   '@types/web-bluetooth@0.0.20': {}
 
   '@types/web-bluetooth@0.0.21': {}
-
-  '@types/ws@8.18.1':
-    dependencies:
-      '@types/node': 22.20.1
 
   '@typescript/vfs@1.6.5(supports-color@7.2.0)(typescript@5.9.3)':
     dependencies:
@@ -13805,10 +13796,6 @@ snapshots:
     optional: true
 
   pg-connection-string@2.9.1: {}
-
-  pg-copy-streams@6.0.6:
-    dependencies:
-      obuf: 1.1.2
 
   pg-int8@1.0.1: {}
 

@@ -20,6 +20,11 @@ export {
   syncBunHistoricalEvents,
 } from "@/runtime/bunHistoricalSlice.js";
 export {
+  applyBunRealtimeEvents,
+  createBunRealtimeStatusFetch,
+  reorgBunRealtime,
+} from "@/runtime/bunRealtimeSlice.js";
+export {
   type BunServer,
   startBunServer,
   stopBunServer,

@@ -1,16 +1,14 @@
 import {
+  applyBunRealtimeEvents,
+  createBunRealtimeStatusFetch,
   createBunSqlDatabase,
   migrateUser,
   ponder,
+  reorgBunRealtime,
   startBunServer,
   stopBunServer,
   syncBunHistoricalEvents,
 } from "../../../packages/core/src/index.ts";
-import {
-  applyBunRealtimeEvents,
-  createBunRealtimeStatusFetch,
-  reorgBunRealtime,
-} from "../../../packages/core/src/runtime/bunRealtimeSlice.ts";
 import { transfer } from "../ponder.schema.ts";
 
 const databaseUrl = process.env.DATABASE_URL;
