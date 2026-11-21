@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
-import { createBuild } from "@/build/index.js";
+import { bunDatabaseDiagnostic } from "@/build/bunDatabaseDiagnostic.js";
+import { compileBunNativePre } from "@/build/bunNativeBuild.js";
 import {
   createDatabase,
   getPonderMetaTable,
@@ -66,8 +67,6 @@ export async function createViews({
     apiShutdown: shutdown,
   };
 
-  const build = await createBuild({ common, cliOptions });
-
   const exit = createExit({ common, options });
 
   if (cliOptions.schema === undefined) {
@@ -85,19 +84,7 @@ export async function createViews({
     return;
   }
 
-  const configResult = await build.executeConfig();
-  if (configResult.status === "error") {
-    common.logger.error({
-      msg: "Build failed",
-      stage: "config",
-      error: configResult.error,
-    });
-    await exit({ code: 1 });
-    return;
-  }
-
-  const buildResult = build.preCompile(configResult.result);
-
+  const buildResult = await compileBunNativePre({ common });
   if (buildResult.status === "error") {
     common.logger.error({
       msg: "Build failed",
@@ -108,8 +95,9 @@ export async function createViews({
     return;
   }
 
-  const databaseDiagnostic = await build.databaseDiagnostic({
-    preBuild: buildResult.result,
+  const databaseDiagnostic = await bunDatabaseDiagnostic({
+    common,
+    preBuild: buildResult.result.preBuild,
   });
   if (databaseDiagnostic.status === "error") {
     common.logger.error({
@@ -128,7 +116,7 @@ export async function createViews({
       schema: cliOptions.schema!,
       viewsSchema: undefined,
     },
-    preBuild: buildResult.result,
+    preBuild: buildResult.result.preBuild,
     schemaBuild: emptySchemaBuild,
   });
 

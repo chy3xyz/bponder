@@ -150,12 +150,12 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 
 | Deferred | Why it remains | Where |
 |---|---|---|
-| `pg` + `createDatabase` | Production indexing still uses node-postgres / Drizzle; `createBunSqlDatabase` supports schema/`search_path` but is not the default | `packages/core/src/database/index.ts`, `packages/core/src/utils/pg.ts` |
-| Vite SSR loader + `ponder:*` | Default `ponder start` / `ponder dev` use Bun `import()`; Vite is the `PONDER_USE_VITE=1` escape hatch. `createBuild` still boots Vite on that path and for classic `ponder serve` | `packages/core/src/build/index.ts`, `plugin.ts` |
-| Full `Bun.Worker` `runIsolated` | CLI factory uses `Bun.Worker` + `isolatedWorker.bun.ts` (kill/done only); Node `worker_threads` remains on the Vite isolated path | `packages/core/src/bin/isolatedController.ts`, `isolatedWorker.ts`, `isolatedWorker.bun.ts` |
-| `simulation-test` | Harness not executed this branch (env + port `55432` + template DBs) | `simulation-test/` |
+| `pg` escape hatch | Under Bun, `createDatabase` defaults to Bun.SQL; `PONDER_DATABASE_DRIVER=pg` still available. `pg` package not deleted. | `packages/core/src/database/bunSqlDriver.ts`, `utils/pg.ts` |
+| Vite escape hatch | `PONDER_USE_VITE=1` restores Vite `createBuild` for `start` / `dev` / `serve`. `list` / `prune` / `create-views` are Bun-native only. | `packages/core/src/build/index.ts`, `plugin.ts` |
+| Node `isolatedWorker.ts` | Retained for the Vite escape path; Bun uses `isolatedWorker.bun.ts` + `compileBunNative`. | `isolatedWorker.ts`, `isolatedWorker.bun.ts` |
+| `simulation-test` | Not run locally this branch (Docker daemon / port `55432` / RPC env). | `simulation-test/` |
 
-`@hono/node-server`, `pg-copy-streams`, and the `ws` package are already gone from the production graph. Under Bun, `ponder start` / `ponder dev` default to the native indexing path; Vite is escape-hatch only (`PONDER_USE_VITE=1`). Default `ponder serve` still uses the Vite/Hono API; the Bun `/v1` stack without indexing remains opt-in (`ponder serve --native`).
+`@hono/node-server`, `pg-copy-streams`, and the `ws` package are already gone from the production graph. Under Bun, `ponder start` / `dev` / `serve` / `list` / `prune` / `create-views` default to Bun-native (no Vite). Vite is escape-hatch only (`PONDER_USE_VITE=1`) for start/dev/serve.
 
 ---
 

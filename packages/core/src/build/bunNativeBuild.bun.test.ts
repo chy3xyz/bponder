@@ -14,6 +14,7 @@ import {
   clearPonderFns,
   compileBunNative,
   compileBunNativeNamespace,
+  compileBunNativePre,
   loadBunIndexingFunctions,
   registerPonderBunPlugin,
   toIndexingConfig,
@@ -184,6 +185,31 @@ ponder.on("api:only", async () => {});
       "Token:Transfer",
     ]);
     expect(ponder.fns.map((entry) => entry.name)).toEqual(["Token:Transfer"]);
+  });
+});
+
+describe("compileBunNativePre", () => {
+  test("loads config and preBuild without Vite", async () => {
+    const dir = makeTempDir();
+    writeProject({
+      dir,
+      config: `import { createConfig } from ${JSON.stringify(createConfigPath)};
+
+export default createConfig({
+  chains: {
+    mainnet: { id: 1, rpc: "http://127.0.0.1:1" },
+  },
+});
+`,
+    });
+
+    const result = await compileBunNativePre({
+      common: createCommon(dir),
+    });
+    expect(result.status).toBe("success");
+    if (result.status !== "success") return;
+    expect(result.result.preBuild.databaseConfig.kind).toBeDefined();
+    expect(result.result.config.chains.mainnet?.id).toBe(1);
   });
 });
 

@@ -252,15 +252,12 @@ export type BunNativeBuild = {
   indexingBuild: IndexingBuild;
 };
 
-export async function compileBunNative({
+/** Load config + preBuild without Vite (for list / prune / create-views). */
+export async function compileBunNativePre({
   common,
-  schema,
-  viewsSchema,
 }: {
   common: Common;
-  schema?: string;
-  viewsSchema?: string;
-}): Promise<Result<BunNativeBuild>> {
+}): Promise<Result<{ config: Config; preBuild: PreBuild }>> {
   globalThis.PONDER_COMMON = common;
 
   let rawConfig: PonderConfig;
@@ -280,10 +277,35 @@ export async function compileBunNative({
     return preBuildResult;
   }
 
-  const preBuild: PreBuild = {
-    databaseConfig: preBuildResult.databaseConfig,
-    ordering: preBuildResult.ordering,
+  return {
+    status: "success",
+    result: {
+      config,
+      preBuild: {
+        databaseConfig: preBuildResult.databaseConfig,
+        ordering: preBuildResult.ordering,
+      },
+    },
   };
+}
+
+export async function compileBunNative({
+  common,
+  schema,
+  viewsSchema,
+}: {
+  common: Common;
+  schema?: string;
+  viewsSchema?: string;
+}): Promise<Result<BunNativeBuild>> {
+  globalThis.PONDER_COMMON = common;
+
+  const pre = await compileBunNativePre({ common });
+  if (pre.status === "error") {
+    return pre;
+  }
+
+  const { config, preBuild } = pre.result;
 
   const namespaceResult = compileBunNativeNamespace({ schema, viewsSchema });
   if (namespaceResult.status === "error") {
