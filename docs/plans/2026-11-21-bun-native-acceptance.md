@@ -24,6 +24,18 @@ This is an honest checklist. Items that were not executed are left unchecked. Do
 
 ---
 
+## Progress since acceptance
+
+Wiring landed after `d331479` / `c9ecc10`. The original checklist above is unchanged; this section records later commits.
+
+| Commit | Improvement | Remaining gap |
+|---|---|---|
+| `16050ae` | `createBunSqlDatabase` creates non-public schemas and sets a durable `search_path`; `ponder serve --native --schema` passes through | Production `createDatabase` still defaults to `pg` |
+| `e7912e1` | `ponder start --native` loads config/schema with `bunLoader` (Bun `import()`) and can start the Bun `/v1` stack | Classic `ponder start` / `ponder dev` still use Vite SSR + `ponder:*` |
+| `812eef2` | `isolatedController` spawns via `createIndexingWorker`; under Bun that is `Bun.Worker` + `isolatedWorker.bun.ts` | Full `runIsolated` is not ported; the Bun entry is kill/done only, so isolated indexing does not process events |
+
+---
+
 ## 1. Spike findings documented — PASS
 
 Phase 0 READMEs are in-tree and record go/no-go plus limits:
