@@ -2,6 +2,10 @@
 
 This example shows how to create a GraphQL API for an ERC4626 token using Ponder. It uses the Aave V2 token contract on Ethereum ([Link](https://etherscan.io/address/0xc21F107933612eCF5677894d45fc060767479A9b)).
 
+## Runtime
+
+This example still uses `createConfig` until the production CLI cuts over to `defineConfig`. Run it with Bun (`bun run dev` / `bun run start`). Requires Bun `>=1.4.0`.
+
 ## Sample queries
 
 ### Get the current balance and all approvals for an account

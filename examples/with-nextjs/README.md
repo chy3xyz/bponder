@@ -6,6 +6,10 @@ The Ponder app indexes WETH Deposit events on mainnet.
 
 ![Screenshot](./frontend/public/demo.png)
 
+## Runtime
+
+The Ponder app still uses `createConfig` until the production CLI cuts over to `defineConfig`. Run it with Bun (`bun run dev`). Requires Bun `>=1.4.0`. The Next.js frontend keeps its own `dev` script.
+
 ## Run this example
 
 To run this project:

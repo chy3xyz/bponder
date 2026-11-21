@@ -2,6 +2,10 @@
 
 This example shows how to create a GraphQL API for an ERC20 token using Ponder. It uses the Adventure Gold token contract on Ethereum ([Link](https://etherscan.io/address/0x32353A6C91143bfd6C7d363B546e62a9A2489A20)).
 
+## Runtime
+
+This example still uses `createConfig` until the production CLI cuts over to `defineConfig`. Run it with Bun (`bun run dev` / `bun run start`). Requires Bun `>=1.4.0`.
+
 ## Sample queries
 
 ### Get the current balance and all approvals for an account

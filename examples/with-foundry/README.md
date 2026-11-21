@@ -4,6 +4,10 @@ This is an example monorepo Ponder and Foundry dapp. It's intended to be used as
 
 For more information, read the Foundry [integration guide](https://ponder.sh/docs/advanced/foundry).
 
+## Runtime
+
+The Ponder app still uses `createConfig` until the production CLI cuts over to `defineConfig`. Run it with Bun (`bun run ponder dev` from this directory, or `bun run dev` in `ponder/`). Requires Bun `>=1.4.0`.
+
 ## Usage
 
 Start an Anvil local node:

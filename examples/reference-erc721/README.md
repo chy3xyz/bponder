@@ -2,6 +2,10 @@
 
 This example shows how to create a GraphQL API for an ERC721 token using Ponder. It uses the Smol Brains NFT contract on Arbitrum ([Link](https://arbiscan.io/address/0x6325439389E0797Ab35752B4F43a14C004f22A9c)).
 
+## Runtime
+
+This example still uses `createConfig` until the production CLI cuts over to `defineConfig`. Run it with Bun (`bun run dev` / `bun run start`). Requires Bun `>=1.4.0`.
+
 ## Sample queries
 
 ### Get all tokens currently owned by an account
