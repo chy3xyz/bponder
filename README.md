@@ -1,73 +1,64 @@
-# Ponder
+# bponder
 
-[![CI status][ci-badge]][ci-url]
-[![Version][version-badge]][version-url]
-[![Telegram chat][tg-badge]][tg-url]
 [![License][license-badge]][license-url]
 
-Ponder is an open-source TypeScript framework for EVM data indexing.
+**bponder** is a **Bun-native** fork of [Ponder](https://github.com/ponder-sh/ponder) for EVM indexing.
 
-## Documentation
+It is **not** the official [ponder.sh](https://ponder.sh) project. Package names (`ponder`, `@ponder/client`, …) still match upstream for compatibility, but the supported runtime and HTTP/database defaults diverge (see below).
 
-Visit [ponder.sh](https://ponder.sh) for documentation, guides, and the API reference.
+| | **bponder** (this repo) | **Ponder** ([ponder.sh](https://ponder.sh)) |
+| --- | --- | --- |
+| Runtime | **Bun only** (`>=1.4.0`) | Node / Bun |
+| Postgres driver (default) | **Bun.SQL** | `pg` (node-postgres) |
+| HTTP query API | **`/v1`** (`Bun.serve`) | Classic Hono / SQL-over-HTTP |
+| Config/indexing load | Bun `import()` + plugin (no Vite by default) | Vite SSR loader |
+| Upstream | Fork of `ponder-sh/ponder` | Canonical project |
 
-## Support
+Repo: [github.com/chy3xyz/bponder](https://github.com/chy3xyz/bponder) · Branch: `feat/bun-native`
 
-Join [Ponder's telegram chat](https://t.me/pondersh) for support, feedback, and general chatter.
+## Why this fork
 
-## Features
+- Run indexing and HTTP on **Bun** end-to-end
+- Default Postgres path through **Bun.SQL** (`PONDER_DATABASE_DRIVER=pg` restores node-postgres)
+- Default `/v1` stack: `GET /v1/status`, `POST /v1/sql`, `GET /v1/live`
+- Vite optional only: `PONDER_USE_VITE=1`
 
-* Index any contract or account on any EVM-compatible chain
-* Write indexed data to Postgres
-* Query indexed data over HTTP using GraphQL or SQL
-* Build rapidly with a powerful local development server
-* Deploy anywhere that runs Bun
+For conceptual guides that still match shared APIs, you can read [ponder.sh/docs](https://ponder.sh/docs). Prefer this repository’s `docs/` and `docs/plans/` for Bun-native behavior, cutover notes, and acceptance status.
 
-## Quickstart
+## Requirements
 
-### 1. Run `create-ponder`
+- [Bun](https://bun.sh) `>=1.4.0`
+- PostgreSQL 14–17 for production (PGlite OK for local/tests)
+- Workspace install: `pnpm install --frozen-lockfile` (pnpm `12.15.0`, Node used only as toolchain)
 
-You will be asked for a project name, and if you are using a [template](https://ponder.sh/docs/api-reference/create-ponder#templates) (recommended).
-
-After the prompts, the CLI will create a project directory, install dependencies, and initialize a git repository.
-
-```bash
-bun create ponder
-# or
-pnpm create ponder
-# or
-npm init ponder@latest
-```
-
-### 2. Start the development server
-
-Ponder has a development server that automatically reloads when you save changes in any project file. It also prints `console.log` statements and errors encountered while running your code.
-
-First, `cd` into your project directory, then start the server.
+## Quickstart (from this repo)
 
 ```bash
-bun dev
-# or
-pnpm dev
-# or
-npm run dev
+git clone https://github.com/chy3xyz/bponder.git
+cd bponder
+pnpm install --frozen-lockfile
+pnpm build
 ```
 
-### 3. Specify contracts & chains
+Example Bun smokes (need local Postgres + `DATABASE_URL`):
 
-Ponder fetches event logs for the contracts in `ponder.config.ts`, and passes those events to the indexing functions you write.
+```bash
+cd examples/feature-bun-slice && bun run smoke
+cd examples/feature-bun-live && bun run smoke
+```
+
+Minimal app shape (same schema/config surface as Ponder, Bun runtime):
 
 ```ts
 // ponder.config.ts
-
 import { createConfig } from "ponder";
 import { BaseRegistrarAbi } from "./abis/BaseRegistrar";
- 
+
 export default createConfig({
   chains: {
-    mainnet: { 
+    mainnet: {
       id: 1,
-      rpc: "https://eth-mainnet.g.alchemy.com/v2/...",
+      rpc: process.env.PONDER_RPC_URL_1,
     },
   },
   contracts: {
@@ -81,101 +72,53 @@ export default createConfig({
 });
 ```
 
-### 4. Define your schema
+```bash
+# production / dev under Bun (Vite-free by default)
+DATABASE_URL=postgres://... DATABASE_SCHEMA=my_schema ponder start
+ponder serve   # Bun-native /v1 by default under Bun
+```
 
-The `ponder.schema.ts` file specifies the database schema, which should match the shape of your application's data model.
+Query with `@ponder/client` against the **app origin** (client appends `/v1/*`):
 
 ```ts
-// ponder.schema.ts
+import { createClient } from "@ponder/client";
 
-import { onchainTable } from "ponder";
-
-export const ensName = onchainTable("ens_name", (t) => ({
-  name: p.text().primaryKey(),
-  owner: p.text().notNull(),
-  registeredAt: p.integer().notNull(),
-}));
+const client = createClient({ url: "http://localhost:42069" });
+const { rows } = await client.sql("SELECT * FROM ens_name LIMIT 10");
 ```
 
-### 5. Write indexing functions
+## Escape hatches
 
-Files in the `src/` directory contain **indexing functions**, which are TypeScript functions that process a contract event. The purpose of these functions is to write indexed data to the database.
+| Env | Effect |
+| --- | --- |
+| `PONDER_USE_VITE=1` | Classic Vite loader / Hono serve path |
+| `PONDER_DATABASE_DRIVER=pg` | Force node-postgres instead of Bun.SQL |
+| `PONDER_BUN_NATIVE=1` / `--native` | Force Bun-native path (already default under Bun) |
 
-```ts
-// src/BaseRegistrar.ts
+## Status
 
-import { ponder } from "ponder:registry";
-import schema from "ponder:schema";
+Bun-native defaults are wired and covered by focused bun tests + example smokes. `simulation-test` and `benchmark` are **not** claimed green on this branch yet. See:
 
-ponder.on("BaseRegistrar:NameRegistered", async ({ event, context }) => {
-  const { name, owner } = event.params;
+- `docs/plans/2026-11-21-bun-native-acceptance.md`
+- `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`
+- `docs/pages/docs/guides/bun.mdx`
+- `docs/pages/docs/migration-guide.mdx`
 
-  await context.db.insert(schema.ensName).values({
-    name: name,
-    owner: owner,
-    registeredAt: event.block.timestamp,
-  });
-});
-```
+## Packages (workspace)
 
-### 6. Query the GraphQL API
+- `packages/core` → npm name `ponder`
+- `packages/client` → `@ponder/client`
+- `packages/react` → `@ponder/react`
+- `packages/utils` → `@ponder/utils`
+- `packages/create-ponder` → `create-ponder`
 
-Ponder automatically generates a GraphQL API based on your `ponder.schema.ts` file. The API serves data that you inserted in your indexing functions.
+Published npm versions may still refer to upstream; treat **this git repo** as the source of truth for the Bun-native fork.
 
-```ts
-{
-  ensNames(limit: 2) {
-    items {
-      name
-      owner
-      registeredAt
-    }
-  }
-}
-```
+## Upstream & license
 
-```json
-{
-  "ensNames": {
-    "items": [
-      {
-        "name": "vitalik.eth",
-        "owner": "0x0904Dac3347eA47d208F3Fd67402D039a3b99859",
-        "registeredAt": 1580345271
-      },
-      {
-        "name": "joe.eth",
-        "owner": "0x6109DD117AA5486605FC85e040ab00163a75c662",
-        "registeredAt": 1580754710
-      }
-    ]
-  }
-}
-```
+Forked from [ponder-sh/ponder](https://github.com/ponder-sh/ponder). Upstream product, docs site, and community live at [ponder.sh](https://ponder.sh) / [t.me/pondersh](https://t.me/pondersh).
 
-That's it! Visit [ponder.sh](https://ponder.sh) for documentation, guides for deploying to production, and the API reference.
+MIT-licensed (see [LICENSE](./LICENSE)). Copyright notices from upstream are retained.
 
-## Contributing
-
-If you're interested in contributing to Ponder, please read the [contribution guide](/.github/CONTRIBUTING.md).
-
-## Packages
-
-- [`ponder`](https://www.npmjs.com/package/ponder)
-- [`@ponder/client`](https://www.npmjs.com/package/@ponder/client)
-- [`@ponder/react`](https://www.npmjs.com/package/@ponder/react)
-- [`@ponder/utils`](https://www.npmjs.com/package/@ponder/utils)
-- [`create-ponder`](https://www.npmjs.com/package/create-ponder)
-
-## About
-
-Ponder is MIT-licensed open-source software.
-
-[ci-badge]: https://github.com/ponder-sh/ponder/actions/workflows/main.yml/badge.svg
-[ci-url]: https://github.com/ponder-sh/ponder/actions/workflows/main.yml
-[tg-badge]: https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fpondersh
-[tg-url]: https://t.me/pondersh
-[license-badge]: https://img.shields.io/npm/l/ponder?label=License
-[license-url]: https://github.com/ponder-sh/ponder/blob/main/LICENSE
-[version-badge]: https://img.shields.io/npm/v/ponder
-[version-url]: https://github.com/ponder-sh/ponder/releases
+[license-badge]: https://img.shields.io/github/license/chy3xyz/bponder?label=License
+[license-url]: https://github.com/chy3xyz/bponder/blob/feat/bun-native/LICENSE
