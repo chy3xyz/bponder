@@ -32,7 +32,7 @@ As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is t
 
 - **Native indexing without Vite** (`f7d04a0`+). `ponder start` / `dev` under Bun use `compileBunNative` (Bun `import()` + `ponder:registry` / `ponder:schema` plugin). No Vite on the main native path. Escape: `PONDER_USE_VITE=1`.
 - **`/v1` shares indexing storage** (`b0a59dc`). Native `start` / `dev` serve `/v1` from the same `createDatabase` `readonlyQB`. `ponder serve` under Bun defaults to Bun `/v1` (`c5afb60`).
-- **Bun.SQL as `createDatabase` under Bun** (`4987522`). Defaults on when `process.versions.bun` is set. Escape: `PONDER_DATABASE_DRIVER=pg`. Meta jsonb writes use `asJsonb` / `jsonbSetOnValue` so Bun.SQL does not store string scalars (`cannot set path in scalar` fixed).
+- **Bun.SQL as `createDatabase` under Bun** (`4987522`). Defaults on when `process.versions.bun` is set. Escape: `PONDER_DATABASE_DRIVER=pg`. Ponder `json`/`jsonb` columns pass objects through under Bun (no string-scalar writes); meta also uses `asJsonb` / `jsonbSetOnValue`.
 - **Vite-free isolated workers** — `isolatedWorker.bun.ts` uses `compileBunNative` → `createDatabase` → `runIsolated` (not Vite `createBuild`). Native path calls `isolatedController` for `experimental_isolated`.
 - **Closed loop evidenced** — `bunNativeApp.e2e.bun.test.ts`: `ponder start --native` + Anvil ERC20 mint → `/v1/status` checkpoint ≥ 2 → `/v1/sql` account balances. Also `feature-bun-slice` + `feature-bun-live` smokes green.
 
