@@ -1,15 +1,10 @@
 import { runCodegen } from "@/bin/utils/codegen.js";
-import {
-  BUN_NATIVE_ISOLATED_ORDERING_ERROR,
-  compileBunNative,
-  getPostgresConnectionString,
-} from "@/build/bunNativeBuild.js";
 import { createBuild } from "@/build/index.js";
 import { createDatabase, type Database } from "@/database/index.js";
 import type { Common } from "@/internal/common.js";
-import { createLogger, type Logger } from "@/internal/logger.js";
+import { createLogger } from "@/internal/logger.js";
 import { MetricsService } from "@/internal/metrics.js";
-import { buildOptions, type Options } from "@/internal/options.js";
+import { buildOptions } from "@/internal/options.js";
 import { createShutdown } from "@/internal/shutdown.js";
 import type {
   ApiBuild,
@@ -25,11 +20,8 @@ import { createServer } from "@/server/index.js";
 import { isolatedController } from "../isolatedController.js";
 import type { CliOptions } from "../ponder.js";
 import { assertBunRuntime } from "../utils/assertBun.js";
-import {
-  getUnsupportedBunNativeSchema,
-  isBunNativeServeEnabled,
-  startBunNativeServe,
-} from "../utils/bunNativeServe.js";
+import { runBunNativeApp } from "../utils/bunNativeApp.js";
+import { isBunNativeServeEnabled } from "../utils/bunNativeServe.js";
 import { createExit } from "../utils/exit.js";
 
 export type PonderApp = {
@@ -60,7 +52,7 @@ export async function start({
   assertBunRuntime(logger);
 
   if (isBunNativeServeEnabled({ native: cliOptions.native })) {
-    return startBunNative({ cliOptions, options, logger });
+    return runBunNativeApp({ cliOptions, options, logger });
   }
 
   const metrics = new MetricsService();
@@ -306,188 +298,4 @@ export async function start({
   createServer(app);
 
   return shutdown.kill;
-}
-
-async function startBunNative({
-  cliOptions,
-  options,
-  logger,
-}: {
-  cliOptions: CliOptions;
-  options: Options;
-  logger: Logger;
-}) {
-  const metrics = new MetricsService();
-  const shutdown = createShutdown();
-  const common = {
-    options,
-    logger,
-    metrics,
-    shutdown,
-    buildShutdown: shutdown,
-    apiShutdown: shutdown,
-  };
-  const exit = createExit({ common, options });
-
-  if (options.version) {
-    metrics.ponder_version_info.set(
-      {
-        version: options.version.version,
-        major: options.version.major,
-        minor: options.version.minor,
-        patch: options.version.patch,
-      },
-      1,
-    );
-  }
-
-  const schemaName = cliOptions.schema ?? process.env.DATABASE_SCHEMA;
-  const viewsSchema =
-    cliOptions.viewsSchema ?? process.env.DATABASE_VIEWS_SCHEMA;
-
-  const buildResult = await compileBunNative({
-    common,
-    schema: schemaName,
-    viewsSchema,
-  });
-  if (buildResult.status === "error") {
-    common.logger.error({
-      msg: "Build failed",
-      stage: "native",
-      error: buildResult.error,
-    });
-    await exit({ code: 1 });
-    return;
-  }
-
-  const { preBuild, namespaceBuild, schemaBuild, indexingBuild } =
-    buildResult.result;
-
-  logger.info(
-    {
-      msg: "Loaded Bun-native config",
-      chains: indexingBuild.chains.map((chain) => chain.name),
-      ordering: preBuild.ordering,
-    },
-    ["chains"],
-  );
-  logger.info(
-    {
-      msg: "Loaded Bun-native indexing functions",
-      events: indexingBuild.indexingFunctions.map((entry) => entry.name),
-    },
-    ["events"],
-  );
-
-  let database: Database;
-  try {
-    database = createDatabase({
-      common,
-      namespace: namespaceBuild,
-      preBuild,
-      schemaBuild,
-    });
-    const crashRecoveryCheckpoint = await database.migrate({
-      buildId: indexingBuild.buildId,
-      chains: indexingBuild.chains,
-      finalizedBlocks: indexingBuild.finalizedBlocks,
-    });
-    await database.migrateSync();
-
-    metrics.ponder_settings_info.set(
-      {
-        ordering: preBuild.ordering,
-        database: preBuild.databaseConfig.kind,
-        command: cliOptions.command,
-      },
-      1,
-    );
-    metrics.initializeIndexingMetrics({ indexingBuild, schemaBuild });
-
-    switch (preBuild.ordering) {
-      case "omnichain":
-        runOmnichain({
-          common,
-          preBuild,
-          namespaceBuild,
-          schemaBuild,
-          indexingBuild,
-          crashRecoveryCheckpoint,
-          database,
-        });
-        break;
-      case "multichain":
-        runMultichain({
-          common,
-          preBuild,
-          namespaceBuild,
-          schemaBuild,
-          indexingBuild,
-          crashRecoveryCheckpoint,
-          database,
-        });
-        break;
-      case "experimental_isolated":
-        throw new Error(BUN_NATIVE_ISOLATED_ORDERING_ERROR);
-    }
-  } catch (error) {
-    common.logger.error({
-      msg: "Failed to start Bun-native indexing",
-      error: error instanceof Error ? error : new Error(String(error)),
-    });
-    await exit({ code: 1 });
-    return;
-  }
-
-  const databaseUrl = getPostgresConnectionString(preBuild);
-  if (databaseUrl === undefined) {
-    logger.info({
-      msg: "Skipped Bun-native HTTP server because DATABASE_URL is not set",
-    });
-    return shutdown.kill;
-  }
-
-  const unsupportedSchema = getUnsupportedBunNativeSchema({
-    schema: schemaName,
-  });
-  if (unsupportedSchema !== undefined) {
-    logger.error({
-      msg: "The Bun-native 'ponder start --native' command requires a valid database schema identifier",
-      schema: unsupportedSchema,
-    });
-    await exit({ code: 1 });
-    return;
-  }
-
-  try {
-    const native = await startBunNativeServe({
-      url: databaseUrl,
-      port: options.port,
-      hostname: options.hostname,
-      schema: schemaName,
-    });
-
-    logger.info(
-      {
-        msg: "Started Bun-native HTTP server",
-        url: native.origin,
-        port: native.server.port,
-      },
-      ["url"],
-    );
-    logger.info({
-      msg: "Started returning 200 responses",
-      endpoint: "/health",
-    });
-
-    shutdown.add(() => native.stop());
-    return shutdown.kill;
-  } catch (error) {
-    logger.error({
-      msg: "Failed to start Bun-native HTTP server",
-      error: error instanceof Error ? error : new Error(String(error)),
-    });
-    await exit({ code: 1 });
-    return;
-  }
 }

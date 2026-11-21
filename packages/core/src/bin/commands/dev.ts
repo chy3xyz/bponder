@@ -22,6 +22,8 @@ import type { Result } from "@/utils/result.js";
 import { isolatedController } from "../isolatedController.js";
 import type { CliOptions } from "../ponder.js";
 import { assertBunRuntime } from "../utils/assertBun.js";
+import { runBunNativeApp } from "../utils/bunNativeApp.js";
+import { isBunNativeServeEnabled } from "../utils/bunNativeServe.js";
 import { runCodegen } from "../utils/codegen.js";
 import { createExit } from "../utils/exit.js";
 
@@ -39,6 +41,10 @@ export async function dev({ cliOptions }: { cliOptions: CliOptions }) {
     logger.warn({
       msg: "Local environment file (.env.local) not found",
     });
+  }
+
+  if (isBunNativeServeEnabled({ native: cliOptions.native })) {
+    return runBunNativeApp({ cliOptions, options, logger });
   }
 
   const metrics = new MetricsService();

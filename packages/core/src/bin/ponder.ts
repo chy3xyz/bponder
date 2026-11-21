@@ -82,6 +82,10 @@ const devCommand = new Command("dev")
     'Hostname for the web server (default: "0.0.0.0" or "::")',
   )
   .option("--disable-ui", "Disable the terminal UI")
+  .option(
+    "--native",
+    "Start Bun-native indexing without Vite, loading config, schema, and handlers via import()",
+  )
   .showHelpAfterError()
   .action(async (_, command) => {
     const cliOptions = {
