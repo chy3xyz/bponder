@@ -1,10 +1,17 @@
 import { runCodegen } from "@/bin/utils/codegen.js";
+import {
+  getConfigChainKeys,
+  getOnchainTables,
+  loadBunConfig,
+  loadBunSchema,
+} from "@/build/bunLoader.js";
 import { createBuild } from "@/build/index.js";
 import { createDatabase, type Database } from "@/database/index.js";
+import { migrateUser } from "@/database/migrateUser.js";
 import type { Common } from "@/internal/common.js";
-import { createLogger } from "@/internal/logger.js";
+import { createLogger, type Logger } from "@/internal/logger.js";
 import { MetricsService } from "@/internal/metrics.js";
-import { buildOptions } from "@/internal/options.js";
+import { buildOptions, type Options } from "@/internal/options.js";
 import { createShutdown } from "@/internal/shutdown.js";
 import type {
   ApiBuild,
@@ -20,6 +27,11 @@ import { createServer } from "@/server/index.js";
 import { isolatedController } from "../isolatedController.js";
 import type { CliOptions } from "../ponder.js";
 import { assertBunRuntime } from "../utils/assertBun.js";
+import {
+  getUnsupportedBunNativeSchema,
+  isBunNativeServeEnabled,
+  startBunNativeServe,
+} from "../utils/bunNativeServe.js";
 import { createExit } from "../utils/exit.js";
 
 export type PonderApp = {
@@ -48,6 +60,10 @@ export async function start({
   });
 
   assertBunRuntime(logger);
+
+  if (isBunNativeServeEnabled({ native: cliOptions.native })) {
+    return startBunNative({ cliOptions, options, logger });
+  }
 
   const metrics = new MetricsService();
   const shutdown = createShutdown();
@@ -292,4 +308,115 @@ export async function start({
   createServer(app);
 
   return shutdown.kill;
+}
+
+async function startBunNative({
+  cliOptions,
+  options,
+  logger,
+}: {
+  cliOptions: CliOptions;
+  options: Options;
+  logger: Logger;
+}) {
+  const shutdown = createShutdown();
+  const exit = createExit({
+    common: {
+      logger,
+      shutdown,
+      buildShutdown: shutdown,
+      apiShutdown: shutdown,
+    },
+    options,
+  });
+
+  const schemaName = cliOptions.schema ?? process.env.DATABASE_SCHEMA;
+  const unsupportedSchema = getUnsupportedBunNativeSchema({
+    schema: schemaName,
+  });
+  if (unsupportedSchema !== undefined) {
+    logger.error({
+      msg: "The Bun-native 'ponder start --native' command requires a valid database schema identifier",
+      schema: unsupportedSchema,
+    });
+    await exit({ code: 1 });
+    return;
+  }
+
+  let config: Awaited<ReturnType<typeof loadBunConfig>>;
+  let schema: Awaited<ReturnType<typeof loadBunSchema>>;
+  try {
+    config = await loadBunConfig(options.configFile);
+    schema = await loadBunSchema(options.schemaFile);
+  } catch (error) {
+    logger.error({
+      msg: "Failed to load Bun-native config or schema",
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
+    await exit({ code: 1 });
+    return;
+  }
+
+  const chainKeys = getConfigChainKeys(config);
+  const tables = getOnchainTables(schema);
+  const tableNames = tables.map((table) => table.name);
+
+  logger.info({ msg: "Loaded Bun-native config", chains: chainKeys }, [
+    "chains",
+  ]);
+  logger.info({ msg: "Loaded Bun-native schema", tables: tableNames }, [
+    "tables",
+  ]);
+
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (databaseUrl === undefined || databaseUrl.length === 0) {
+    logger.info({
+      msg: "Skipped Bun-native HTTP server because DATABASE_URL is not set",
+    });
+    return shutdown.kill;
+  }
+
+  try {
+    const native = await startBunNativeServe({
+      url: databaseUrl,
+      port: options.port,
+      hostname: options.hostname,
+      schema: schemaName,
+    });
+
+    for (const table of tables) {
+      try {
+        await migrateUser(native.database, table);
+      } catch (error) {
+        logger.warn({
+          msg: "Failed to migrate user table",
+          table: table.name,
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
+      }
+    }
+
+    logger.info(
+      {
+        msg: "Started Bun-native HTTP server",
+        url: native.origin,
+        port: native.server.port,
+      },
+      ["url"],
+    );
+    logger.info({
+      msg: "Started returning 200 responses",
+      endpoint: "/health",
+    });
+
+    shutdown.add(() => native.stop());
+    return shutdown.kill;
+  } catch (error) {
+    logger.error({
+      msg: "Failed to start Bun-native HTTP server",
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
+    await exit({ code: 1 });
+    return;
+  }
 }

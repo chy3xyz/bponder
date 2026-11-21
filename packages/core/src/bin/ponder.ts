@@ -105,6 +105,10 @@ const startCommand = new Command("start")
     "-H, --hostname <HOSTNAME>",
     'Hostname for the web server (default: "0.0.0.0" or "::")',
   )
+  .option(
+    "--native",
+    "Start the Bun-native path without Vite, loading config and schema via import()",
+  )
   .showHelpAfterError()
   .action(async (_, command) => {
     const cliOptions = {

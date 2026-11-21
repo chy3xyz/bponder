@@ -35,7 +35,7 @@ bun run dev
 
 ## Bun-native `ponder serve`
 
-`ponder start` and `ponder dev` still serve the classic Vite/Hono HTTP API. To serve the Bun-native `/v1` stack (`Bun.SQL` + `Bun.serve`, no Vite or Hono) instead:
+`ponder start` and `ponder dev` still serve the classic Vite/Hono HTTP API unless you pass `--native`. To serve the Bun-native `/v1` stack (`Bun.SQL` + `Bun.serve`, no Vite or Hono) instead:
 
 ```bash [shell]
 # Requires DATABASE_URL
@@ -54,7 +54,7 @@ ponder start --native
 PONDER_BUN_NATIVE=1 ponder start
 ```
 
-This loads `ponder.config.ts` and `ponder.schema.ts` with Bun `import()` and does not boot Vite. It logs chain keys and `onchainTable` names. If `DATABASE_URL` is set, it starts the same Bun-native `/v1` HTTP server as `ponder serve --native` and runs `migrateUser` for each identifiable `@ponder/schema` table. `--schema` / `DATABASE_SCHEMA` must be omitted or `public`. Classic `ponder start` without `--native` is unchanged.
+This loads `ponder.config.ts` and `ponder.schema.ts` with Bun `import()` and does not boot Vite. It logs chain keys and `onchainTable` names. If `DATABASE_URL` is set, it starts the same Bun-native `/v1` HTTP server as `ponder serve --native` and runs `migrateUser` for each identifiable `@ponder/schema` table. `--schema` / `DATABASE_SCHEMA` selects the Postgres schema (`public` by default); invalid identifiers exit with an error. Classic `ponder start` without `--native` is unchanged.
 
 ## Known limitations
 

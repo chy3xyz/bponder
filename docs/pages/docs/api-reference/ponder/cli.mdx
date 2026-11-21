@@ -60,8 +60,11 @@ Options:
   --views-schema <SCHEMA>    Views database schema (max: 45 characters)
   -p, --port <PORT>          Port for the web server (default: 42069)
   -H, --hostname <HOSTNAME>  Hostname for the web server (default: "0.0.0.0" or "::")
+  --native                   Start the Bun-native path without Vite
   -h, --help                 display help for command
 ```
+
+Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip Vite and load `ponder.config.ts` plus `ponder.schema.ts` with Bun `import()`. The command logs chain keys and `onchainTable` names. If `DATABASE_URL` is set, it starts the Bun-native `/v1` HTTP server and runs `migrateUser` for each identifiable table. `--schema` / `DATABASE_SCHEMA` selects the Postgres schema (`public` by default). Classic `ponder start` without `--native` is unchanged. [Read more](/docs/guides/bun#bun-native-ponder-start).
 
 ## serve
 
@@ -85,7 +88,7 @@ Options:
   -h, --help                 display help for command
 ```
 
-Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip the Vite/Hono API and serve `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` over `Bun.serve`. Requires `DATABASE_URL`. `--schema` / `DATABASE_SCHEMA` must be omitted or `public`. `ponder start` and `ponder dev` still use the classic HTTP server. [Read more](/docs/guides/bun#bun-native-ponder-serve).
+Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip the Vite/Hono API and serve `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` over `Bun.serve`. Requires `DATABASE_URL`. `--schema` / `DATABASE_SCHEMA` must be omitted or `public`. `ponder dev` still uses the classic HTTP server. [Read more](/docs/guides/bun#bun-native-ponder-serve).
 
 ## codegen
 
