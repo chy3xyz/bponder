@@ -1,7 +1,7 @@
 # Bun-native final acceptance (Task 6.2)
 
 **Date:** 2026-11-21  
-**Branch:** `feat/bun-native` @ `d331479`  
+**Branch:** `feat/bun-native` @ `57a0103`  
 **Plan:** `docs/plans/2026-11-20-ponder-bun-native.md`  
 **Design:** `docs/plans/2026-11-20-ponder-bun-native-design.md`  
 **Runtime used for evidence:** Bun 1.4.5, local Postgres `127.0.0.1:5432`
@@ -20,7 +20,29 @@ This is an honest checklist. Items that were not executed are left unchecked. Do
 - [x] `ponder serve --native` available
 - [x] Major changeset present
 
-**Overall:** checklist complete with two items honestly unmarked. The branch meets the Task 6.2 binding (direct-dep cut, docs/CI/engines, `--native`, major changeset, two example smokes). It does **not** claim simulation-test or benchmark green, and it does **not** claim the original plan’s full “no `pg` / no Vite-loader” production cut.
+**Overall:** checklist complete with two items honestly unmarked. The branch meets the Task 6.2 binding (direct-dep cut, docs/CI/engines, `--native`, major changeset, two example smokes). Production `start` / `dev` under Bun now skip Vite by default. It does **not** claim simulation-test or benchmark green, and it does **not** claim the original plan’s full “no `pg` / no Vite-loader” production cut.
+
+---
+
+## Production progress
+
+As of `feat/bun-native` @ `57a0103` (`f7d04a0`, `b0a59dc`, `57a0103`). Task 6.2 checklist above is unchanged; this is the post-acceptance production snapshot.
+
+### Now true
+
+- **Native indexing without Vite** (`f7d04a0`). `ponder start --native` loads indexing functions through a Bun plugin (`ponder:registry`, `ponder:schema`), compiles with production helpers (`compileBunNative`), migrates, and runs omnichain or multichain indexing. No Vite `createBuild` on that path. `ordering: "experimental_isolated"` errors and asks for `PONDER_USE_VITE=1`.
+- **`/v1` shares indexing storage** (`b0a59dc`). Native `start` / `dev` serve `/v1` from the same `createDatabase` instance via `readonlyQB`, so SQL and status see rows written by indexing. `ponder serve --native` still opens Bun.SQL.
+- **Bun defaults to native `start` / `dev`** (`57a0103`). When `process.versions.bun` is set, `ponder start` and `ponder dev` use the Bun-native indexing path. Vite is the escape hatch: `PONDER_USE_VITE=1`. `--native` still forces native. `ponder serve` remains opt-in (`--native` / `PONDER_BUN_NATIVE=1`).
+
+### Still deferred
+
+| Item | Why it remains |
+|---|---|
+| `pg` driver / `createDatabase` | Production indexing still uses node-postgres + Drizzle. `createBunSqlDatabase` is not the `createDatabase` default. |
+| Full `Bun.Worker` `runIsolated` | `createIndexingWorker` spawns `isolatedWorker.bun.ts` (kill/done handshake only). Isolated indexing does not process events. Native path rejects `ordering: "experimental_isolated"`. |
+| `simulation-test` | Still **not run**. No `simulation-test/.env.local`; port `55432` unused this session. Benchmark also not run. |
+
+Focused bun tests recorded in this session: `bunNativeBuild`, `bunNativeServe`, `bunV1Readonly`, `indexingWorker` (see §10).
 
 ---
 
@@ -31,10 +53,11 @@ Wiring landed after `d331479` / `c9ecc10`. The original checklist above is uncha
 | Commit | Improvement | Remaining gap |
 |---|---|---|
 | `16050ae` | `createBunSqlDatabase` creates non-public schemas and sets a durable `search_path`; `ponder serve --native --schema` passes through | Production `createDatabase` still defaults to `pg` |
-| `e7912e1` | `ponder start --native` loads config/schema with `bunLoader` (Bun `import()`) and can start the Bun `/v1` stack | Classic `ponder start` / `ponder dev` still use Vite SSR + `ponder:*` |
+| `e7912e1` | `ponder start --native` loads config/schema with `bunLoader` (Bun `import()`) and can start the Bun `/v1` stack | Superseded for default `start` / `dev` by `57a0103`; Vite remains the `PONDER_USE_VITE=1` escape hatch and the unflagged `serve` loader |
 | `812eef2` | `isolatedController` spawns via `createIndexingWorker`; under Bun that is `Bun.Worker` + `isolatedWorker.bun.ts` | Full `runIsolated` is not ported; the Bun entry is kill/done only, so isolated indexing does not process events |
-| `b0a59dc` | Unified `/v1` on `start --native` through `createDatabase` `readonlyQB` | Vite still the default loader for unflagged `start` / `dev` |
-| prod default | `ponder start` / `ponder dev` default to Bun-native indexing when `process.versions.bun` is set; `PONDER_USE_VITE=1` is the Vite escape hatch | `ponder serve` still requires `--native` / `PONDER_BUN_NATIVE=1`; Vite loader remains in-tree |
+| `f7d04a0` | Production indexing on `ponder start --native` via `bunNativeBuild` (Bun plugin + compile helpers, no Vite) | Isolated ordering rejected on the native path; `createDatabase` still `pg` |
+| `b0a59dc` | Unified `/v1` on native `start` / `dev` through `createDatabase` `readonlyQB` | `ponder serve --native` still uses a separate Bun.SQL connection |
+| `57a0103` | `ponder start` / `ponder dev` default to Bun-native indexing when `process.versions.bun` is set; `PONDER_USE_VITE=1` is the Vite escape hatch | `ponder serve` still requires `--native` / `PONDER_BUN_NATIVE=1`; Vite loader remains in-tree |
 
 ---
 
@@ -119,7 +142,8 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 |---|---|---|
 | `pg` + `createDatabase` | Production indexing still uses node-postgres / Drizzle; `createBunSqlDatabase` supports schema/`search_path` but is not the default | `packages/core/src/database/index.ts`, `packages/core/src/utils/pg.ts` |
 | Vite SSR loader + `ponder:*` | Default `ponder start` / `ponder dev` use Bun `import()`; Vite is the `PONDER_USE_VITE=1` escape hatch. `createBuild` still boots Vite on that path and for classic `ponder serve` | `packages/core/src/build/index.ts`, `plugin.ts` |
-| `worker_threads` CLI | Isolated indexing still uses Node `Worker`; `Bun.Worker` exists but is not the CLI controller | `packages/core/src/bin/isolatedController.ts`, `isolatedWorker.ts` |
+| Full `Bun.Worker` `runIsolated` | CLI factory uses `Bun.Worker` + `isolatedWorker.bun.ts` (kill/done only); Node `worker_threads` remains on the Vite isolated path | `packages/core/src/bin/isolatedController.ts`, `isolatedWorker.ts`, `isolatedWorker.bun.ts` |
+| `simulation-test` | Harness not executed this branch (env + port `55432` + template DBs) | `simulation-test/` |
 
 `@hono/node-server`, `pg-copy-streams`, and the `ws` package are already gone from the production graph. Under Bun, `ponder start` / `ponder dev` default to the native indexing path; Vite is escape-hatch only (`PONDER_USE_VITE=1`). Default `ponder serve` still uses the Vite/Hono API; the Bun `/v1` stack without indexing remains opt-in (`ponder serve --native`).
 
@@ -185,8 +209,31 @@ Companion patch changesets exist (`bun-native-serve.md`, `bun-drop-node-runtime.
 
 ---
 
+## 10. Focused bun tests (this session)
+
+Runtime: Bun 1.4.5; `DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/postgres`.
+
+```bash
+CI=1 bun test \
+  packages/core/src/build/bunNativeBuild.bun.test.ts \
+  packages/core/src/bin/utils/bunNativeServe.bun.test.ts \
+  packages/core/src/server/bunV1Readonly.bun.test.ts \
+  packages/core/src/bin/utils/indexingWorker.bun.test.ts
+```
+
+**24 pass, 0 fail, 0 skip** across 4 files (825 ms). Includes live `startBunNativeServe` (`/health` 200, `/v1/status` `{"checkpoint":null}`) and the Bun.Worker kill/done handshake.
+
+| File | Result |
+|---|---|
+| `bunNativeBuild.bun.test.ts` | 7 pass (plugin load, isolated ordering error, missing config) |
+| `bunNativeServe.bun.test.ts` | 12 pass (Bun default on, `PONDER_USE_VITE=1` off, serve still opt-in, live `/v1`) |
+| `bunV1Readonly.bun.test.ts` | 4 pass (`readonlyQB` status + SELECT gate) |
+| `indexingWorker.bun.test.ts` | 1 pass (kill/done handshake) |
+
+---
+
 ## What this does not claim
 
-- Full production cut of `pg`, Vite-as-loader, or `worker_threads` (deferred, documented).
+- Full production cut of `pg` / `createDatabase`, Vite-as-loader (now an escape hatch), or full `Bun.Worker` `runIsolated` (deferred, documented).
 - simulation-test or benchmark green.
 - A full official-example path of `ponder dev` → backfill → live → `@ponder/client` query (smokes cover the Bun slice APIs only).
