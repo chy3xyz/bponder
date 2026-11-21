@@ -50,25 +50,8 @@ export class PgJson<
     return "json";
   }
 
-  override mapToDriverValue(value: T["data"]): string {
-    try {
-      return JSON.stringify(value);
-    } catch (_error) {
-      let error = _error as Error;
-      if (
-        // node error message
-        error?.message?.includes("Do not know how to serialize a BigInt") ||
-        // bun error message
-        error?.message?.includes("cannot serialize BigInt")
-      ) {
-        error = new BigIntSerializationError(error.message);
-        (error as BaseError).meta.push(
-          "Hint:\n  The JSON column type does not support BigInt values. Use the replaceBigInts() helper function before inserting into the database. Docs: https://ponder.sh/docs/api-reference/ponder-utils#replacebigints",
-        );
-      }
-
-      throw error;
-    }
+  override mapToDriverValue(value: T["data"]): unknown {
+    return mapJsonToDriverValue(value);
   }
 
   // Note: The drivers (node-postgres, PGlite) parse JSON, so a string is a
@@ -125,30 +108,43 @@ export class PgJsonb<
     return "jsonb";
   }
 
-  override mapToDriverValue(value: T["data"]): string {
-    try {
-      return JSON.stringify(value);
-    } catch (_error) {
-      let error = _error as Error;
-      if (
-        // node error message
-        error?.message?.includes("Do not know how to serialize a BigInt") ||
-        // bun error message
-        error?.message?.includes("cannot serialize BigInt")
-      ) {
-        error = new BigIntSerializationError(error.message);
-        (error as BaseError).meta.push(
-          "Hint:\n  The JSON column type does not support BigInt values. Use the replaceBigInts() helper function before inserting into the database. Docs: https://ponder.sh/docs/api-reference/ponder-utils#replacebigints",
-        );
-      }
-
-      throw error;
-    }
+  override mapToDriverValue(value: T["data"]): unknown {
+    return mapJsonToDriverValue(value);
   }
 
   // Note: The drivers (node-postgres, PGlite) parse JSON, so a string is a
   // JSON string value. Parsing it again would turn "1" into 1.
   override mapFromDriverValue(value: T["data"]): T["data"] {
     return value;
+  }
+}
+
+/**
+ * node-postgres / PGlite expect a JSON string; Bun.SQL must receive the
+ * object so Postgres stores a jsonb document (not a string scalar).
+ */
+function mapJsonToDriverValue(value: unknown): unknown {
+  try {
+    // Always validate serializability (and BigInt errors) first.
+    const encoded = JSON.stringify(value);
+    if (typeof process !== "undefined" && process.versions?.bun !== undefined) {
+      return value;
+    }
+    return encoded;
+  } catch (_error) {
+    let error = _error as Error;
+    if (
+      // node error message
+      error?.message?.includes("Do not know how to serialize a BigInt") ||
+      // bun error message
+      error?.message?.includes("cannot serialize BigInt")
+    ) {
+      error = new BigIntSerializationError(error.message);
+      (error as BaseError).meta.push(
+        "Hint:\n  The JSON column type does not support BigInt values. Use the replaceBigInts() helper function before inserting into the database. Docs: https://ponder.sh/docs/api-reference/ponder-utils#replacebigints",
+      );
+    }
+
+    throw error;
   }
 }

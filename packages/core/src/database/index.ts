@@ -11,7 +11,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { drizzle as drizzleNodePg } from "drizzle-orm/node-postgres";
-import { pgSchema, pgTable } from "drizzle-orm/pg-core";
+import { pgSchema, pgTable, text } from "drizzle-orm/pg-core";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import type { Pool } from "pg";
 import prometheus from "prom-client";
@@ -22,6 +22,7 @@ import {
   getPartitionName,
   getReorgSequenceName,
   getReorgTableName,
+  jsonb,
 } from "@/drizzle/onchain.js";
 import type { Common } from "@/internal/common.js";
 import { MigrationError, UniqueConstraintError } from "@/internal/errors.js";
@@ -196,17 +197,18 @@ type PostgresBunDriver = {
 type PostgresDriver = PostgresPgDriver | PostgresBunDriver;
 
 export const getPonderMetaTable = (schema?: string) => {
+  // Use Ponder's jsonb column (Bun-aware mapToDriverValue), not drizzle's.
   if (schema === undefined || schema === "public") {
-    return pgTable(PONDER_META_TABLE_NAME, (t) => ({
-      key: t.text().primaryKey().$type<"app">(),
-      value: t.jsonb().$type<PonderApp6>().notNull(),
-    }));
+    return pgTable(PONDER_META_TABLE_NAME, {
+      key: text().primaryKey().$type<"app">(),
+      value: jsonb().$type<PonderApp6>().notNull(),
+    });
   }
 
-  return pgSchema(schema).table(PONDER_META_TABLE_NAME, (t) => ({
-    key: t.text().primaryKey().$type<"app">(),
-    value: t.jsonb().$type<PonderApp6>().notNull(),
-  }));
+  return pgSchema(schema).table(PONDER_META_TABLE_NAME, {
+    key: text().primaryKey().$type<"app">(),
+    value: jsonb().$type<PonderApp6>().notNull(),
+  });
 };
 
 /**

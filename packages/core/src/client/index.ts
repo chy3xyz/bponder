@@ -12,13 +12,14 @@ import {
   type PgView,
   pgSchema,
   pgTable,
+  text,
 } from "drizzle-orm/pg-core";
 import { createMiddleware } from "hono/factory";
 import { streamSSE } from "hono/streaming";
 import type * as pg from "pg";
 import superjson from "superjson";
 import type { PonderApp6 } from "@/database/index.js";
-import { getLiveQueryChannelName } from "@/drizzle/onchain.js";
+import { getLiveQueryChannelName, jsonb } from "@/drizzle/onchain.js";
 import type { Schema } from "@/internal/types.js";
 import type { ReadonlyDrizzle } from "@/types/db.js";
 import {
@@ -40,16 +41,16 @@ const MAX_LIVE_QUERIES = 1000;
  */
 const getPonderMetaTable = (schema?: string) => {
   if (schema === undefined || schema === "public") {
-    return pgTable("_ponder_meta", (t) => ({
-      key: t.text().primaryKey().$type<"app">(),
-      value: t.jsonb().$type<PonderApp6>().notNull(),
-    }));
+    return pgTable("_ponder_meta", {
+      key: text().primaryKey().$type<"app">(),
+      value: jsonb().$type<PonderApp6>().notNull(),
+    });
   }
 
-  return pgSchema(schema).table("_ponder_meta", (t) => ({
-    key: t.text().primaryKey().$type<"app">(),
-    value: t.jsonb().$type<PonderApp6>().notNull(),
-  }));
+  return pgSchema(schema).table("_ponder_meta", {
+    key: text().primaryKey().$type<"app">(),
+    value: jsonb().$type<PonderApp6>().notNull(),
+  });
 };
 
 /**

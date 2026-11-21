@@ -41,8 +41,9 @@ As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is t
 | Item | Why it remains |
 |---|---|
 | `PONDER_DATABASE_DRIVER=pg` escape | Node-postgres remains available; not deleted. |
-| General user-table jsonb via drizzle | Meta path fixed; arbitrary jsonb columns may still hit drizzle `JSON.stringify` → string-scalar under Bun.SQL. |
-| `simulation-test` / benchmark | Still **not run** this session. |
+| `simulation-test` / benchmark | Still **not run** this session (no `.env.local` / port `55432`). |
+
+**jsonb under Bun.SQL:** Ponder `json()` / `jsonb()` `mapToDriverValue` now passes objects through when `process.versions.bun` is set (still `JSON.stringify` for node-postgres / PGlite). `_ponder_meta` uses Ponder `jsonb`. Covered by `drizzle/json.bun.test.ts` + meta helpers.
 
 Focused evidence (2026-11-21):
 
