@@ -87,8 +87,11 @@ async function run() {
     throw buildResult.error;
   }
 
-  const { preBuild, schemaBuild, indexingBuild: fullIndexingBuild } =
-    buildResult.result;
+  const {
+    preBuild,
+    schemaBuild,
+    indexingBuild: fullIndexingBuild,
+  } = buildResult.result;
 
   options.indexingCacheMaxBytes = Math.floor(
     options.indexingCacheMaxBytes / fullIndexingBuild.chains.length,

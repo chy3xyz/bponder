@@ -10,8 +10,8 @@
     "tmp/*"
   ],
   "scripts": {
-    "bench:ponder:ci": "bun run --filter ponder-benchmark benchmark",
-    "build": "bun run --filter @ponder/utils build && bun run --filter @ponder/client build && bun run --filter ponder build && bun run --filter @ponder/react build && bun run --filter create-ponder build",
+    "bench:ponder:ci": "bun run --filter './benchmark' benchmark",
+    "build": "bun run --filter './packages/utils' build && bun run --filter './packages/client' build && bun run --filter './packages/core' build && bun run --filter './packages/react' build && bun run --filter './packages/create-ponder' build",
     "format": "biome format . --write",
     "lint": "biome check .",
     "lint:fix": "biome check . --write",

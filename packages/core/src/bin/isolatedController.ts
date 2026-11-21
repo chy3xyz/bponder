@@ -116,11 +116,9 @@ export async function isolatedController({
       }
 
       await database.adminQB.wrap({ label: "update_ready" }, (db) =>
-        db
-          .update(getPonderMetaTable(namespaceBuild.schema))
-          .set({
-            value: jsonbSetOnValue("{is_ready}", sql`to_jsonb(1)`),
-          }),
+        db.update(getPonderMetaTable(namespaceBuild.schema)).set({
+          value: jsonbSetOnValue("{is_ready}", sql`to_jsonb(1)`),
+        }),
       );
 
       common.logger.info({

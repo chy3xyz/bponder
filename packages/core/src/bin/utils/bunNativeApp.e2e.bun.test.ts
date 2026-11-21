@@ -2,9 +2,10 @@
  * Production closed-loop smoke: ponder start (Bun-native) → index → /v1.
  * Requires DATABASE_URL (Postgres) and the Anvil proxy from bunfig preload.
  */
+
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { rimrafSync } from "rimraf";
 import { parseEther, zeroAddress } from "viem";
 import { ALICE } from "@/_test/constants.js";
@@ -83,9 +84,7 @@ if (skip) {
           let blockNumber = 0;
           let lastStatus: unknown;
           while (Date.now() < deadline) {
-            const statusRes = await fetch(
-              `http://127.0.0.1:${port}/v1/status`,
-            );
+            const statusRes = await fetch(`http://127.0.0.1:${port}/v1/status`);
             if (statusRes.status === 200) {
               const status = (await statusRes.json()) as {
                 checkpoint: { blockNumber: number } | null;

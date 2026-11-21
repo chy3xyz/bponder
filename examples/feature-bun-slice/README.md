@@ -9,7 +9,7 @@ server.
 From the repository root:
 
 ```bash
-pnpm install --frozen-lockfile
+bun install --frozen-lockfile
 export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:5432/postgres"
 cd examples/feature-bun-slice
 bun run smoke

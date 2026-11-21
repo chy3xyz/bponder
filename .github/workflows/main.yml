@@ -21,7 +21,7 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -39,7 +39,7 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
 
       - name: Set up foundry
         uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
@@ -53,7 +53,7 @@ jobs:
         run: bun run build
 
       - name: Test (types)
-        run: bun run --filter ponder test:typecheck
+        run: bun run --filter './packages/core' test:typecheck
  
   bundle:
     name: Bundle
@@ -65,7 +65,7 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -74,7 +74,7 @@ jobs:
         run: bun run build
 
       - name: Bundle
-        run: bun run --filter ponder-examples-with-nextjs-frontend build
+        run: bun run --filter './examples/with-nextjs/frontend' build
 
   test:
     name: Test [core]
@@ -98,7 +98,7 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
 
       - name: Set up foundry
         uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
@@ -111,7 +111,7 @@ jobs:
       - name: Test
         env:
           DATABASE_URL: ${{ matrix.database == 'Postgres' && 'postgresql://postgres:postgres@localhost:5432/postgres' || '' }}
-        run: bun run --filter ponder test:bun
+        run: bun run --filter './packages/core' test:bun
 
 
   test-create-ponder:
@@ -125,10 +125,10 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       - name: Test
-        run: bun run --filter create-ponder test:bun
+        run: bun run --filter './packages/create-ponder' test:bun

@@ -107,7 +107,7 @@ Do not treat CI schedule (`.github/workflows/simulation-test.yml`, Bun 1.4.4) as
 
 `benchmark` needs a populated `benchmark_[app]` database, RPC URLs, and `DATABASE_URL` without a database name (`benchmark/AGENTS.md`). First-time `reth` setup is hours of RPC; a cached replay is ~17–20s.
 
-**This session:** `benchmark/.env.local` is absent; no `create:app` / `pnpm benchmark` was run. No timing line was recorded.
+**This session:** `benchmark/.env.local` is absent; no `create:app` / `bun run benchmark` was run. No timing line was recorded.
 
 ---
 
@@ -166,7 +166,7 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 
 **Docs:** `docs/pages/docs/requirements.mdx` and `docs/pages/docs/guides/bun.mdx` state Bun is the only supported runtime. CLI reference documents `--native`.
 
-**CI:** `.github/workflows/main.yml` and `windows.yml` use `bun install --frozen-lockfile` and `bun run --filter ponder test:bun` / `bun run --filter create-ponder test:bun` with `oven-sh/setup-bun` **1.4.4**. Postgres vs PGlite matrix is retained. The monorepo package manager is Bun (`bun.lock`); Node remains only where npm publish / changesets need a registry setup.
+**CI:** `.github/workflows/main.yml` and `windows.yml` use `bun install --frozen-lockfile` and path filters (`bun run --filter './packages/core' test:bun`, etc.) with `oven-sh/setup-bun` **1.4.5**. Postgres vs PGlite matrix is retained. The monorepo uses Bun workspaces (`packageManager: bun@1.4.5`, `bun.lock`); Node remains only where npm publish / changesets need a registry setup.
 
 ---
 

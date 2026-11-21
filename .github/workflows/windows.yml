@@ -34,7 +34,7 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
 
       - name: Set up foundry
         uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
@@ -45,7 +45,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Test
-        run: bun run --filter ponder test:bun
+        run: bun run --filter './packages/core' test:bun
         env:
           DATABASE_URL: ${{ matrix.database == 'Postgres' && 'postgresql://postgres:root@localhost:5432/postgres' || '' }}
 
@@ -60,7 +60,7 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          bun-version: 1.4.4
+          bun-version: 1.4.5
 
       - name: Set up foundry
         uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
@@ -71,4 +71,4 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Test
-        run: bun run --filter create-ponder test:bun
+        run: bun run --filter './packages/create-ponder' test:bun

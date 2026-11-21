@@ -276,11 +276,9 @@ export const createDatabase = ({
 
       if (["start", "dev"].includes(common.options.command)) {
         await adminQB.wrap({ label: "unlock" }, (db) =>
-          db
-            .update(PONDER_META)
-            .set({
-              value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
-            }),
+          db.update(PONDER_META).set({
+            value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
+          }),
         );
       }
 
@@ -397,11 +395,9 @@ export const createDatabase = ({
 
       if (["start", "dev"].includes(common.options.command)) {
         await adminQB.wrap({ label: "unlock" }, (db) =>
-          db
-            .update(PONDER_META)
-            .set({
-              value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
-            }),
+          db.update(PONDER_META).set({
+            value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
+          }),
         );
       }
 
@@ -528,11 +524,9 @@ export const createDatabase = ({
 
       if (["start", "dev"].includes(common.options.command)) {
         await adminQB.wrap({ label: "unlock" }, (db) =>
-          db
-            .update(PONDER_META)
-            .set({
-              value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
-            }),
+          db.update(PONDER_META).set({
+            value: jsonbSetOnValue("{is_locked}", sql`to_jsonb(0)`),
+          }),
         );
       }
 
@@ -1208,8 +1202,7 @@ CREATE TABLE IF NOT EXISTS "${namespace.schema}"."${PONDER_CHECKPOINT_TABLE_NAME
           // in the runtime script.
 
           await tx.wrap(
-            (tx) =>
-              tx.update(PONDER_META).set({ value: asJsonb(metadata) }),
+            (tx) => tx.update(PONDER_META).set({ value: asJsonb(metadata) }),
             context,
           );
           return { status: "success", crashRecoveryCheckpoint } as const;

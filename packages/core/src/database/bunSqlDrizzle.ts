@@ -5,8 +5,9 @@
  * Cast at the boundary: drizzle returns BunSQLDatabase, which is not assignable
  * to the shared `Drizzle` alias used by createQB, but the runtime shape matches.
  */
-import { drizzle as drizzleBunSqlImpl } from "drizzle-orm/bun-sql";
+
 import type { DrizzleConfig } from "drizzle-orm";
+import { drizzle as drizzleBunSqlImpl } from "drizzle-orm/bun-sql";
 import type { Schema } from "@/internal/types.js";
 import type { Drizzle } from "@/types/db.js";
 import type { BunSqlClient } from "./bunSqlDriver.js";

@@ -595,11 +595,9 @@ export async function runMultichain({
   endClock = startClock();
 
   await database.adminQB.wrap({ label: "update_ready" }, (db) =>
-    db
-      .update(PONDER_META)
-      .set({
-        value: jsonbSetOnValue("{is_ready}", sql`to_jsonb(1)`),
-      }),
+    db.update(PONDER_META).set({
+      value: jsonbSetOnValue("{is_ready}", sql`to_jsonb(1)`),
+    }),
   );
 
   common.logger.info({
