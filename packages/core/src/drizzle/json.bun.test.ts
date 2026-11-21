@@ -51,8 +51,11 @@ if (skip) {
     });
     let client: Bun.SQL;
     let db: ReturnType<typeof drizzle>;
+    let previousDriver: string | undefined;
 
     beforeAll(async () => {
+      previousDriver = process.env[bunSqlDatabaseDriverEnvName];
+      process.env[bunSqlDatabaseDriverEnvName] = "bun";
       client = new Bun.SQL({ url: url!, max: 1 });
       db = drizzle(client);
       await client.unsafe(`DROP TABLE IF EXISTS _ponder_json_col_probe`);
@@ -67,6 +70,11 @@ if (skip) {
     afterAll(async () => {
       await client.unsafe(`DROP TABLE IF EXISTS _ponder_json_col_probe`);
       await client.close();
+      if (previousDriver === undefined) {
+        delete process.env[bunSqlDatabaseDriverEnvName];
+      } else {
+        process.env[bunSqlDatabaseDriverEnvName] = previousDriver;
+      }
     });
 
     test("stores jsonb objects not string scalars", async () => {
