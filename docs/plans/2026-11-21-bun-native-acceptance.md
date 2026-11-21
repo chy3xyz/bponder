@@ -26,25 +26,33 @@ This is an honest checklist. Items that were not executed are left unchecked. Do
 
 ## Production progress
 
-As of `feat/bun-native` @ `c5afb60`+. Task 6.2 checklist above is unchanged; this is the post-acceptance production snapshot.
+As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is the post-acceptance production snapshot.
 
 ### Now true
 
-- **Native indexing without Vite** (`f7d04a0`). `ponder start --native` loads indexing functions through a Bun plugin (`ponder:registry`, `ponder:schema`), compiles with production helpers (`compileBunNative`), migrates, and runs omnichain / multichain / `experimental_isolated` indexing. No Vite `createBuild` on the main-thread native path.
-- **`/v1` shares indexing storage** (`b0a59dc`). Native `start` / `dev` serve `/v1` from the same `createDatabase` instance via `readonlyQB`. `ponder serve` under Bun also defaults to the Bun `/v1` stack (`c5afb60`).
-- **Bun defaults to native `start` / `dev` / `serve`** (`57a0103`, `c5afb60`). When `process.versions.bun` is set, those commands use the Bun-native path. Vite escape hatch: `PONDER_USE_VITE=1`.
-- **Bun.SQL as `createDatabase` under Bun** — defaults on when `process.versions.bun` is set (`drizzle-orm/bun-sql`). Escape hatch: `PONDER_DATABASE_DRIVER=pg`. Explicit `=bun` / `=bun-sql` also forces Bun.SQL on Node. Classic `@ponder/client` LISTEN/NOTIFY warns and skips on the Bun engine; use `/v1` SQL instead.
-- **`isolatedWorker.bun.ts` full protocol** — `Worker.data` payload, `createBuild` → `createDatabase` → `runIsolated` per chain, ready/done/error/kill. Native path calls `isolatedController`. Worker still uses Vite-backed `createBuild` (not `compileBunNative`); Bun-native compile inside workers is follow-up.
+- **Native indexing without Vite** (`f7d04a0`+). `ponder start` / `dev` under Bun use `compileBunNative` (Bun `import()` + `ponder:registry` / `ponder:schema` plugin). No Vite on the main native path. Escape: `PONDER_USE_VITE=1`.
+- **`/v1` shares indexing storage** (`b0a59dc`). Native `start` / `dev` serve `/v1` from the same `createDatabase` `readonlyQB`. `ponder serve` under Bun defaults to Bun `/v1` (`c5afb60`).
+- **Bun.SQL as `createDatabase` under Bun** (`4987522`). Defaults on when `process.versions.bun` is set. Escape: `PONDER_DATABASE_DRIVER=pg`. Meta jsonb writes use `asJsonb` / `jsonbSetOnValue` so Bun.SQL does not store string scalars (`cannot set path in scalar` fixed).
+- **Vite-free isolated workers** — `isolatedWorker.bun.ts` uses `compileBunNative` → `createDatabase` → `runIsolated` (not Vite `createBuild`). Native path calls `isolatedController` for `experimental_isolated`.
+- **Closed loop evidenced** — `bunNativeApp.e2e.bun.test.ts`: `ponder start --native` + Anvil ERC20 mint → `/v1/status` checkpoint ≥ 2 → `/v1/sql` account balances. Also `feature-bun-slice` + `feature-bun-live` smokes green.
 
 ### Still deferred
 
 | Item | Why it remains |
 |---|---|
-| Vite-free isolated workers | Bun workers still call `createBuild` (Vite). Main native thread is Vite-free. |
 | `PONDER_DATABASE_DRIVER=pg` escape | Node-postgres remains available; not deleted. |
-| `simulation-test` | Still **not run**. No `simulation-test/.env.local`; port `55432` unused this session. Benchmark also not run. |
+| General user-table jsonb via drizzle | Meta path fixed; arbitrary jsonb columns may still hit drizzle `JSON.stringify` → string-scalar under Bun.SQL. |
+| `simulation-test` / benchmark | Still **not run** this session. |
 
-Focused bun tests: `bunSqlDriver`, `bunNativeBuild`, `bunNativeServe`, `indexingWorker`.
+Focused evidence (2026-11-21):
+
+```bash
+DATABASE_URL=postgres://n0x@127.0.0.1:5432/postgres
+bun test src/bin/utils/bunNativeApp.e2e.bun.test.ts   # pass (~0.5s)
+bun test src/database/jsonb.bun.test.ts                 # pass
+cd examples/feature-bun-slice && bun run smoke          # Bun historical slice smoke passed
+cd examples/feature-bun-live && bun run smoke           # Bun realtime slice smoke passed
+```
 
 ---
 
@@ -54,14 +62,11 @@ Wiring landed after `d331479` / `c9ecc10`. The original checklist above is uncha
 
 | Commit | Improvement | Remaining gap |
 |---|---|---|
-| `16050ae` | `createBunSqlDatabase` creates non-public schemas and sets a durable `search_path`; `ponder serve --native --schema` passes through | Production `createDatabase` still defaults to `pg` |
-| `e7912e1` | `ponder start --native` loads config/schema with `bunLoader` (Bun `import()`) and can start the Bun `/v1` stack | Superseded for default `start` / `dev` by `57a0103`; Vite remains the `PONDER_USE_VITE=1` escape hatch |
-| `812eef2` | `isolatedController` spawns via `createIndexingWorker`; under Bun that is `Bun.Worker` + `isolatedWorker.bun.ts` | Superseded: full protocol now in `isolatedWorker.bun.ts` |
-| `f7d04a0` | Production indexing on `ponder start --native` via `bunNativeBuild` (Bun plugin + compile helpers, no Vite) | Isolated now wired via `isolatedController` |
-| `b0a59dc` | Unified `/v1` on native `start` / `dev` through `createDatabase` `readonlyQB` | `ponder serve --native` still uses a separate Bun.SQL connection |
-| `57a0103` | `ponder start` / `ponder dev` default to Bun-native indexing when `process.versions.bun` is set | Superseded for serve by `c5afb60` |
-| `c5afb60` | `ponder serve` defaults to Bun-native `/v1` under Bun; `PONDER_USE_VITE=1` escape | — |
-| *(pending)* | `PONDER_DATABASE_DRIVER=bun` for `createDatabase` + full Bun isolated worker + native isolated ordering | Default driver still `pg`; worker Vite compile remains |
+| `16050ae` | `createBunSqlDatabase` schema/`search_path` | — |
+| `e7912e1` / `57a0103` / `c5afb60` | Native start/dev/serve defaults under Bun | Vite escape remains |
+| `f7d04a0` / `b0a59dc` | Production indexing + unified `/v1` | — |
+| `444e021` / `4987522` | Bun.SQL createDatabase gate + default-under-Bun | User-table jsonb caveat |
+| *(HEAD)* | Vite-free `isolatedWorker.bun.ts`; jsonb meta fix; start→/v1 e2e | simulation-test |
 
 ---
 
