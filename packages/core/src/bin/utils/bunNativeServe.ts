@@ -41,16 +41,24 @@ export function isBunNativeEnabled({
   return versions.bun !== undefined;
 }
 
-/** Opt-in Bun-native `/v1` for `ponder serve` (no indexing). Never default-on. */
+/**
+ * Bun-native `/v1` for `ponder serve` (no indexing).
+ * On when `process.versions.bun` is set, unless `PONDER_USE_VITE=1`.
+ * `--native` / `PONDER_BUN_NATIVE=1` still enable explicitly.
+ */
 export function isBunNativeServeEnabled({
   native,
   env = process.env,
+  versions = process.versions,
 }: {
   native?: boolean;
   env?: NodeJS.Dict<string>;
+  versions?: { bun?: string };
 } = {}): boolean {
   if (native === true) return true;
-  return isTruthyEnvValue(env[bunNativeServeEnvName]);
+  if (isTruthyEnvValue(env[bunUseViteEnvName])) return false;
+  if (isTruthyEnvValue(env[bunNativeServeEnvName])) return true;
+  return versions.bun !== undefined;
 }
 
 /** Returns an invalid identifier if `--schema` / DATABASE_SCHEMA cannot be used as a schema name. */

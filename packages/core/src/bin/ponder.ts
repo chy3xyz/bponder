@@ -133,7 +133,7 @@ const serveCommand = new Command("serve")
   )
   .option(
     "--native",
-    "Serve the Bun-native /v1 HTTP stack without the Vite/Hono API",
+    "Serve the Bun-native /v1 HTTP stack without Vite (default under Bun; set PONDER_USE_VITE=1 for Vite)",
   )
   .showHelpAfterError()
   .action(async (_, command) => {

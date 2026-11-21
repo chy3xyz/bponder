@@ -93,27 +93,72 @@ test("isBunNativeEnabled uses PONDER_USE_VITE to force the Vite path", () => {
   ).toBe(false);
 });
 
-test("isBunNativeServeEnabled is false by default even under bun", () => {
-  expect(isBunNativeServeEnabled({ env: {} })).toBe(false);
+test("isBunNativeServeEnabled defaults on when process.versions.bun is set", () => {
+  expect(isBunNativeServeEnabled({ env: {}, versions: bunVersions })).toBe(
+    true,
+  );
+  expect(isBunNativeServeEnabled({ env: {} })).toBe(true);
+});
+
+test("isBunNativeServeEnabled defaults off without bun", () => {
+  expect(isBunNativeServeEnabled({ env: {}, versions: nodeVersions })).toBe(
+    false,
+  );
 });
 
 test("isBunNativeServeEnabled honors --native", () => {
-  expect(isBunNativeServeEnabled({ native: true, env: {} })).toBe(true);
+  expect(
+    isBunNativeServeEnabled({ native: true, env: {}, versions: nodeVersions }),
+  ).toBe(true);
 });
 
 test("isBunNativeServeEnabled honors PONDER_BUN_NATIVE", () => {
-  expect(isBunNativeServeEnabled({ env: { PONDER_BUN_NATIVE: "1" } })).toBe(
-    true,
-  );
-  expect(isBunNativeServeEnabled({ env: { PONDER_BUN_NATIVE: "true" } })).toBe(
-    true,
-  );
-  expect(isBunNativeServeEnabled({ env: { PONDER_BUN_NATIVE: "YES" } })).toBe(
-    true,
-  );
-  expect(isBunNativeServeEnabled({ env: { PONDER_BUN_NATIVE: "0" } })).toBe(
-    false,
-  );
+  expect(
+    isBunNativeServeEnabled({
+      env: { PONDER_BUN_NATIVE: "1" },
+      versions: nodeVersions,
+    }),
+  ).toBe(true);
+  expect(
+    isBunNativeServeEnabled({
+      env: { PONDER_BUN_NATIVE: "true" },
+      versions: nodeVersions,
+    }),
+  ).toBe(true);
+  expect(
+    isBunNativeServeEnabled({
+      env: { PONDER_BUN_NATIVE: "YES" },
+      versions: nodeVersions,
+    }),
+  ).toBe(true);
+  expect(
+    isBunNativeServeEnabled({
+      env: { PONDER_BUN_NATIVE: "0" },
+      versions: nodeVersions,
+    }),
+  ).toBe(false);
+});
+
+test("isBunNativeServeEnabled uses PONDER_USE_VITE to force the Vite path", () => {
+  expect(
+    isBunNativeServeEnabled({
+      env: { PONDER_USE_VITE: "1" },
+      versions: bunVersions,
+    }),
+  ).toBe(false);
+  expect(
+    isBunNativeServeEnabled({
+      env: { PONDER_USE_VITE: "1", PONDER_BUN_NATIVE: "1" },
+      versions: bunVersions,
+    }),
+  ).toBe(false);
+  expect(
+    isBunNativeServeEnabled({
+      native: true,
+      env: { PONDER_USE_VITE: "1" },
+      versions: bunVersions,
+    }),
+  ).toBe(true);
 });
 
 test("getUnsupportedBunNativeSchema allows public, custom, default, and unset", () => {
