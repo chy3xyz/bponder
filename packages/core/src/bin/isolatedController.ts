@@ -1,7 +1,5 @@
-import path from "node:path";
-import url from "node:url";
 import v8 from "node:v8";
-import { Worker } from "node:worker_threads";
+import type { Worker } from "node:worker_threads";
 import { isTable, isView, sql } from "drizzle-orm";
 import { createIndexes, createViews } from "@/database/actions.js";
 import { type Database, getPonderMetaTable } from "@/database/index.js";
@@ -23,9 +21,11 @@ import { chunk } from "@/utils/chunk.js";
 import { formatEta, formatPercentage } from "@/utils/format.js";
 import { startClock } from "@/utils/timer.js";
 import type { isolatedWorker } from "./isolatedWorker.js";
-
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import {
+  createIndexingWorker,
+  getIndexingWorkerEntryUrl,
+  type IndexingWorkerHandle,
+} from "./utils/indexingWorker.js";
 
 type WorkerState = "backfill" | "live" | "complete";
 
@@ -188,14 +188,14 @@ export async function isolatedController({
       }),
     );
   } else {
-    const workerPath = path.join(__dirname, "isolatedWorker.js");
+    const workerPath = getIndexingWorkerEntryUrl();
 
     const perThreadChains = chunk(
       indexingBuild.chains,
       Math.ceil(indexingBuild.chains.length / common.options.maxThreads),
     );
 
-    const perThreadWorkers: Worker[] = [];
+    const perThreadWorkers: IndexingWorkerHandle[] = [];
     for (const chains of perThreadChains) {
       const chainIds = chains.map((chain) => chain.id);
 
@@ -215,7 +215,7 @@ export async function isolatedController({
       // size limit for the current main thread
       v8.setFlagsFromString(`--max-old-space-size=${perThreadHeapSizeLimit}`);
 
-      const worker = new Worker(workerPath, {
+      const worker = createIndexingWorker(workerPath, {
         workerData: {
           options: common.options,
           chainIds,
@@ -286,9 +286,11 @@ export async function isolatedController({
       duration: backfillEndClock(),
     });
 
+    // TODO: AggregateMetricsService still types node:worker_threads Worker
+    // (parentPort GET_METRICS). Bun.Worker handshake does not implement that.
     common.metrics = new AggregateMetricsService(
       common.metrics,
-      perThreadWorkers,
+      perThreadWorkers as Worker[],
     );
 
     common.shutdown.add(() => {
