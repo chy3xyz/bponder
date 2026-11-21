@@ -13,7 +13,10 @@ async function globalSetup() {
 
   const generatedFilePath = join(__dirname, "generated.ts");
   if (!existsSync(generatedFilePath)) {
-    await execa("pnpm", ["wagmi", "generate"]);
+    const coreRoot = join(__dirname, "../..");
+    await execa(join(coreRoot, "node_modules/.bin/wagmi"), ["generate"], {
+      cwd: coreRoot,
+    });
   }
 
   const shutdownProxy = await startProxy({

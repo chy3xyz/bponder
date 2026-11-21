@@ -1,19 +1,19 @@
 "use client";
 
-import { desc } from "@ponder/client";
 import { usePonderQuery } from "@ponder/react";
 import CountUp from "react-countup";
 import { formatEther } from "viem";
-import { schema } from "../lib/ponder";
+
+type DepositRow = {
+  id: string;
+  timestamp: number | string;
+  amount: string | number | bigint;
+  account: string;
+};
 
 export default function DepositsTable() {
-  const depositsQuery = usePonderQuery({
-    queryFn: (db) =>
-      db
-        .select()
-        .from(schema.depositEvent)
-        .orderBy(desc(schema.depositEvent.timestamp))
-        .limit(10),
+  const depositsQuery = usePonderQuery<DepositRow>({
+    sql: `SELECT id, timestamp, amount, account FROM deposit_event ORDER BY timestamp DESC LIMIT 10`,
   });
 
   return (
@@ -29,7 +29,7 @@ export default function DepositsTable() {
             <p>Amount</p>
             <p className="hidden sm:flex">Timestamp</p>
           </li>
-          {depositsQuery.data?.map(({ account, timestamp, amount, id }) => (
+          {depositsQuery.data?.rows.map(({ account, timestamp, amount, id }) => (
             <li
               className="grid grid-cols-2 py-2 w-full text-lg font-semibold sm:grid-cols-3"
               key={id}
@@ -42,7 +42,7 @@ export default function DepositsTable() {
               </a>
               <CountUp
                 start={0}
-                end={Number(formatEther(amount))}
+                end={Number(formatEther(BigInt(amount)))}
                 duration={2.5}
                 decimals={5}
                 decimal={"."}
@@ -50,7 +50,7 @@ export default function DepositsTable() {
                 className="text-sm font-semibold"
               />
               <p className="hidden text-sm sm:flex">
-                {new Date(timestamp * 1000).toLocaleString()}
+                {new Date(Number(timestamp) * 1000).toLocaleString()}
               </p>
             </li>
           ))}

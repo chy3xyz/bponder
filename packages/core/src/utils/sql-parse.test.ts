@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { createClient } from "@ponder/client";
+import { drizzle } from "drizzle-orm/pg-proxy";
 import { expect, test } from "vitest";
 import { eq, onchainTable, relations } from "@/index.js";
 import {
@@ -277,19 +277,22 @@ test("validateAllowableSQLQuery() relational query", async () => {
     commentList: many(comment),
   }));
 
-  const client = createClient("http://.../sql", {
-    schema: {
-      account,
-      position,
-      comment,
-      positionRelations,
-      accountProfileRelations,
-      commentRelations,
-      positionCommentRelations,
+  const db = drizzle(
+    async () => ({ rows: [] as any[] }),
+    {
+      schema: {
+        account,
+        position,
+        comment,
+        positionRelations,
+        accountProfileRelations,
+        commentRelations,
+        positionCommentRelations,
+      },
     },
-  });
+  );
 
-  let query = client.db.query.account
+  let query = db.query.account
     .findMany({
       with: {
         positionList: true,
@@ -298,7 +301,7 @@ test("validateAllowableSQLQuery() relational query", async () => {
     .toSQL();
   await validateAllowableSQLQuery(query.sql);
 
-  query = client.db.query.account
+  query = db.query.account
     .findFirst({
       with: {
         positionList: true,
@@ -307,14 +310,14 @@ test("validateAllowableSQLQuery() relational query", async () => {
     .toSQL();
   await validateAllowableSQLQuery(query.sql);
 
-  query = client.db.query.account.findMany().toSQL();
+  query = db.query.account.findMany().toSQL();
   await validateAllowableSQLQuery(query.sql);
 
-  query = client.db.query.account.findFirst().toSQL();
+  query = db.query.account.findFirst().toSQL();
   await validateAllowableSQLQuery(query.sql);
 
   // nested relational query
-  query = client.db.query.account
+  query = db.query.account
     .findMany({
       with: {
         positionList: {
@@ -328,7 +331,7 @@ test("validateAllowableSQLQuery() relational query", async () => {
   await validateAllowableSQLQuery(query.sql);
 
   // nested relational query with where
-  query = client.db.query.account
+  query = db.query.account
     .findMany({
       with: {
         positionList: {
@@ -343,7 +346,7 @@ test("validateAllowableSQLQuery() relational query", async () => {
   await validateAllowableSQLQuery(query.sql);
 
   // nested relational query with limit
-  query = client.db.query.account
+  query = db.query.account
     .findMany({
       with: {
         positionList: {
@@ -358,7 +361,7 @@ test("validateAllowableSQLQuery() relational query", async () => {
   await validateAllowableSQLQuery(query.sql);
 
   // relational query with offset
-  query = client.db.query.account
+  query = db.query.account
     .findMany({
       offset: 10,
       with: {

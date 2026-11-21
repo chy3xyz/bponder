@@ -697,14 +697,36 @@ export async function waitForIndexedBlock({
       reject(new Error("Timed out while waiting for the indexed block."));
     }, 5_000);
     const interval = setInterval(async () => {
-      const response = await fetch(`http://localhost:${port}/status`);
-      if (response.status === 200) {
-        const status = (await response.json()) as Status;
-        const sb = status[chainName]?.block;
-        if (sb !== undefined && sb.number >= block.number) {
-          clearTimeout(timeout);
-          clearInterval(interval);
-          resolve(undefined);
+      const endpoints = [
+        `http://localhost:${port}/v1/status`,
+        `http://localhost:${port}/status`,
+      ];
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint);
+          if (response.status !== 200) continue;
+          const status = (await response.json()) as
+            | Status
+            | { checkpoint: { blockNumber: number } | null };
+          if (
+            "checkpoint" in status &&
+            status.checkpoint !== null &&
+            status.checkpoint.blockNumber >= block.number
+          ) {
+            clearTimeout(timeout);
+            clearInterval(interval);
+            resolve(undefined);
+            return;
+          }
+          const sb = (status as Status)[chainName]?.block;
+          if (sb !== undefined && sb.number >= block.number) {
+            clearTimeout(timeout);
+            clearInterval(interval);
+            resolve(undefined);
+            return;
+          }
+        } catch {
+          // Endpoint may not be ready yet.
         }
       }
     }, 20);

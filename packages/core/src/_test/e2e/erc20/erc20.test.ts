@@ -12,7 +12,6 @@ import {
 import { deployErc20, mintErc20 } from "@/_test/simulate.js";
 import { getFreePort, waitForIndexedBlock } from "@/_test/utils.js";
 import { start } from "@/bin/commands/start.js";
-import * as schema from "./ponder.schema.js";
 
 const rootDir = path.join(".", "src", "_test", "e2e", "erc20");
 beforeEach(() => {
@@ -34,7 +33,7 @@ const cliOptions = {
 
 test("erc20", async () => {
   const port = await getFreePort();
-  const client = createClient(`http://localhost:${port}/sql`, { schema });
+  const client = createClient({ url: `http://localhost:${port}` });
 
   const shutdown = await start({
     cliOptions: {
@@ -59,15 +58,17 @@ test("erc20", async () => {
     block: { number: 2 },
   });
 
-  const result = await client.db.select().from(schema.account);
+  const { rows } = await client.sql(
+    `SELECT address, balance FROM account ORDER BY address`,
+  );
 
-  expect(result[0]).toMatchObject({
+  expect(rows[0]).toMatchObject({
     address: zeroAddress,
-    balance: -1n * 10n ** 18n,
+    balance: (-1n * 10n ** 18n).toString(),
   });
-  expect(result[1]).toMatchObject({
+  expect(rows[1]).toMatchObject({
     address: ALICE.toLowerCase(),
-    balance: 10n ** 18n,
+    balance: (10n ** 18n).toString(),
   });
 
   await shutdown!();

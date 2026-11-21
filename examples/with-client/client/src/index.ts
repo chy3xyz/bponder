@@ -1,27 +1,21 @@
-import { createClient, desc } from "@ponder/client";
-import * as schema from "../../ponder/ponder.schema";
+import { createClient } from "@ponder/client";
 
-const client = createClient("http://localhost:42069/sql", { schema });
+const client = createClient({ url: "http://localhost:42069" });
 
-const result = await client.db
-  .select({ balance: schema.account.balance })
-  .from(schema.account)
-  .orderBy(desc(schema.account.balance))
-  .limit(1);
+const { rows } = await client.sql(
+  `SELECT balance FROM account ORDER BY balance DESC LIMIT 1`,
+);
 
-console.log(result[0]);
+console.log(rows[0]);
 
 console.log("Subscribing to live updates...");
 
 const { unsubscribe } = client.live(
-  (db) =>
-    db
-      .select({ balance: schema.account.balance })
-      .from(schema.account)
-      .orderBy(desc(schema.account.balance))
-      .limit(1),
-  (data) => {
-    console.log(data[0]);
+  async () => {
+    const result = await client.sql(
+      `SELECT balance FROM account ORDER BY balance DESC LIMIT 1`,
+    );
+    console.log(result.rows[0]);
   },
   (error) => {
     console.error(error);

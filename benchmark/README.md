@@ -8,12 +8,18 @@ Create an `env.local` file using `.env.example` as a template. The `DATABASE_URL
 
 Create the database objects for an app.
 
-```pnpm create:app [app id]```
+```bash
+bun run create:app [app id]
+```
 
 ### Run benchmark
 
-```pnpm benchmark [app id]```
+```bash
+bun run benchmark [app id]
+```
 
 CLI flags are supported and passed through to Ponder.
 
-```pnpm benchmark [app id] -- -v```
+```bash
+bun run benchmark [app id] -- -v
+```

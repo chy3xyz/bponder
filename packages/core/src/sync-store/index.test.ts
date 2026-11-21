@@ -1138,7 +1138,10 @@ test("getFilterBlockRange() merges filter and pagination bounds", () => {
 
 test("getEventData() applies one block range to logs and traces queries", async () => {
   const { database, syncStore } = await setupDatabaseServices();
-  const querySpy = vi.spyOn(database.syncQB.$client, "query");
+  const queryClient = database.syncQB.$client as {
+    query: (...args: unknown[]) => unknown;
+  };
+  const querySpy = vi.spyOn(queryClient, "query");
 
   await syncStore.getEventData({
     filters: [
@@ -1152,11 +1155,15 @@ test("getEventData() applies one block range to logs and traces queries", async 
     limit: 10,
   });
 
-  const queries = querySpy.mock.calls.map(([query, params]) =>
-    typeof query === "string"
+  const queries = querySpy.mock.calls.map((call) => {
+    const [query, params] = call as unknown as [
+      string | { text: string; values: unknown[] },
+      unknown[]?,
+    ];
+    return typeof query === "string"
       ? { text: query, values: params }
-      : (query as { text: string; values: unknown[] }),
-  );
+      : { text: query.text, values: query.values };
+  });
   const logsQuery = queries.find(({ text }) =>
     text.includes(`from "${ponderSyncSchema.PONDER_SYNC_SCHEMA}"."logs"`),
   );

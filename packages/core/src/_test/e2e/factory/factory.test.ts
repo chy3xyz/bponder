@@ -11,7 +11,6 @@ import {
 import { createPair, deployFactory, swapPair } from "@/_test/simulate.js";
 import { getFreePort, waitForIndexedBlock } from "@/_test/utils.js";
 import { start } from "@/bin/commands/start.js";
-import * as schema from "./ponder.schema.js";
 
 const rootDir = path.join(".", "src", "_test", "e2e", "factory");
 beforeEach(() => {
@@ -33,7 +32,7 @@ const cliOptions = {
 
 test("factory", async () => {
   const port = await getFreePort();
-  const client = createClient(`http://localhost:${port}/sql`, { schema });
+  const client = createClient({ url: `http://localhost:${port}` });
 
   const shutdown = await start({
     cliOptions: {
@@ -63,10 +62,12 @@ test("factory", async () => {
     block: { number: 3 },
   });
 
-  let result = await client.db.select().from(schema.swapEvent);
+  let { rows } = await client.sql(
+    `SELECT id, "from", "to", pair FROM swap_event ORDER BY id`,
+  );
 
-  expect(result).toHaveLength(1);
-  expect(result[0]).toMatchObject({
+  expect(rows).toHaveLength(1);
+  expect(rows[0]).toMatchObject({
     id: expect.any(String),
     from: ALICE.toLowerCase(),
     to: ALICE.toLowerCase(),
@@ -87,9 +88,11 @@ test("factory", async () => {
     block: { number: 4 },
   });
 
-  result = await client.db.select().from(schema.swapEvent);
+  ({ rows } = await client.sql(
+    `SELECT id, "from", "to", pair FROM swap_event ORDER BY id`,
+  ));
 
-  expect(result).toHaveLength(2);
+  expect(rows).toHaveLength(2);
 
   await shutdown!();
 }, 15_000);
