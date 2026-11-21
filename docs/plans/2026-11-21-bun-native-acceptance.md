@@ -33,15 +33,15 @@ As of `feat/bun-native` @ `c5afb60`+. Task 6.2 checklist above is unchanged; thi
 - **Native indexing without Vite** (`f7d04a0`). `ponder start --native` loads indexing functions through a Bun plugin (`ponder:registry`, `ponder:schema`), compiles with production helpers (`compileBunNative`), migrates, and runs omnichain / multichain / `experimental_isolated` indexing. No Vite `createBuild` on the main-thread native path.
 - **`/v1` shares indexing storage** (`b0a59dc`). Native `start` / `dev` serve `/v1` from the same `createDatabase` instance via `readonlyQB`. `ponder serve` under Bun also defaults to the Bun `/v1` stack (`c5afb60`).
 - **Bun defaults to native `start` / `dev` / `serve`** (`57a0103`, `c5afb60`). When `process.versions.bun` is set, those commands use the Bun-native path. Vite escape hatch: `PONDER_USE_VITE=1`.
-- **`PONDER_DATABASE_DRIVER=bun`** env-gates `createDatabase` onto Bun.SQL + `drizzle-orm/bun-sql` (default remains `pg`). Classic `@ponder/client` LISTEN/NOTIFY warns and skips on the Bun engine; use `/v1` SQL instead.
+- **Bun.SQL as `createDatabase` under Bun** — defaults on when `process.versions.bun` is set (`drizzle-orm/bun-sql`). Escape hatch: `PONDER_DATABASE_DRIVER=pg`. Explicit `=bun` / `=bun-sql` also forces Bun.SQL on Node. Classic `@ponder/client` LISTEN/NOTIFY warns and skips on the Bun engine; use `/v1` SQL instead.
 - **`isolatedWorker.bun.ts` full protocol** — `Worker.data` payload, `createBuild` → `createDatabase` → `runIsolated` per chain, ready/done/error/kill. Native path calls `isolatedController`. Worker still uses Vite-backed `createBuild` (not `compileBunNative`); Bun-native compile inside workers is follow-up.
 
 ### Still deferred
 
 | Item | Why it remains |
 |---|---|
-| Default Bun.SQL for `createDatabase` | Env-gated only (`PONDER_DATABASE_DRIVER=bun`). Default production indexing still uses `pg` unless the env is set. |
 | Vite-free isolated workers | Bun workers still call `createBuild` (Vite). Main native thread is Vite-free. |
+| `PONDER_DATABASE_DRIVER=pg` escape | Node-postgres remains available; not deleted. |
 | `simulation-test` | Still **not run**. No `simulation-test/.env.local`; port `55432` unused this session. Benchmark also not run. |
 
 Focused bun tests: `bunSqlDriver`, `bunNativeBuild`, `bunNativeServe`, `indexingWorker`.
