@@ -37,13 +37,11 @@ export type BunIsolatedBatchResult = {
   checkpoint: BunIsolatedWorkerCheckpoint | undefined;
 };
 
-type WorkerRequest =
-  | { type: "ping"; requestId: number }
-  | { type: "batch"; requestId: number; events: BunIsolatedEvent[] };
-
 type WorkerRequestBody =
   | { type: "ping" }
   | { type: "batch"; events: BunIsolatedEvent[] };
+
+type WorkerRequest = WorkerRequestBody & { requestId: number };
 
 type WorkerReply =
   | { type: "pong"; requestId: number; worker: "bun" }
