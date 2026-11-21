@@ -1,6 +1,8 @@
 import {
   type BunSqlDatabase,
   createBunSqlDatabase,
+  isBunSqlSchemaIdentifier,
+  normalizeBunSqlSchema,
 } from "@/database/bunSql.js";
 import {
   type BunServer,
@@ -10,7 +12,6 @@ import {
 import { createBunV1ApiFetch } from "@/server/bunV1Api.js";
 
 const TRUTHY_ENV = new Set(["1", "true", "yes"]);
-const DEFAULT_DATABASE_SCHEMA = "public";
 
 export const bunNativeServeEnvName = "PONDER_BUN_NATIVE";
 
@@ -29,7 +30,7 @@ export function isBunNativeServeEnabled({
   return TRUTHY_ENV.has(value.trim().toLowerCase());
 }
 
-/** Returns a non-default schema if `--schema` / DATABASE_SCHEMA would be silently ignored. */
+/** Returns an invalid identifier if `--schema` / DATABASE_SCHEMA cannot be used as a schema name. */
 export function getUnsupportedBunNativeSchema({
   schema,
   env = process.env,
@@ -41,7 +42,7 @@ export function getUnsupportedBunNativeSchema({
   if (typeof requested !== "string") return undefined;
 
   const trimmed = requested.trim();
-  if (trimmed.length === 0 || trimmed === DEFAULT_DATABASE_SCHEMA) {
+  if (trimmed.length === 0 || isBunSqlSchemaIdentifier(trimmed)) {
     return undefined;
   }
 
@@ -79,12 +80,17 @@ export async function startBunNativeServe({
   url,
   port,
   hostname,
+  schema,
 }: {
   url: string;
   port: number;
   hostname?: string;
+  schema?: string;
 }): Promise<BunNativeServe> {
-  const database = createBunSqlDatabase({ url });
+  const database = createBunSqlDatabase({
+    url,
+    schema: normalizeBunSqlSchema(schema),
+  });
 
   try {
     await database.migrate();

@@ -3,6 +3,7 @@ import {
   type BunSqlDatabase,
   createBunSqlDatabase,
   getBunSqlState,
+  isBunSqlSchemaIdentifier,
 } from "./bunSql.js";
 
 const url = process.env.DATABASE_URL;
@@ -12,6 +13,20 @@ type SqlWithUnsafe = BunSqlDatabase["admin"] & {
   unsafe(query: string): Promise<unknown>;
 };
 
+test("isBunSqlSchemaIdentifier accepts public and custom names", () => {
+  expect(isBunSqlSchemaIdentifier("public")).toBe(true);
+  expect(isBunSqlSchemaIdentifier("ponder")).toBe(true);
+  expect(isBunSqlSchemaIdentifier("ponder_bun_abc")).toBe(true);
+});
+
+test("isBunSqlSchemaIdentifier rejects unsafe names", () => {
+  expect(isBunSqlSchemaIdentifier("")).toBe(false);
+  expect(isBunSqlSchemaIdentifier("ponder-app")).toBe(false);
+  expect(isBunSqlSchemaIdentifier("foo;drop")).toBe(false);
+  expect(isBunSqlSchemaIdentifier("pg schema")).toBe(false);
+  expect(isBunSqlSchemaIdentifier("1abc")).toBe(false);
+});
+
 if (skip) {
   test.skip("createBunSqlDatabase requires a non-empty DATABASE_URL", () => {});
 } else {
@@ -19,13 +34,8 @@ if (skip) {
     const schema = `ponder_bun_${crypto.randomUUID().replaceAll("-", "")}`;
     let database: BunSqlDatabase;
 
-    beforeAll(async () => {
-      database = createBunSqlDatabase({ url });
-      const admin = database.admin as SqlWithUnsafe;
-      const user = database.user as SqlWithUnsafe;
-      await admin.unsafe(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
-      await admin.unsafe(`SET search_path TO ${schema}`);
-      await user.unsafe(`SET search_path TO ${schema}`);
+    beforeAll(() => {
+      database = createBunSqlDatabase({ url, schema });
     });
 
     afterAll(async () => {
@@ -36,6 +46,7 @@ if (skip) {
 
     test("opens separate admin and user pools and migrates metadata", async () => {
       expect(database.admin).not.toBe(database.user);
+      expect(database.schema).toBe(schema);
 
       await database.migrate();
       await database.user`
@@ -48,6 +59,14 @@ if (skip) {
       `;
 
       expect(rows).toEqual([{ value: "ready" }]);
+
+      const placed = await database.admin`
+        SELECT table_schema
+        FROM information_schema.tables
+        WHERE table_name = ${"ponder_bun_meta"}
+          AND table_schema = ${schema}
+      `;
+      expect(placed).toEqual([{ table_schema: schema }]);
     });
 
     test("reads PostgreSQL SQLSTATE from errno", async () => {

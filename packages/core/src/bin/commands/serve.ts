@@ -241,12 +241,11 @@ async function serveBunNative({
     options,
   });
 
-  const unsupportedSchema = getUnsupportedBunNativeSchema({
-    schema: cliOptions.schema,
-  });
+  const schema = cliOptions.schema ?? process.env.DATABASE_SCHEMA;
+  const unsupportedSchema = getUnsupportedBunNativeSchema({ schema });
   if (unsupportedSchema !== undefined) {
     logger.error({
-      msg: "The Bun-native 'ponder serve --native' command does not support --schema yet",
+      msg: "The Bun-native 'ponder serve --native' command requires a valid database schema identifier",
       schema: unsupportedSchema,
     });
     await exit({ code: 1 });
@@ -267,6 +266,7 @@ async function serveBunNative({
       url: databaseUrl,
       port: options.port,
       hostname: options.hostname,
+      schema,
     });
 
     logger.info(

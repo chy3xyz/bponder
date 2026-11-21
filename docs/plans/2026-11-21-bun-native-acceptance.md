@@ -103,7 +103,7 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 
 | Deferred | Why it remains | Where |
 |---|---|---|
-| `pg` + `createDatabase` | Production indexing still uses node-postgres / Drizzle; `createBunSqlDatabase` is not the default | `packages/core/src/database/index.ts`, `packages/core/src/utils/pg.ts` |
+| `pg` + `createDatabase` | Production indexing still uses node-postgres / Drizzle; `createBunSqlDatabase` supports schema/`search_path` but is not the default | `packages/core/src/database/index.ts`, `packages/core/src/utils/pg.ts` |
 | Vite SSR loader + `ponder:*` | `createBuild` still boots Vite; no Bun `import()` loader on `ponder dev` / `ponder start` | `packages/core/src/build/index.ts`, `plugin.ts` |
 | `worker_threads` CLI | Isolated indexing still uses Node `Worker`; `Bun.Worker` exists but is not the CLI controller | `packages/core/src/bin/isolatedController.ts`, `isolatedWorker.ts` |
 
@@ -150,7 +150,7 @@ GET /v1/status  → 200 {"checkpoint":null}
 
 Unit tests (`CI=1 bun test packages/core/src/bin/utils/bunNativeServe.bun.test.ts`): **7 pass, 0 fail**, including `startBunNativeServe` against Postgres.
 
-Also enabled by `PONDER_BUN_NATIVE=1`. `--schema` / `DATABASE_SCHEMA` other than `public` is rejected (`d331479`). Implementation: `packages/core/src/bin/utils/bunNativeServe.ts`, wired in `packages/core/src/bin/commands/serve.ts` and `packages/core/src/bin/ponder.ts`.
+Also enabled by `PONDER_BUN_NATIVE=1`. `--schema` / `DATABASE_SCHEMA` is passed through to `createBunSqlDatabase` (invalid identifiers are still rejected). Implementation: `packages/core/src/bin/utils/bunNativeServe.ts`, wired in `packages/core/src/bin/commands/serve.ts` and `packages/core/src/bin/ponder.ts`.
 
 ---
 

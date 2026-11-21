@@ -30,7 +30,7 @@ test("isBunNativeServeEnabled honors PONDER_BUN_NATIVE", () => {
   );
 });
 
-test("getUnsupportedBunNativeSchema allows public, default, and unset", () => {
+test("getUnsupportedBunNativeSchema allows public, custom, default, and unset", () => {
   expect(getUnsupportedBunNativeSchema({ env: {} })).toBeUndefined();
   expect(
     getUnsupportedBunNativeSchema({ schema: undefined, env: {} }),
@@ -47,15 +47,12 @@ test("getUnsupportedBunNativeSchema allows public, default, and unset", () => {
   expect(
     getUnsupportedBunNativeSchema({ schema: "", env: {} }),
   ).toBeUndefined();
-});
-
-test("getUnsupportedBunNativeSchema rejects non-public schemas", () => {
-  expect(getUnsupportedBunNativeSchema({ schema: "ponder", env: {} })).toBe(
-    "ponder",
-  );
+  expect(
+    getUnsupportedBunNativeSchema({ schema: "ponder", env: {} }),
+  ).toBeUndefined();
   expect(
     getUnsupportedBunNativeSchema({ env: { DATABASE_SCHEMA: "expected" } }),
-  ).toBe("expected");
+  ).toBeUndefined();
   expect(
     getUnsupportedBunNativeSchema({
       schema: "public",
@@ -67,7 +64,22 @@ test("getUnsupportedBunNativeSchema rejects non-public schemas", () => {
       schema: "other",
       env: { DATABASE_SCHEMA: "public" },
     }),
-  ).toBe("other");
+  ).toBeUndefined();
+});
+
+test("getUnsupportedBunNativeSchema rejects invalid identifiers", () => {
+  expect(getUnsupportedBunNativeSchema({ schema: "ponder-app", env: {} })).toBe(
+    "ponder-app",
+  );
+  expect(
+    getUnsupportedBunNativeSchema({ env: { DATABASE_SCHEMA: "foo;drop" } }),
+  ).toBe("foo;drop");
+  expect(
+    getUnsupportedBunNativeSchema({
+      schema: "pg schema",
+      env: { DATABASE_SCHEMA: "public" },
+    }),
+  ).toBe("pg schema");
 });
 
 test("formatBunNativeOrigin uses localhost for wildcard binds", () => {
@@ -93,18 +105,13 @@ if (skip) {
     test("opens Bun.SQL, serves /health and /v1, and prints an origin", async () => {
       const databaseUrl = url as string;
       const schema = `ponder_bun_serve_${crypto.randomUUID().replaceAll("-", "")}`;
-      const root = createBunSqlDatabase({ url: databaseUrl });
-      await root.admin.unsafe(`CREATE SCHEMA IF NOT EXISTS ${schema}`);
-      await root.close();
-
-      const scoped = new URL(databaseUrl);
-      scoped.searchParams.set("options", `-csearch_path=${schema}`);
       let native: Awaited<ReturnType<typeof startBunNativeServe>> | undefined;
 
       try {
         native = await startBunNativeServe({
-          url: scoped.toString(),
+          url: databaseUrl,
           port: 0,
+          schema,
         });
 
         expect(native.origin).toBe(
