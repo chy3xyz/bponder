@@ -7,6 +7,7 @@ import {
 export const bunSqlDatabaseDriverEnvName = "PONDER_DATABASE_DRIVER";
 
 const BUN_DRIVER_VALUES = new Set(["bun", "bun-sql"]);
+const PG_DRIVER_VALUES = new Set(["pg", "node-postgres", "postgres"]);
 
 type BunSqlConstructor = new (options: {
   url: string;
@@ -29,12 +30,27 @@ export type BunSqlClient = {
   close(): Promise<void>;
 };
 
-export function isBunSqlDatabaseDriver(
-  env: NodeJS.Dict<string> = process.env,
-): boolean {
+/**
+ * Bun.SQL driver for createDatabase.
+ * - `PONDER_DATABASE_DRIVER=bun` / `bun-sql` forces Bun.SQL
+ * - `PONDER_DATABASE_DRIVER=pg` forces node-postgres
+ * - Under Bun with the env unset, defaults to Bun.SQL
+ * - Under Node, defaults to pg
+ */
+export function isBunSqlDatabaseDriver({
+  env = process.env,
+  versions = process.versions,
+}: {
+  env?: NodeJS.Dict<string>;
+  versions?: { bun?: string };
+} = {}): boolean {
   const value = env[bunSqlDatabaseDriverEnvName];
-  if (typeof value !== "string") return false;
-  return BUN_DRIVER_VALUES.has(value.trim().toLowerCase());
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (PG_DRIVER_VALUES.has(normalized)) return false;
+    if (BUN_DRIVER_VALUES.has(normalized)) return true;
+  }
+  return versions.bun !== undefined;
 }
 
 export function resolveBunSqlConnectionUrl(poolConfig: {

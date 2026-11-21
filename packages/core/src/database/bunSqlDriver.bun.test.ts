@@ -13,20 +13,29 @@ import {
 } from "./bunSqlDriver.js";
 import { createDatabase } from "./index.js";
 
-test("isBunSqlDatabaseDriver honors PONDER_DATABASE_DRIVER", () => {
-  expect(isBunSqlDatabaseDriver({})).toBe(false);
-  expect(isBunSqlDatabaseDriver({ [bunSqlDatabaseDriverEnvName]: "bun" })).toBe(
+test("isBunSqlDatabaseDriver defaults on under Bun and honors env", () => {
+  expect(isBunSqlDatabaseDriver({ env: {}, versions: { bun: "1.4.5" } })).toBe(
     true,
   );
+  expect(isBunSqlDatabaseDriver({ env: {}, versions: {} })).toBe(false);
   expect(
-    isBunSqlDatabaseDriver({ [bunSqlDatabaseDriverEnvName]: "bun-sql" }),
+    isBunSqlDatabaseDriver({
+      env: { [bunSqlDatabaseDriverEnvName]: "bun" },
+      versions: {},
+    }),
   ).toBe(true);
   expect(
-    isBunSqlDatabaseDriver({ [bunSqlDatabaseDriverEnvName]: "BUN" }),
+    isBunSqlDatabaseDriver({
+      env: { [bunSqlDatabaseDriverEnvName]: "bun-sql" },
+      versions: {},
+    }),
   ).toBe(true);
-  expect(isBunSqlDatabaseDriver({ [bunSqlDatabaseDriverEnvName]: "pg" })).toBe(
-    false,
-  );
+  expect(
+    isBunSqlDatabaseDriver({
+      env: { [bunSqlDatabaseDriverEnvName]: "pg" },
+      versions: { bun: "1.4.5" },
+    }),
+  ).toBe(false);
 });
 
 test("resolveBunSqlConnectionUrl requires connectionString", () => {
