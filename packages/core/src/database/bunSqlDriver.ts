@@ -1,3 +1,4 @@
+import type { SQL } from "bun";
 import {
   DEFAULT_BUN_SQL_SCHEMA,
   isBunSqlSchemaIdentifier,
@@ -9,6 +10,9 @@ export const bunSqlDatabaseDriverEnvName = "PONDER_DATABASE_DRIVER";
 const BUN_DRIVER_VALUES = new Set(["bun", "bun-sql"]);
 const PG_DRIVER_VALUES = new Set(["pg", "node-postgres", "postgres"]);
 
+/** Bun.SQL client; matches `drizzle-orm/bun-sql` and `import("bun").SQL`. */
+export type BunSqlClient = SQL;
+
 type BunSqlConstructor = new (options: {
   url: string;
   max?: number;
@@ -18,16 +22,6 @@ type BunSqlConstructor = new (options: {
 
 type BunRuntime = {
   SQL: BunSqlConstructor;
-};
-
-export type BunSqlClient = {
-  (
-    strings: TemplateStringsArray,
-    ...values: unknown[]
-  ): Promise<Record<string, unknown>[]>;
-  unsafe(query: string, values?: unknown[]): Promise<unknown>;
-  begin<T>(callback: (sql: BunSqlClient) => Promise<T>): Promise<T>;
-  close(): Promise<void>;
 };
 
 /**
