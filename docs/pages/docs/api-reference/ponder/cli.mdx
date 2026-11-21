@@ -81,8 +81,11 @@ Options:
   --schema <SCHEMA>          Database schema (max: 45 characters)
   -p, --port <PORT>          Port for the web server (default: 42069)
   -H, --hostname <HOSTNAME>  Hostname for the web server (default: "0.0.0.0" or "::")
+  --native                   Serve the Bun-native /v1 HTTP stack without the Vite/Hono API
   -h, --help                 display help for command
 ```
+
+Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip the Vite/Hono API and serve `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` over `Bun.serve`. Requires `DATABASE_URL`. `ponder start` and `ponder dev` still use the classic HTTP server. [Read more](/docs/guides/bun#bun-native-ponder-serve).
 
 ## codegen
 

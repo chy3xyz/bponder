@@ -33,6 +33,19 @@ bun run dev
 
 [Read more](/docs/requirements) in Requirements. Existing Node Ponder apps should follow the [migration guide](/docs/migration-guide).
 
+## Bun-native `ponder serve`
+
+`ponder start` and `ponder dev` still serve the classic Vite/Hono HTTP API. To serve the Bun-native `/v1` stack (`Bun.SQL` + `Bun.serve`, no Vite or Hono) instead:
+
+```bash [shell]
+# Requires DATABASE_URL
+ponder serve --native
+# or
+PONDER_BUN_NATIVE=1 ponder serve
+```
+
+This starts `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` SSE, then prints the listen URL. Port and hostname still come from `-p` / `-H` (or `PORT`). Classic `ponder serve` without `--native` is unchanged.
+
 ## Known limitations
 
 If you encounter an issue with Ponder that might be caused by Bun, please [open a GitHub issue](https://github.com/ponder-sh/ponder/issues).

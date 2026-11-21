@@ -123,6 +123,10 @@ const serveCommand = new Command("serve")
     "-H, --hostname <HOSTNAME>",
     'Hostname for the web server (default: "0.0.0.0" or "::")',
   )
+  .option(
+    "--native",
+    "Serve the Bun-native /v1 HTTP stack without the Vite/Hono API",
+  )
   .showHelpAfterError()
   .action(async (_, command) => {
     const cliOptions = {
