@@ -24,7 +24,7 @@ export default createConfig({
 [Read more](/docs/api-reference/ponder/config#database) about database configuration in the `ponder.config.ts` API reference.
 
 :::info
-The production `ponder start` / `ponder dev` path still uses the `pg` (node-postgres) driver today. A `Bun.SQL` adapter exists in-tree but is not the default `createDatabase` driver yet. Pool options such as `database.poolConfig` are still the node-postgres [`PoolConfig`](https://node-postgres.com/apis/pool) shape.
+Under Bun, `createDatabase` defaults to **Bun.SQL** (`drizzle-orm/bun-sql`). Set `PONDER_DATABASE_DRIVER=pg` to force node-postgres. `database.poolConfig` keeps the node-postgres [`PoolConfig`](https://node-postgres.com/apis/pool) shape for the `pg` escape hatch; Bun.SQL uses the connection URL, schema, and a mapped pool size. PGlite remains available for local/tests when `DATABASE_URL` is unset.
 :::
 
 ## Database schema

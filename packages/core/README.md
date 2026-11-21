@@ -21,7 +21,7 @@ Join [Ponder's telegram chat](https://t.me/pondersh) for support, feedback, and 
 * Write indexed data to Postgres
 * Query indexed data over HTTP using GraphQL or SQL
 * Build rapidly with a powerful local development server
-* Deploy anywhere that runs Node.js or Bun
+* Deploy anywhere that runs Bun
 
 ## Quickstart
 

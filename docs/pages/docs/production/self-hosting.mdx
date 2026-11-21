@@ -23,7 +23,7 @@ Your app will likely have performance issues if the roundtrip database latency
 is greater than **50ms**. This is common when using a database in a different region or network.
 :::
 
-The production CLI still uses the `pg` driver for this connection. [Read more](/docs/database) about the current driver cutover.
+Under Bun, this connection uses **Bun.SQL** by default. Set `PONDER_DATABASE_DRIVER=pg` to force node-postgres. [Read more](/docs/database) about database drivers.
 
 ## Database schema
 

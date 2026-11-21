@@ -64,7 +64,7 @@ export default createConfig({
 | :------------------- | :-------------------------------------------------: | :------------------------------------------------------------------------ |
 | **kind**             |                    `"postgres"`                     |                                                                           |
 | **connectionString** |                      `string`                       | **Default: `DATABASE_URL` env var**. Postgres database connection string. |
-| **poolConfig**       | [`PoolConfig`](https://node-postgres.com/apis/pool) | **Default: `{ max: 30 }`**. Pool configuration passed to `pg` (node-postgres). The production driver is still `pg`; `Bun.SQL` is not the default yet. |
+| **poolConfig**       | [`PoolConfig`](https://node-postgres.com/apis/pool) | **Default: `{ max: 30 }`**. Pool options for the `pg` escape hatch (`PONDER_DATABASE_DRIVER=pg`). Under Bun, Postgres defaults to Bun.SQL; `max` maps to the Bun.SQL pool size when that driver is active. |
 
 ```ts [ponder.config.ts] {4-10}
 import { createConfig } from "ponder";

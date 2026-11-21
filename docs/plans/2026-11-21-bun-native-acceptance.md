@@ -1,7 +1,7 @@
 # Bun-native final acceptance (Task 6.2)
 
 **Date:** 2026-11-21  
-**Branch:** `feat/bun-native` @ `57a0103`  
+**Branch:** `feat/bun-native` @ HEAD  
 **Plan:** `docs/plans/2026-11-20-ponder-bun-native.md`  
 **Design:** `docs/plans/2026-11-20-ponder-bun-native-design.md`  
 **Runtime used for evidence:** Bun 1.4.5, local Postgres `127.0.0.1:5432`
@@ -11,16 +11,16 @@ This is an honest checklist. Items that were not executed are left unchecked. Do
 ## Checklist
 
 - [x] Spike findings documented
-- [ ] simulation-test green — **not run** (N/A this session)
+- [ ] simulation-test green — **not run**
 - [ ] benchmark run recorded — **not run**
 - [x] ≥2 examples: `feature-bun-slice` + `feature-bun-live` smoke
 - [x] No production `@hono/node-server` / `pg-copy-streams` / `ws` **direct** deps
-- [x] Remaining deferred: `pg` `createDatabase`, Vite loader, `worker_threads` CLI — documented
+- [x] Remaining deferred: `pg` / Vite escape hatches documented (defaults are Bun.SQL + Bun-native)
 - [x] Docs/CI/engines Bun-first
-- [x] `ponder serve --native` available
+- [x] `ponder serve` Bun-native by default under Bun
 - [x] Major changeset present
 
-**Overall:** checklist complete with two items honestly unmarked. The branch meets the Task 6.2 binding (direct-dep cut, docs/CI/engines, `--native`, major changeset, two example smokes). Production `start` / `dev` under Bun now skip Vite by default. It does **not** claim simulation-test or benchmark green, and it does **not** claim the original plan’s full “no `pg` / no Vite-loader” production cut.
+**Overall:** checklist complete with two items honestly unmarked (`simulation-test`, `benchmark`). Under Bun, `start` / `dev` / `serve` / `list` / `prune` / `create-views` default to Bun-native; `createDatabase` defaults to Bun.SQL; isolated uses `Bun.Worker`. Escape hatches (`PONDER_USE_VITE=1`, `PONDER_DATABASE_DRIVER=pg`) remain documented — packages are not deleted.
 
 ---
 
@@ -66,8 +66,9 @@ Wiring landed after `d331479` / `c9ecc10`. The original checklist above is uncha
 | `16050ae` | `createBunSqlDatabase` schema/`search_path` | — |
 | `e7912e1` / `57a0103` / `c5afb60` | Native start/dev/serve defaults under Bun | Vite escape remains |
 | `f7d04a0` / `b0a59dc` | Production indexing + unified `/v1` | — |
-| `444e021` / `4987522` | Bun.SQL createDatabase gate + default-under-Bun | User-table jsonb caveat |
-| *(HEAD)* | Vite-free `isolatedWorker.bun.ts`; jsonb meta fix; start→/v1 e2e | simulation-test |
+| `444e021` / `4987522` | Bun.SQL createDatabase gate + default-under-Bun | — |
+| `4ae47d6` / `fb2bd03` | Vite-free isolated; jsonb objects under Bun.SQL | — |
+| `04723e4` | `list` / `prune` / `create-views` Bun-native | simulation-test / benchmark |
 
 ---
 
@@ -151,11 +152,11 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 | Deferred | Why it remains | Where |
 |---|---|---|
 | `pg` escape hatch | Under Bun, `createDatabase` defaults to Bun.SQL; `PONDER_DATABASE_DRIVER=pg` still available. `pg` package not deleted. | `packages/core/src/database/bunSqlDriver.ts`, `utils/pg.ts` |
-| Vite escape hatch | `PONDER_USE_VITE=1` restores Vite `createBuild` for `start` / `dev` / `serve`. `list` / `prune` / `create-views` are Bun-native only. | `packages/core/src/build/index.ts`, `plugin.ts` |
+| Vite escape hatch | `PONDER_USE_VITE=1` restores Vite `createBuild` for `start` / `dev` / `serve`. | `packages/core/src/build/index.ts`, `plugin.ts` |
 | Node `isolatedWorker.ts` | Retained for the Vite escape path; Bun uses `isolatedWorker.bun.ts` + `compileBunNative`. | `isolatedWorker.ts`, `isolatedWorker.bun.ts` |
-| `simulation-test` | Not run locally this branch (Docker daemon / port `55432` / RPC env). | `simulation-test/` |
+| `simulation-test` / benchmark | Not run on this branch (need Postgres `:55432`, RPC, `.env.local`). | `simulation-test/`, `benchmark/` |
 
-`@hono/node-server`, `pg-copy-streams`, and the `ws` package are already gone from the production graph. Under Bun, `ponder start` / `dev` / `serve` / `list` / `prune` / `create-views` default to Bun-native (no Vite). Vite is escape-hatch only (`PONDER_USE_VITE=1`) for start/dev/serve.
+`@hono/node-server`, `pg-copy-streams`, and the `ws` package are already gone from the production graph. Under Bun, `ponder start` / `dev` / `serve` / `list` / `prune` / `create-views` default to Bun-native (no Vite).
 
 ---
 
@@ -213,7 +214,7 @@ Also enabled by `PONDER_BUN_NATIVE=1`. `--schema` / `DATABASE_SCHEMA` is passed 
 "@ponder/react": major
 ```
 
-States Bun-only runtime, `/v1` HTTP, client/react rewrite, `create-ponder` Bun scaffolds, and that default indexing still uses `pg` / PGlite.
+States Bun-only runtime, `/v1` HTTP, client/react rewrite, `create-ponder` Bun scaffolds, Bun.SQL default under Bun, and Vite/pg escape hatches.
 
 Companion patch changesets exist (`bun-native-serve.md`, `bun-drop-node-runtime.md`, etc.). Changeset `fixed` group matches those four packages (`.changeset/config.json`).
 
@@ -244,6 +245,6 @@ CI=1 bun test \
 
 ## What this does not claim
 
-- Full production cut of `pg` / `createDatabase`, Vite-as-loader (now an escape hatch), or full `Bun.Worker` `runIsolated` (deferred, documented).
+- Deletion of the `pg` / Vite packages (they remain as escape hatches).
 - simulation-test or benchmark green.
-- A full official-example path of `ponder dev` → backfill → live → `@ponder/client` query (smokes cover the Bun slice APIs only).
+- A full official-example path of every template through `@ponder/client` (evidenced: e2e start→`/v1`, plus `feature-bun-slice` / `feature-bun-live` smokes).

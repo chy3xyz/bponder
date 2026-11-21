@@ -78,15 +78,16 @@ export default createConfig({ // [!code --]
 });
 ```
 
-### Honest cutover notes (Vite / `pg`)
+### Defaults under Bun (and escape hatches)
 
-These Node-era pieces are **not fully gone** from `ponder start` / `ponder dev` yet. The Bun replacements exist as slices but are not the default CLI path.
+Under Bun, the production path is Bun-native:
 
-- **Vite SSR loader.** User indexing functions still load through Vite and `ponder:*` virtual modules (`ponder:registry`, `ponder:schema`, `ponder:api`). A Bun `import()` loader is not wired to those commands yet. Keep `ponder-env.d.ts` until that lands.
-- **`pg` (node-postgres).** Production Postgres still uses `pg`. `Bun.SQL` lives in-tree and is not the default `createDatabase` driver. `database.poolConfig` is still a node-postgres pool shape.
-- **Isolated indexing.** `ordering: "experimental_isolated"` still uses Node `worker_threads` on the CLI controller. `Bun.Worker` is not the `ponder start` path yet.
+- **`ponder start` / `dev` / `serve`** skip Vite by default (`compileBunNative` + Bun plugin for `ponder:registry` / `ponder:schema`). Set `PONDER_USE_VITE=1` to restore the classic Vite path.
+- **`createDatabase`** defaults to **Bun.SQL**. Set `PONDER_DATABASE_DRIVER=pg` to force node-postgres. `database.poolConfig` remains a node-postgres [`PoolConfig`](https://node-postgres.com/apis/pool) shape and is applied when the `pg` driver is selected; under Bun.SQL, connection URL / schema / pool size are the primary knobs.
+- **`ordering: "experimental_isolated"`** uses `Bun.Worker` + Vite-free workers on the native path. The Vite escape path still uses Node `worker_threads`.
+- Keep `ponder-env.d.ts` for types. Do not delete the `pg` or `vite` packages from `ponder` itself — they remain as escape hatches and test toolchain.
 
-Do not expect deleting Vite, `pg`, or `ponder:*` imports to work until those paths are wired. Track the deferred list in `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`.
+Track remaining deletions in `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. [Read more](/docs/guides/bun) in the Bun guide.
 
 ## 0.18
 
