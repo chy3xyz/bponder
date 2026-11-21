@@ -705,20 +705,28 @@ export async function waitForIndexedBlock({
         try {
           const response = await fetch(endpoint);
           if (response.status !== 200) continue;
-          const status = (await response.json()) as
-            | Status
-            | { checkpoint: { blockNumber: number } | null };
+          const status = (await response.json()) as unknown;
           if (
-            "checkpoint" in status &&
-            status.checkpoint !== null &&
-            status.checkpoint.blockNumber >= block.number
+            status !== null &&
+            typeof status === "object" &&
+            "checkpoint" in status
           ) {
-            clearTimeout(timeout);
-            clearInterval(interval);
-            resolve(undefined);
-            return;
+            const checkpoint = (
+              status as { checkpoint: { blockNumber: number } | null }
+            ).checkpoint;
+            if (
+              checkpoint !== null &&
+              typeof checkpoint === "object" &&
+              typeof checkpoint.blockNumber === "number" &&
+              checkpoint.blockNumber >= block.number
+            ) {
+              clearTimeout(timeout);
+              clearInterval(interval);
+              resolve(undefined);
+              return;
+            }
           }
-          const sb = (status as Status)[chainName]?.block;
+          const sb = (status as Status)?.[chainName]?.block;
           if (sb !== undefined && sb.number >= block.number) {
             clearTimeout(timeout);
             clearInterval(interval);

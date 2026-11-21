@@ -277,20 +277,17 @@ test("validateAllowableSQLQuery() relational query", async () => {
     commentList: many(comment),
   }));
 
-  const db = drizzle(
-    async () => ({ rows: [] as any[] }),
-    {
-      schema: {
-        account,
-        position,
-        comment,
-        positionRelations,
-        accountProfileRelations,
-        commentRelations,
-        positionCommentRelations,
-      },
+  const db = drizzle(async () => ({ rows: [] as any[] }), {
+    schema: {
+      account,
+      position,
+      comment,
+      positionRelations,
+      accountProfileRelations,
+      commentRelations,
+      positionCommentRelations,
     },
-  );
+  });
 
   let query = db.query.account
     .findMany({

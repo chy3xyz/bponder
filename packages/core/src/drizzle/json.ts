@@ -9,6 +9,7 @@ import {
   PgColumn,
   PgColumnBuilder,
 } from "drizzle-orm/pg-core";
+import { isBunSqlDatabaseDriver } from "@/database/bunSqlDriver.js";
 import { type BaseError, BigIntSerializationError } from "@/internal/errors.js";
 
 export type PgJsonBuilderInitial<TName extends string> = PgJsonBuilder<{
@@ -122,12 +123,13 @@ export class PgJsonb<
 /**
  * node-postgres / PGlite expect a JSON string; Bun.SQL must receive the
  * object so Postgres stores a jsonb document (not a string scalar).
+ * Selection follows `PONDER_DATABASE_DRIVER`, not merely `process.versions.bun`.
  */
 function mapJsonToDriverValue(value: unknown): unknown {
   try {
     // Always validate serializability (and BigInt errors) first.
     const encoded = JSON.stringify(value);
-    if (typeof process !== "undefined" && process.versions?.bun !== undefined) {
+    if (isBunSqlDatabaseDriver()) {
       return value;
     }
     return encoded;

@@ -11,6 +11,7 @@ import {
 import { getTableConfig } from "drizzle-orm/pg-core";
 import { drizzle } from "drizzle-orm/pg-proxy";
 import type { QB } from "@/database/queryBuilder.js";
+import { getPrimaryKeyColumns } from "@/drizzle/index.js";
 import { onchain } from "@/drizzle/onchain.js";
 import type { Common } from "@/internal/common.js";
 import {
@@ -50,7 +51,15 @@ export const validateUpdateSet = (
   prev: Row,
   cache: Map<Table, [string, Column][]>,
 ) => {
-  const primaryKeys = cache.get(table)!;
+  let primaryKeys = cache.get(table);
+  if (primaryKeys === undefined) {
+    primaryKeys = [];
+    for (const { js } of getPrimaryKeyColumns(table)) {
+      // @ts-expect-error
+      primaryKeys.push([js, table[js]!]);
+    }
+    cache.set(table, primaryKeys);
+  }
 
   for (let i = 0; i < primaryKeys.length; i++) {
     const [js] = primaryKeys[i]!;

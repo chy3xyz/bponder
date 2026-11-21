@@ -63,7 +63,7 @@ test("factory", async () => {
   });
 
   let { rows } = await client.sql(
-    `SELECT id, "from", "to", pair FROM swap_event ORDER BY id`,
+    `SELECT id, "from", "to", pair FROM "public"."swap_event" ORDER BY id`,
   );
 
   expect(rows).toHaveLength(1);
@@ -89,7 +89,7 @@ test("factory", async () => {
   });
 
   ({ rows } = await client.sql(
-    `SELECT id, "from", "to", pair FROM swap_event ORDER BY id`,
+    `SELECT id, "from", "to", pair FROM "public"."swap_event" ORDER BY id`,
   ));
 
   expect(rows).toHaveLength(2);

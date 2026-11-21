@@ -111,6 +111,8 @@ jobs:
       - name: Test
         env:
           DATABASE_URL: ${{ matrix.database == 'Postgres' && 'postgresql://postgres:postgres@localhost:5432/postgres' || '' }}
+          # Core suite expects node-postgres; Bun.SQL is covered by *.bun.test.ts.
+          PONDER_DATABASE_DRIVER: pg
         run: bun run --cwd packages/core test:bun
 
 

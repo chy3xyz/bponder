@@ -48,6 +48,7 @@ jobs:
         run: bun run --cwd packages/core test:bun
         env:
           DATABASE_URL: ${{ matrix.database == 'Postgres' && 'postgresql://postgres:root@localhost:5432/postgres' || '' }}
+          PONDER_DATABASE_DRIVER: pg
 
   test-create-ponder:
     name: Test [create-ponder]

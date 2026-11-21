@@ -1,4 +1,5 @@
 import { type SQL, sql } from "drizzle-orm";
+import { isBunSqlDatabaseDriver } from "./bunSqlDriver.js";
 
 /**
  * Bind a JS value as a Postgres jsonb **object/array**.
@@ -13,7 +14,12 @@ export const asJsonb = <T>(value: T): SQL => sql`${value}::jsonb`;
 type JsonbPath = "{is_ready}" | "{is_locked}" | "{heartbeat_at}";
 
 /**
- * `jsonb_set` on `value` that tolerates string-scalar rows left by Bun.SQL.
+ * `jsonb_set` on `value`. Under Bun.SQL, tolerate string-scalar rows that were
+ * written before the object pass-through fix.
  */
-export const jsonbSetOnValue = (path: JsonbPath, rhs: SQL): SQL =>
-  sql`jsonb_set(CASE WHEN jsonb_typeof(value) = 'string' THEN (value #>> '{}')::jsonb ELSE value END, ${sql.raw(`'${path}'`)}::text[], ${rhs})`;
+export const jsonbSetOnValue = (path: JsonbPath, rhs: SQL): SQL => {
+  if (isBunSqlDatabaseDriver()) {
+    return sql`jsonb_set(CASE WHEN jsonb_typeof(value) = 'string' THEN (value #>> '{}')::jsonb ELSE value END, ${sql.raw(`'${path}'`)}::text[], ${rhs})`;
+  }
+  return sql`jsonb_set(value, ${sql.raw(`'${path}'`)}::text[], ${rhs})`;
+};

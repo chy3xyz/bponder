@@ -87,8 +87,15 @@ const roundtrip = (column: Column, value: unknown): unknown => {
   }
   if (column.columnType === "PgTimestamp") return value;
   // Note: The drivers parse JSON, and `mapFromDriverValue` doesn't.
+  // node-postgres/PGlite: mapToDriverValue returns JSON text.
+  // Bun.SQL: mapToDriverValue returns the JS value; still JSON-round-trip here
+  // so Date/undefined normalization matches the string path.
   if (column.columnType === "PgJson" || column.columnType === "PgJsonb") {
-    return JSON.parse(column.mapToDriverValue(value) as string);
+    const driven = column.mapToDriverValue(value);
+    if (typeof driven === "string") {
+      return JSON.parse(driven);
+    }
+    return JSON.parse(JSON.stringify(driven));
   }
   return column.mapFromDriverValue(column.mapToDriverValue(value));
 };
@@ -177,12 +184,30 @@ export const normalizeUpdateSet = (
   return row;
 };
 
+const resolvePrimaryKeys = (
+  table: Table,
+  cache: Map<Table, [string, Column][]>,
+): [string, Column][] => {
+  const cached = cache.get(table);
+  if (cached !== undefined) return cached;
+
+  // Bun-native compilation can materialize a distinct table object for handlers.
+  // Populate the cache on miss so insert/update still resolve primary keys.
+  const primaryKeys: [string, Column][] = [];
+  for (const { js } of getPrimaryKeyColumns(table)) {
+    // @ts-expect-error
+    primaryKeys.push([js, table[js]!]);
+  }
+  cache.set(table, primaryKeys);
+  return primaryKeys;
+};
+
 export const getCacheKey = (
   table: Table,
   key: object,
   cache: Map<Table, [string, Column][]>,
 ): string => {
-  const primaryKeys = cache.get(table)!;
+  const primaryKeys = resolvePrimaryKeys(table, cache);
 
   if (primaryKeys.length === 1) {
     const [pk, col] = primaryKeys[0]!;

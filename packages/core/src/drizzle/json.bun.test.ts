@@ -2,20 +2,31 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sql";
 import { pgTable, text } from "drizzle-orm/pg-core";
+import { bunSqlDatabaseDriverEnvName } from "@/database/bunSqlDriver.js";
 import { PgJsonb } from "./json.js";
 import { jsonb } from "./onchain.js";
 
-test("PgJsonb mapToDriverValue passes objects through under Bun", () => {
-  const table = pgTable("probe", {
-    metadata: jsonb().notNull(),
-  });
-  expect(table.metadata).toBeInstanceOf(PgJsonb);
-  const mapped = table.metadata.mapToDriverValue({
-    a: 1,
-    nested: { b: true },
-  });
-  expect(mapped).toEqual({ a: 1, nested: { b: true } });
-  expect(typeof mapped).toBe("object");
+test("PgJsonb mapToDriverValue passes objects through under Bun.SQL", () => {
+  const previous = process.env[bunSqlDatabaseDriverEnvName];
+  process.env[bunSqlDatabaseDriverEnvName] = "bun";
+  try {
+    const table = pgTable("probe", {
+      metadata: jsonb().notNull(),
+    });
+    expect(table.metadata).toBeInstanceOf(PgJsonb);
+    const mapped = table.metadata.mapToDriverValue({
+      a: 1,
+      nested: { b: true },
+    });
+    expect(mapped).toEqual({ a: 1, nested: { b: true } });
+    expect(typeof mapped).toBe("object");
+  } finally {
+    if (previous === undefined) {
+      delete process.env[bunSqlDatabaseDriverEnvName];
+    } else {
+      process.env[bunSqlDatabaseDriverEnvName] = previous;
+    }
+  }
 });
 
 test("PgJsonb mapToDriverValue still rejects BigInt", () => {

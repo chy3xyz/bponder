@@ -59,17 +59,18 @@ test("erc20", async () => {
   });
 
   const { rows } = await client.sql(
-    `SELECT address, balance FROM account ORDER BY address`,
+    `SELECT address, balance FROM "public"."account" ORDER BY address`,
   );
 
-  expect(rows[0]).toMatchObject({
-    address: zeroAddress,
-    balance: (-1n * 10n ** 18n).toString(),
-  });
-  expect(rows[1]).toMatchObject({
-    address: ALICE.toLowerCase(),
-    balance: (10n ** 18n).toString(),
-  });
+  expect(rows).toHaveLength(2);
+  const byAddress = Object.fromEntries(
+    rows.map((row) => [
+      String(row.address).toLowerCase(),
+      BigInt(row.balance as string | number | bigint),
+    ]),
+  );
+  expect(byAddress[zeroAddress]).toBe(-1n * 10n ** 18n);
+  expect(byAddress[ALICE.toLowerCase()]).toBe(10n ** 18n);
 
   await shutdown!();
 }, 15_000);
