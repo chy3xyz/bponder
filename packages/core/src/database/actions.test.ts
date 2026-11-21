@@ -223,7 +223,7 @@ test("live query notify trigger batches large payloads", async () => {
   }
 
   const client =
-    database.driver.dialect === "postgres"
+    database.driver.dialect === "postgres" && database.driver.engine === "pg"
       ? await database.driver.admin.connect()
       : undefined;
 

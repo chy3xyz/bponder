@@ -221,7 +221,20 @@ export async function isolatedController({
           chainIds,
           namespaceBuild,
           crashRecoveryCheckpoint,
-        } satisfies Parameters<typeof isolatedWorker>[0],
+          // createBuild in the worker needs CliOptions; reconstruct from Options.
+          cliOptions: {
+            command: common.options.command,
+            config: common.options.configFile,
+            root: common.options.rootDir,
+            schema: namespaceBuild.schema,
+            viewsSchema: namespaceBuild.viewsSchema,
+            logLevel: common.options.logLevel,
+            logFormat: common.options.logFormat,
+            version: common.options.version?.version ?? "0.0.0",
+          },
+        } satisfies Parameters<typeof isolatedWorker>[0] & {
+          cliOptions: Record<string, unknown>;
+        },
       });
 
       for (const chainId of chainIds) {

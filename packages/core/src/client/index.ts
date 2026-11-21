@@ -234,6 +234,10 @@ export const client = ({
     });
 
     globalThis.PONDER_COMMON.apiShutdown.add(unsubscribe);
+  } else if (driver.engine === "bun") {
+    globalThis.PONDER_COMMON.logger.warn({
+      msg: 'Live LISTEN/NOTIFY for "@ponder/client" is unavailable with PONDER_DATABASE_DRIVER=bun; use the Bun /v1 SQL API or the pg driver',
+    });
   } else {
     (async () => {
       let client: pg.PoolClient | undefined;

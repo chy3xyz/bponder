@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import type { PGlite } from "@electric-sql/pglite";
 import {
   eq,
@@ -44,6 +45,14 @@ import {
   dropLiveQueryTriggers,
   dropTriggers,
 } from "./actions.js";
+import {
+  type BunSqlClient,
+  closeBunSqlClient,
+  createBunSqlClient,
+  ensureBunSqlSchema,
+  isBunSqlDatabaseDriver,
+  resolveBunSqlConnectionUrl,
+} from "./bunSqlDriver.js";
 import { createQB, type QB } from "./queryBuilder.js";
 
 export {
@@ -52,6 +61,11 @@ export {
   createBunSqlDatabase,
   getBunSqlState,
 } from "./bunSql.js";
+export {
+  type BunSqlClient,
+  bunSqlDatabaseDriverEnvName,
+  isBunSqlDatabaseDriver,
+} from "./bunSqlDriver.js";
 
 export type Database = {
   driver: PostgresDriver | PGliteDriver;
@@ -150,18 +164,35 @@ export type PonderApp6 = Omit<PonderApp5, "version"> & {
 
 const VERSION = "6";
 
+const require = createRequire(import.meta.url);
+
+const loadBunSqlDrizzle = () =>
+  require("./bunSqlDrizzle.js") as typeof import("./bunSqlDrizzle.js");
+
 type PGliteDriver = {
   dialect: "pglite";
   instance: PGlite;
 };
 
-type PostgresDriver = {
+type PostgresPgDriver = {
   dialect: "postgres";
+  engine: "pg";
   admin: Pool;
   sync: Pool;
   user: Pool;
   readonly: Pool;
 };
+
+type PostgresBunDriver = {
+  dialect: "postgres";
+  engine: "bun";
+  admin: BunSqlClient;
+  sync: BunSqlClient;
+  user: BunSqlClient;
+  readonly: BunSqlClient;
+};
+
+type PostgresDriver = PostgresPgDriver | PostgresBunDriver;
 
 export const getPonderMetaTable = (schema?: string) => {
   if (schema === undefined || schema === "public") {
@@ -281,6 +312,132 @@ export const createDatabase = ({
       }),
       { common, isAdmin: false },
     );
+  } else if (isBunSqlDatabaseDriver()) {
+    const { drizzleBunSql } = loadBunSqlDrizzle();
+    const url = resolveBunSqlConnectionUrl(preBuild.databaseConfig.poolConfig);
+    const internalMax = 2;
+    const equalMax = Math.floor(
+      (preBuild.databaseConfig.poolConfig.max - internalMax) / 3,
+    );
+    const [readonlyMax, userMax, syncMax] =
+      common.options.command === "serve"
+        ? [preBuild.databaseConfig.poolConfig.max - internalMax, 0, 0]
+        : [equalMax, equalMax, equalMax];
+
+    const admin = createBunSqlClient({
+      url,
+      schema: namespace.schema,
+      max: Math.max(internalMax, 1),
+      applicationName: `${namespace.schema}_internal`,
+    });
+    const user = createBunSqlClient({
+      url,
+      schema: namespace.schema,
+      max: Math.max(userMax, 1),
+      applicationName: `${namespace.schema}_user`,
+    });
+    const readonly = createBunSqlClient({
+      url,
+      schema: namespace.schema,
+      max: Math.max(readonlyMax, 1),
+      applicationName: `${namespace.schema}_readonly`,
+      readonly: true,
+    });
+    const sync = createBunSqlClient({
+      url,
+      max: Math.max(syncMax, 1),
+      applicationName: "ponder_sync",
+    });
+
+    driver = {
+      dialect: "postgres",
+      engine: "bun",
+      admin,
+      user,
+      readonly,
+      sync,
+    };
+
+    syncQB = createQB(
+      drizzleBunSql(sync, {
+        casing: "snake_case",
+        schema: PONDER_SYNC,
+      }),
+      { common, isAdmin: false },
+    );
+    adminQB = createQB(
+      drizzleBunSql(admin, {
+        casing: "snake_case",
+        schema: schemaBuild.schema,
+      }),
+      { common, isAdmin: true },
+    );
+    userQB = createQB(
+      drizzleBunSql(user, {
+        casing: "snake_case",
+        schema: schemaBuild.schema,
+      }),
+      { common, isAdmin: false },
+    );
+    readonlyQB = createQB(
+      drizzleBunSql(readonly, {
+        casing: "snake_case",
+        schema: schemaBuild.schema,
+      }),
+      { common, isAdmin: false },
+    );
+
+    common.shutdown.add(async () => {
+      clearInterval(heartbeatInterval);
+
+      if (["start", "dev"].includes(common.options.command)) {
+        await adminQB.wrap({ label: "unlock" }, (db) =>
+          db
+            .update(PONDER_META)
+            .set({ value: sql`jsonb_set(value, '{is_locked}', to_jsonb(0))` }),
+        );
+      }
+
+      const d = driver as PostgresBunDriver;
+      await Promise.all([
+        closeBunSqlClient(d.admin),
+        closeBunSqlClient(d.user),
+        closeBunSqlClient(d.readonly),
+        closeBunSqlClient(d.sync),
+      ]);
+    });
+
+    // Bun.SQL does not expose node-postgres pool gauges; publish zeros.
+    common.metrics.registry.removeSingleMetric(
+      "ponder_postgres_pool_connections",
+    );
+    common.metrics.ponder_postgres_pool_connections = new prometheus.Gauge({
+      name: "ponder_postgres_pool_connections",
+      help: "Number of connections in the pool",
+      labelNames: ["pool", "kind"] as const,
+      registers: [common.metrics.registry],
+      collect() {
+        for (const pool of ["admin", "sync", "user", "readonly"] as const) {
+          this.set({ pool, kind: "idle" }, 0);
+          this.set({ pool, kind: "total" }, 0);
+        }
+      },
+    });
+
+    common.metrics.registry.removeSingleMetric(
+      "ponder_postgres_query_queue_size",
+    );
+    common.metrics.ponder_postgres_query_queue_size = new prometheus.Gauge({
+      name: "ponder_postgres_query_queue_size",
+      help: "Number of queries waiting for an available connection",
+      labelNames: ["pool"] as const,
+      registers: [common.metrics.registry],
+      collect() {
+        for (const pool of ["admin", "sync", "user", "readonly"] as const) {
+          this.set({ pool }, 0);
+        }
+      },
+    });
   } else {
     const internalMax = 2;
     const equalMax = Math.floor(
@@ -293,6 +450,7 @@ export const createDatabase = ({
 
     driver = {
       dialect: "postgres",
+      engine: "pg",
       admin: createPool(
         {
           ...preBuild.databaseConfig.poolConfig,
@@ -369,7 +527,7 @@ export const createDatabase = ({
         );
       }
 
-      const d = driver as PostgresDriver;
+      const d = driver as PostgresPgDriver;
 
       await Promise.all([
         d.admin.end(),
@@ -380,7 +538,7 @@ export const createDatabase = ({
     });
 
     // Register Postgres-only metrics
-    const d = driver as PostgresDriver;
+    const d = driver as PostgresPgDriver;
     common.metrics.registry.removeSingleMetric(
       "ponder_postgres_pool_connections",
     );
@@ -428,10 +586,21 @@ export const createDatabase = ({
     userQB,
     readonlyQB,
     async migrateSync() {
+      if (driver.dialect === "postgres" && driver.engine === "bun") {
+        await ensureBunSqlSchema({
+          client: driver.admin,
+          schema: namespace.schema,
+        });
+      }
+
       // Use a separate Drizzle instance because createQB skips PGlite transactions.
       const db =
         driver.dialect === "postgres"
-          ? drizzleNodePg(driver.admin, { casing: "snake_case" })
+          ? driver.engine === "bun"
+            ? loadBunSqlDrizzle().drizzleBunSql(driver.admin, {
+                casing: "snake_case",
+              })
+            : drizzleNodePg(driver.admin, { casing: "snake_case" })
           : drizzlePglite(driver.instance, { casing: "snake_case" });
 
       const migratedSchemas = await adminQB
@@ -557,6 +726,13 @@ export const createDatabase = ({
       }
     },
     async migrate({ buildId, chains, finalizedBlocks }) {
+      if (driver.dialect === "postgres" && driver.engine === "bun") {
+        await ensureBunSqlSchema({
+          client: driver.admin,
+          schema: namespace.schema,
+        });
+      }
+
       const context = { logger: common.logger.child({ action: "migrate" }) };
 
       const createTables = async (tx: QB) => {

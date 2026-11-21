@@ -1,7 +1,4 @@
-import {
-  BUN_NATIVE_ISOLATED_ORDERING_ERROR,
-  compileBunNative,
-} from "@/build/bunNativeBuild.js";
+import { compileBunNative } from "@/build/bunNativeBuild.js";
 import { createDatabase, type Database } from "@/database/index.js";
 import type { Logger } from "@/internal/logger.js";
 import { MetricsService } from "@/internal/metrics.js";
@@ -12,6 +9,7 @@ import { runOmnichain } from "@/runtime/omnichain.js";
 import { startBunServer, stopBunServer } from "@/server/bunServe.js";
 import { createBunV1ApiFetch } from "@/server/bunV1Api.js";
 import { createBunV1HandlersFromReadonlyQB } from "@/server/bunV1Readonly.js";
+import { isolatedController } from "../isolatedController.js";
 import type { CliOptions } from "../ponder.js";
 import { formatBunNativeOrigin } from "./bunNativeServe.js";
 import { createExit } from "./exit.js";
@@ -137,7 +135,16 @@ export async function runBunNativeApp({
         });
         break;
       case "experimental_isolated":
-        throw new Error(BUN_NATIVE_ISOLATED_ORDERING_ERROR);
+        isolatedController({
+          common,
+          preBuild,
+          namespaceBuild,
+          schemaBuild,
+          indexingBuild,
+          crashRecoveryCheckpoint,
+          database,
+        });
+        break;
     }
   } catch (error) {
     common.logger.error({

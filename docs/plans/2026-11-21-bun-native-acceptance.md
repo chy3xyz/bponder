@@ -26,23 +26,25 @@ This is an honest checklist. Items that were not executed are left unchecked. Do
 
 ## Production progress
 
-As of `feat/bun-native` @ `57a0103` (`f7d04a0`, `b0a59dc`, `57a0103`). Task 6.2 checklist above is unchanged; this is the post-acceptance production snapshot.
+As of `feat/bun-native` @ `c5afb60`+. Task 6.2 checklist above is unchanged; this is the post-acceptance production snapshot.
 
 ### Now true
 
-- **Native indexing without Vite** (`f7d04a0`). `ponder start --native` loads indexing functions through a Bun plugin (`ponder:registry`, `ponder:schema`), compiles with production helpers (`compileBunNative`), migrates, and runs omnichain or multichain indexing. No Vite `createBuild` on that path. `ordering: "experimental_isolated"` errors and asks for `PONDER_USE_VITE=1`.
-- **`/v1` shares indexing storage** (`b0a59dc`). Native `start` / `dev` serve `/v1` from the same `createDatabase` instance via `readonlyQB`, so SQL and status see rows written by indexing. `ponder serve --native` still opens Bun.SQL.
-- **Bun defaults to native `start` / `dev`** (`57a0103`). When `process.versions.bun` is set, `ponder start` and `ponder dev` use the Bun-native indexing path. Vite is the escape hatch: `PONDER_USE_VITE=1`. `--native` still forces native. `ponder serve` remains opt-in (`--native` / `PONDER_BUN_NATIVE=1`).
+- **Native indexing without Vite** (`f7d04a0`). `ponder start --native` loads indexing functions through a Bun plugin (`ponder:registry`, `ponder:schema`), compiles with production helpers (`compileBunNative`), migrates, and runs omnichain / multichain / `experimental_isolated` indexing. No Vite `createBuild` on the main-thread native path.
+- **`/v1` shares indexing storage** (`b0a59dc`). Native `start` / `dev` serve `/v1` from the same `createDatabase` instance via `readonlyQB`. `ponder serve` under Bun also defaults to the Bun `/v1` stack (`c5afb60`).
+- **Bun defaults to native `start` / `dev` / `serve`** (`57a0103`, `c5afb60`). When `process.versions.bun` is set, those commands use the Bun-native path. Vite escape hatch: `PONDER_USE_VITE=1`.
+- **`PONDER_DATABASE_DRIVER=bun`** env-gates `createDatabase` onto Bun.SQL + `drizzle-orm/bun-sql` (default remains `pg`). Classic `@ponder/client` LISTEN/NOTIFY warns and skips on the Bun engine; use `/v1` SQL instead.
+- **`isolatedWorker.bun.ts` full protocol** — `Worker.data` payload, `createBuild` → `createDatabase` → `runIsolated` per chain, ready/done/error/kill. Native path calls `isolatedController`. Worker still uses Vite-backed `createBuild` (not `compileBunNative`); Bun-native compile inside workers is follow-up.
 
 ### Still deferred
 
 | Item | Why it remains |
 |---|---|
-| `pg` driver / `createDatabase` | Production indexing still uses node-postgres + Drizzle. `createBunSqlDatabase` is not the `createDatabase` default. |
-| Full `Bun.Worker` `runIsolated` | `createIndexingWorker` spawns `isolatedWorker.bun.ts` (kill/done handshake only). Isolated indexing does not process events. Native path rejects `ordering: "experimental_isolated"`. |
+| Default Bun.SQL for `createDatabase` | Env-gated only (`PONDER_DATABASE_DRIVER=bun`). Default production indexing still uses `pg` unless the env is set. |
+| Vite-free isolated workers | Bun workers still call `createBuild` (Vite). Main native thread is Vite-free. |
 | `simulation-test` | Still **not run**. No `simulation-test/.env.local`; port `55432` unused this session. Benchmark also not run. |
 
-Focused bun tests recorded in this session: `bunNativeBuild`, `bunNativeServe`, `bunV1Readonly`, `indexingWorker` (see §10).
+Focused bun tests: `bunSqlDriver`, `bunNativeBuild`, `bunNativeServe`, `indexingWorker`.
 
 ---
 
@@ -53,11 +55,13 @@ Wiring landed after `d331479` / `c9ecc10`. The original checklist above is uncha
 | Commit | Improvement | Remaining gap |
 |---|---|---|
 | `16050ae` | `createBunSqlDatabase` creates non-public schemas and sets a durable `search_path`; `ponder serve --native --schema` passes through | Production `createDatabase` still defaults to `pg` |
-| `e7912e1` | `ponder start --native` loads config/schema with `bunLoader` (Bun `import()`) and can start the Bun `/v1` stack | Superseded for default `start` / `dev` by `57a0103`; Vite remains the `PONDER_USE_VITE=1` escape hatch and the unflagged `serve` loader |
-| `812eef2` | `isolatedController` spawns via `createIndexingWorker`; under Bun that is `Bun.Worker` + `isolatedWorker.bun.ts` | Full `runIsolated` is not ported; the Bun entry is kill/done only, so isolated indexing does not process events |
-| `f7d04a0` | Production indexing on `ponder start --native` via `bunNativeBuild` (Bun plugin + compile helpers, no Vite) | Isolated ordering rejected on the native path; `createDatabase` still `pg` |
+| `e7912e1` | `ponder start --native` loads config/schema with `bunLoader` (Bun `import()`) and can start the Bun `/v1` stack | Superseded for default `start` / `dev` by `57a0103`; Vite remains the `PONDER_USE_VITE=1` escape hatch |
+| `812eef2` | `isolatedController` spawns via `createIndexingWorker`; under Bun that is `Bun.Worker` + `isolatedWorker.bun.ts` | Superseded: full protocol now in `isolatedWorker.bun.ts` |
+| `f7d04a0` | Production indexing on `ponder start --native` via `bunNativeBuild` (Bun plugin + compile helpers, no Vite) | Isolated now wired via `isolatedController` |
 | `b0a59dc` | Unified `/v1` on native `start` / `dev` through `createDatabase` `readonlyQB` | `ponder serve --native` still uses a separate Bun.SQL connection |
-| `57a0103` | `ponder start` / `ponder dev` default to Bun-native indexing when `process.versions.bun` is set; `PONDER_USE_VITE=1` is the Vite escape hatch | `ponder serve` still requires `--native` / `PONDER_BUN_NATIVE=1`; Vite loader remains in-tree |
+| `57a0103` | `ponder start` / `ponder dev` default to Bun-native indexing when `process.versions.bun` is set | Superseded for serve by `c5afb60` |
+| `c5afb60` | `ponder serve` defaults to Bun-native `/v1` under Bun; `PONDER_USE_VITE=1` escape | — |
+| *(pending)* | `PONDER_DATABASE_DRIVER=bun` for `createDatabase` + full Bun isolated worker + native isolated ordering | Default driver still `pg`; worker Vite compile remains |
 
 ---
 

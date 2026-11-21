@@ -11,7 +11,6 @@ import { buildOptions } from "@/internal/options.js";
 import { createShutdown } from "@/internal/shutdown.js";
 import { PONDER_SYNC_SCHEMAS } from "@/sync-store/schema.js";
 import {
-  BUN_NATIVE_ISOLATED_ORDERING_ERROR,
   clearPonderFns,
   compileBunNative,
   compileBunNativeNamespace,
@@ -189,7 +188,7 @@ ponder.on("api:only", async () => {});
 });
 
 describe("compileBunNative", () => {
-  test("errors on experimental_isolated without hitting RPC", async () => {
+  test("accepts experimental_isolated ordering past preCompile", async () => {
     const dir = makeTempDir();
     writeProject({
       dir,
@@ -209,10 +208,10 @@ export default createConfig({
       schema: "public",
     });
 
-    expect(result.status).toBe("error");
-    if (result.status !== "error") return;
-    expect(result.error).toBeInstanceOf(BuildError);
-    expect(result.error.message).toBe(BUN_NATIVE_ISOLATED_ORDERING_ERROR);
+    // Ordering is allowed; failure should be later (schema / RPC), not a hard reject.
+    if (result.status === "error") {
+      expect(result.error.message).not.toMatch(/experimental_isolated/);
+    }
   });
 
   test("errors when the config file is missing", async () => {

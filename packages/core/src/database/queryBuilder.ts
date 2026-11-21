@@ -24,24 +24,21 @@ import type { Schema } from "@/internal/types.js";
 import type { Drizzle } from "@/types/db.js";
 import { startClock } from "@/utils/timer.js";
 import { wait } from "@/utils/wait.js";
+import type { BunSqlClient } from "./bunSqlDriver.js";
 
 const RETRY_COUNT = 9;
 const BASE_DURATION = 125;
 
+type PostgresClient = pg.Pool | pg.PoolClient | BunSqlClient;
+
 type InnerQB<
   TSchema extends Schema = Schema,
-  TClient extends PGlite | pg.Pool | pg.PoolClient =
-    | PGlite
-    | pg.Pool
-    | pg.PoolClient,
+  TClient extends PGlite | PostgresClient = PGlite | PostgresClient,
 > = Omit<Drizzle<TSchema>, "transaction"> & TransactionQB<TSchema, TClient>;
 
 type TransactionQB<
   TSchema extends Schema = Schema,
-  TClient extends PGlite | pg.Pool | pg.PoolClient =
-    | PGlite
-    | pg.Pool
-    | pg.PoolClient,
+  TClient extends PGlite | PostgresClient = PGlite | PostgresClient,
 > = {
   /**
    * Transaction with retries, logging, metrics, and error parsing.
@@ -64,10 +61,7 @@ type TransactionQB<
  */
 export type QB<
   TSchema extends Schema = Schema,
-  TClient extends PGlite | pg.Pool | pg.PoolClient =
-    | PGlite
-    | pg.Pool
-    | pg.PoolClient,
+  TClient extends PGlite | PostgresClient = PGlite | PostgresClient,
 > = TransactionQB<TSchema, TClient> & {
   raw: Drizzle<TSchema>;
   /**
@@ -84,7 +78,7 @@ export type QB<
   ): T;
 } & (
     | { $dialect: "pglite"; $client: PGlite }
-    | { $dialect: "postgres"; $client: pg.Pool | pg.PoolClient }
+    | { $dialect: "postgres"; $client: PostgresClient }
   );
 
 export const parseDbError = (error: any): Error => {
@@ -148,10 +142,7 @@ export const parseDbError = (error: any): Error => {
  */
 export const createQB = <
   TSchema extends Schema = { [name: string]: never },
-  TClient extends PGlite | pg.Pool | pg.PoolClient =
-    | PGlite
-    | pg.Pool
-    | pg.PoolClient,
+  TClient extends PGlite | PostgresClient = PGlite | PostgresClient,
 >(
   db: Drizzle<TSchema> & { $client: TClient },
   { common, isAdmin }: { common: Common; isAdmin?: boolean },

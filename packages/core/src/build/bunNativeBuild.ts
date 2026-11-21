@@ -27,9 +27,6 @@ import { safeBuildSchema } from "./schema.js";
 
 const BUILD_ID_VERSION = "2";
 
-export const BUN_NATIVE_ISOLATED_ORDERING_ERROR =
-  'The Bun-native ponder start command does not support ordering: "experimental_isolated". Set PONDER_USE_VITE=1 to run classic ponder start.';
-
 const defaultRegistryFile = fileURLToPath(
   new URL("../app/ponder.ts", import.meta.url),
 );
@@ -287,13 +284,6 @@ export async function compileBunNative({
     databaseConfig: preBuildResult.databaseConfig,
     ordering: preBuildResult.ordering,
   };
-
-  if (preBuild.ordering === "experimental_isolated") {
-    return {
-      status: "error",
-      error: buildError(BUN_NATIVE_ISOLATED_ORDERING_ERROR),
-    };
-  }
 
   const namespaceResult = compileBunNativeNamespace({ schema, viewsSchema });
   if (namespaceResult.status === "error") {
