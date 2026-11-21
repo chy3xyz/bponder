@@ -9,7 +9,7 @@ If you want to contribute, but aren't sure where to start, reach out in Ponder's
 This guide is intended to help you get started with contributing. By following these steps, you will understand the development process and workflow.
 
 - [Fork the repository](#fork-the-repository)
-- [Install Node.js and pnpm](#install-nodejs-and-pnpm)
+- [Install Bun](#install-bun)
 - [Install Foundry](#install-foundry)
 - [Install dependencies](#install-dependencies)
 - [Build packages](#build-packages)
@@ -39,21 +39,15 @@ gh repo fork ponder-sh/ponder --clone
   <a href="#get-started">&uarr; back to top</a></b>
 </div>
 
-## Install Node.js and pnpm
+## Install Bun
 
-Ponder uses [pnpm workspaces](https://pnpm.io/workspaces) to manage multiple projects. You need to install **Node.js v22 or higher** and **pnpm v12 or higher**.
-
-You can run the following commands in your terminal to check your local Node.js and pnpm versions:
+**bponder** uses [Bun workspaces](https://bun.com/docs/pm/workspaces) for the monorepo and Bun as the only supported runtime. Install **Bun 1.4.0 or higher**.
 
 ```bash
-node -v
-pnpm -v
+bun --version
 ```
 
-If the versions are not correct or you don't have Node.js or pnpm installed, download and follow their setup instructions:
-
-- Install Node.js using [nvm](https://github.com/nvm-sh/nvm), [fnm](https://github.com/Schniz/fnm), or from the [official website](https://nodejs.org)
-- Install [pnpm](https://pnpm.io/installation)
+Install Bun from the [official site](https://bun.sh).
 
 <div align="right">
   <a href="#get-started">&uarr; back to top</a></b>
@@ -78,7 +72,7 @@ curl -L https://foundry.paradigm.xyz | bash
 In the root directory, run the following command to install the project's dependencies:
 
 ```bash
-pnpm install
+bun install --frozen-lockfile
 ```
 
 <div align="right">
@@ -90,10 +84,10 @@ pnpm install
 In the root directory, run the build command:
 
 ```bash
-pnpm build
+bun run build
 ```
 
-After the build completes, pnpm links packages across the project for development. This means that if you run any of the projects in the `examples/` directory, they will use the local version of `ponder`.
+After the build completes, Bun links workspace packages for development. Example apps under `examples/` resolve the local `ponder` package.
 
 <div align="right">
   <a href="#get-started">&uarr; back to top</a></b>
@@ -108,11 +102,11 @@ The test suite uses [vitest](https://vitest.dev/guide) in concurrent mode as a t
 Herea are some commands to get you started.
 
 ```bash
-# Run all tests in watch mode
-pnpm test
+# Run Bun tests for core (preferred)
+bun run --filter ponder test:bun
 
-# Run a single test file
-pnpm test /path/to/file.test.ts
+# Focused file
+CI=1 bun test packages/core/src/path.test.ts
 ```
 
 When adding new features or fixing bugs, it's important to add test cases to cover any new or updated behavior.
@@ -138,9 +132,7 @@ Any test-friendly Postgres server will do. MacOS users can download [Postgres.ap
 Ponder uses [Vocs](https://vocs.dev) and Markdown for the documentation website (located at [`docs`](../docs)). To start the docs website in dev mode, run:
 
 ```bash
-cd docs
-
-pnpm dev
+bun run --filter ponder-docs dev
 ```
 
 <div align="right">
@@ -169,7 +161,7 @@ Ponder is still in alpha, so all changes should be marked as a patch.
 ### Changesets workflow
 
 1. Write a PR that includes a public API change or bug fix.
-2. Create a changeset using `pnpm changeset`. The changesets CLI will ask you which package is affected (`ponder` or `create-ponder`) and if the change is a patch, minor, or major release.
+2. Create a changeset using `bunx changeset`. The changesets CLI will ask you which package is affected (`ponder` or `create-ponder`) and if the change is a patch, minor, or major release.
 3. The changesets CLI will generate a Markdown file in `.changeset/` that includes the details you provided. Commit this file to your PR branch (e.g. `git commit -m "chore: changeset"`).
 4. When you push this commit to remote, a GitHub bot will detect the changeset and add a comment to your PR with a preview of the changelog.
 5. Merge your PR. The changesets Github Action workflow will open (or update) a PR with the title `"chore: version packages"`. The changes in your PR **will not be released** until this PR is merged.

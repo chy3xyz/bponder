@@ -41,6 +41,10 @@ type WorkerRequest =
   | { type: "ping"; requestId: number }
   | { type: "batch"; requestId: number; events: BunIsolatedEvent[] };
 
+type WorkerRequestBody =
+  | { type: "ping" }
+  | { type: "batch"; events: BunIsolatedEvent[] };
+
 type WorkerReply =
   | { type: "pong"; requestId: number; worker: "bun" }
   | ({ type: "batchResult"; requestId: number } & BunIsolatedBatchResult);
@@ -152,11 +156,11 @@ const createWorkerClient = (worker: Worker) => {
     pending.clear();
   };
 
-  const request = (message: Omit<WorkerRequest, "requestId">) =>
+  const request = (message: WorkerRequestBody) =>
     new Promise<WorkerReply>((resolve, reject) => {
       const requestId = ++nextRequestId;
       pending.set(requestId, { resolve, reject });
-      worker.postMessage({ ...message, requestId });
+      worker.postMessage({ ...message, requestId } satisfies WorkerRequest);
     });
 
   return { request };

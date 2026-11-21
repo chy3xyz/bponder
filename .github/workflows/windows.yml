@@ -31,15 +31,10 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: root
 
-      - name: Set up node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - name: Set up bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          node-version: 24.22.1
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          cache: true
+          bun-version: 1.4.4
 
       - name: Set up foundry
         uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
@@ -47,15 +42,10 @@ jobs:
           version: "v1.8.6"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Set up bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version: 1.4.4
+        run: bun install --frozen-lockfile
 
       - name: Test
-        run: pnpm --filter "ponder" test:bun
+        run: bun run --filter ponder test:bun
         env:
           DATABASE_URL: ${{ matrix.database == 'Postgres' && 'postgresql://postgres:root@localhost:5432/postgres' || '' }}
 
@@ -67,15 +57,10 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - name: Set up bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          node-version: 24.22.1
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          cache: true
+          bun-version: 1.4.4
 
       - name: Set up foundry
         uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
@@ -83,12 +68,7 @@ jobs:
           version: "v1.8.6"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Set up bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version: 1.4.4
+        run: bun install --frozen-lockfile
 
       - name: Test
-        run: pnpm --filter create-ponder test:bun
+        run: bun run --filter create-ponder test:bun

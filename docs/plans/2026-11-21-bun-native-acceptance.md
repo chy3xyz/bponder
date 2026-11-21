@@ -166,9 +166,7 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 
 **Docs:** `docs/pages/docs/requirements.mdx` and `docs/pages/docs/guides/bun.mdx` state Bun is the only supported runtime. CLI reference documents `--native`.
 
-**CI:** `.github/workflows/main.yml` and `windows.yml` run `pnpm --filter "ponder" test:bun` and `pnpm --filter create-ponder test:bun` with `oven-sh/setup-bun` **1.4.4**. Postgres vs PGlite matrix is retained.
-
-**Caveat:** workflows still call `actions/setup-node` (Node 24.22.1) for pnpm install, lint, and build. That is toolchain for the workspace, not a supported app runtime. Core `test` script remains `"vitest"`; CI invokes `test:bun`.
+**CI:** `.github/workflows/main.yml` and `windows.yml` use `bun install --frozen-lockfile` and `bun run --filter ponder test:bun` / `bun run --filter create-ponder test:bun` with `oven-sh/setup-bun` **1.4.4**. Postgres vs PGlite matrix is retained. The monorepo package manager is Bun (`bun.lock`); Node remains only where npm publish / changesets need a registry setup.
 
 ---
 

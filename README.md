@@ -29,15 +29,15 @@ For conceptual guides that still match shared APIs, you can read [ponder.sh/docs
 
 - [Bun](https://bun.sh) `>=1.4.0`
 - PostgreSQL 14–17 for production (PGlite OK for local/tests)
-- Workspace install: `pnpm install --frozen-lockfile` (pnpm `12.15.0`, Node used only as toolchain)
+- Workspace install: `bun install --frozen-lockfile` (Bun is package manager + runtime)
 
 ## Quickstart (from this repo)
 
 ```bash
 git clone https://github.com/chy3xyz/bponder.git
 cd bponder
-pnpm install --frozen-lockfile
-pnpm build
+bun install --frozen-lockfile
+bun run build
 ```
 
 Example Bun smokes (need local Postgres + `DATABASE_URL`):

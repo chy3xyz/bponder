@@ -1,24 +1,24 @@
 # AGENTS.md
 
 ## Repository Shape
-- This is a pnpm `12.15.0` workspace; install with `pnpm install --frozen-lockfile` to match CI. Node must be `>=22`; CI pins runner images (`ubuntu-24.04`, `windows-2025`), uses the Postgres preinstalled on the runner (16 on Linux, 17 on Windows), and sets up exact Node, pnpm, Bun, and Foundry versions inline in each workflow job. Repo settings require every third-party action to be pinned to a full-length commit SHA (with the version tag in a trailing comment).
-- Workspace packages are `packages/*`, `docs`, `examples/**`, `simulation-test`, and `benchmark`.
+- This is a **Bun** workspace (`packageManager: bun@1.4.5`); install with `bun install --frozen-lockfile` to match CI. Bun `>=1.4.0` is required for both the package manager and the `ponder` runtime. CI pins runner images (`ubuntu-24.04`, `windows-2025`), uses the Postgres preinstalled on the runner (16 on Linux, 17 on Windows), and sets up Bun and Foundry versions inline in each workflow job. Repo settings require every third-party action to be pinned to a full-length commit SHA (with the version tag in a trailing comment).
+- Workspace packages are `packages/*`, `docs`, `examples/**`, `simulation-test`, and `benchmark` (see root `package.json` `workspaces`).
 - `packages/core` publishes the `ponder` npm package. Public exports start in `packages/core/src/index.ts`; the CLI bin starts in `packages/core/src/bin/ponder.ts`.
 - `packages/core` and `packages/react` build with custom `build.ts` scripts. `packages/client`, `packages/utils`, and `packages/create-ponder` build with tsup.
 - Core source uses `@/*` path aliases. The core build rewrites these aliases in `dist/esm` and `dist/types`, so do not replace source aliases just to satisfy package output.
 
 ## Commands
-- Build publishable packages: `pnpm build`.
-- Lint and format use Biome: `pnpm lint`, `pnpm format`, `pnpm lint:fix`.
-- Root typecheck covers `packages/**` only: `pnpm typecheck`.
-- Focused package checks: `pnpm --filter ponder typecheck`, `pnpm --filter @ponder/client typecheck`, `pnpm --filter @ponder/utils typecheck`, `pnpm --filter create-ponder typecheck`.
-- Focused tests: `CI=1 pnpm --filter ponder test src/path.test.ts`, `CI=1 pnpm --filter @ponder/client test src/index.test.ts`, `pnpm --filter create-ponder test`.
-- Type-level Vitest suites use separate scripts where present: `pnpm --filter ponder test:typecheck`, `pnpm --filter @ponder/client test:typecheck`, `pnpm --filter @ponder/react test:typecheck`.
-- `pnpm test` runs all workspace test scripts in parallel with `--no-bail`; several package scripts are plain `vitest`, so set `CI=1` for one-shot local runs and prefer `--filter` to avoid unrelated network-heavy suites.
+- Build publishable packages: `bun run build`.
+- Lint and format use Biome: `bun run lint`, `bun run format`, `bun run lint:fix`.
+- Root typecheck covers `packages/**` only: `bun run typecheck`.
+- Focused package checks: `bun run --filter ponder typecheck`, `bun run --filter @ponder/client typecheck`, `bun run --filter @ponder/utils typecheck`, `bun run --filter create-ponder typecheck`.
+- Focused tests: `CI=1 bun run --filter ponder test src/path.test.ts`, `CI=1 bun run --filter @ponder/client test src/index.test.ts`, `bun run --filter create-ponder test`.
+- Type-level Vitest suites use separate scripts where present: `bun run --filter ponder test:typecheck`, `bun run --filter @ponder/client test:typecheck`, `bun run --filter @ponder/react test:typecheck`.
+- `bun run test` / `bun run test:bun` run matching workspace scripts in parallel (`--no-exit-on-error`); several package scripts are plain `vitest`, so set `CI=1` for one-shot local runs and prefer `--filter` to avoid unrelated network-heavy suites.
 
 ## Tests And Environment
 - Core Vitest setup (`packages/core/vite.config.ts`) caps threads at 4, loads `packages/core/src/_test/setup.ts`, and runs `packages/core/src/_test/globalSetup.ts`.
-- Core global setup generates `packages/core/src/_test/generated.ts` with `pnpm wagmi generate` if missing, then starts an Anvil proxy. Foundry/Anvil must be installed for core tests.
+- Core global setup generates `packages/core/src/_test/generated.ts` with `bunx wagmi generate` if missing, then starts an Anvil proxy. Foundry/Anvil must be installed for core tests.
 - Core database tests default to in-memory PGlite. Set `DATABASE_URL` in `packages/core/.env.local` only when intentionally testing Postgres; tests create and drop `vitest_*` databases/roles.
 - `packages/utils/src/_test/*` contains live RPC-provider tests that require `RPC_URL_*` values from `packages/utils/.env.example`; avoid broad utils/root test runs unless those env vars and network access are intended.
 - `simulation-test` and `benchmark` use Bun scripts and external Postgres/RPC env from their `.env.example` files. Their `DATABASE_URL` should omit a database name; scripts append app-specific database names.
@@ -32,14 +32,14 @@
 ## Generated Or Copied Files
 - `packages/core/src/_test/generated.ts` is generated by Wagmi from Foundry contracts under `packages/core/src/_test/contracts/` and is ignored by Biome.
 - `packages/create-ponder` build copies root `examples/` into `packages/create-ponder/templates`, excludes multi-app examples (`with-nextjs`, `with-foundry`, `with-trpc`, `with-client`, `with-offchain`), renames dotfiles, and blanks RPC URLs in generated `_dot_env.local` files.
-- Biome intentionally ignores `docs/`, `dist/`, generated folders, `.ponder`, cache/out directories, Solidity files, and `pnpm-lock.yaml`.
+- Biome intentionally ignores `docs/`, `dist/`, generated folders, `.ponder`, cache/out directories, Solidity files, and `bun.lock`.
 
 ## Docs, Examples, Releases
-- Docs are a Vocs app in `docs`; use `pnpm --filter ponder-docs dev` or `pnpm --filter ponder-docs build`.
-- CI separately verifies the Next.js frontend example with `pnpm --filter ponder-examples-with-nextjs-frontend build` after `pnpm build`.
+- Docs are a Vocs app in `docs`; use `bun run --filter ponder-docs dev` or `bun run --filter ponder-docs build`.
+- CI separately verifies the Next.js frontend example with `bun run --filter ponder-examples-with-nextjs-frontend build` after `bun run build`.
 
 ## Changesets
-- Changesets are fixed for `ponder`, `create-ponder`, `@ponder/client`, and `@ponder/react`; docs/examples are ignored. Create changesets with `pnpm changeset`. Public API or bug-fix PRs normally need a patch changeset.
+- Changesets are fixed for `ponder`, `create-ponder`, `@ponder/client`, and `@ponder/react`; docs/examples are ignored. Create changesets with `bunx changeset`. Public API or bug-fix PRs normally need a patch changeset.
 - Write changesets in the same voice as `packages/core/CHANGELOG.md`: concise, user-facing, past tense, and focused on observable behavior.
 - Start with the outcome, not the implementation. Prefer phrasing like "Fixed a bug that caused...", "Fixed a regression introduced in `v0.16.0` that caused...", "Improved...", "Added...", "Updated...", or "Removed...".
 - Include concrete symptoms when helpful, especially exact error messages in backticks. Use patterns like "Fixed the error `...`" or "that caused `...`".

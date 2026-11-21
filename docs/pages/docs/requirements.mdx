@@ -24,7 +24,7 @@ bun create ponder
 
 `create-ponder` must be invoked with Bun. After scaffold, generated `package.json` files set `engines.bun` to `>=1.4.0` and scripts stay as `ponder dev` / `ponder start` — **do not** wrap them in `bun --bun`. The CLI shebang already selects Bun, so `bun run dev` is enough.
 
-You can still install packages with pnpm, npm, or yarn (`create-ponder --pnpm`, `--npm`, or `--yarn`). The process that runs `ponder` must be Bun.
+This repository’s monorepo uses **Bun** as the package manager (`bun install`). Generated apps typically use `bun install` as well; `create-ponder --pnpm` / `--npm` / `--yarn` remain available if you prefer another client. The process that runs `ponder` must be Bun either way.
 
 [Read more](/docs/api-reference/create-ponder) in the `create-ponder` API reference. Existing Node apps should follow the [migration guide](/docs/migration-guide).
 

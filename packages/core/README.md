@@ -34,7 +34,7 @@ After the prompts, the CLI will create a project directory, install dependencies
 ```bash
 bun create ponder
 # or
-pnpm create ponder
+bun create ponder
 # or
 npm init ponder@latest
 ```
@@ -48,7 +48,7 @@ First, `cd` into your project directory, then start the server.
 ```bash
 bun dev
 # or
-pnpm dev
+bun run dev
 # or
 npm run dev
 ```

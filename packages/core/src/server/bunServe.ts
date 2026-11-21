@@ -53,7 +53,7 @@ export function startBunServer({
   const server = bun.serve({ fetch, hostname, port });
 
   return {
-    port: server.port,
+    port: server.port ?? port,
     stop: (force = false) => server.stop(force),
   };
 }

@@ -1,15 +1,23 @@
 {
+  "name": "bponder",
   "private": true,
+  "workspaces": [
+    "benchmark",
+    "docs",
+    "simulation-test",
+    "examples/**",
+    "packages/*",
+    "tmp/*"
+  ],
   "scripts": {
-    "bench:ponder:ci": "pnpm --filter \"./benchmarks\" bench:ponder:ci",
-    "bench:subgraph:ci": "pnpm --filter \"./benchmarks\" bench:subgraph:ci",
-    "build": "pnpm --filter \"./packages/**\" --recursive build",
+    "bench:ponder:ci": "bun run --filter ponder-benchmark benchmark",
+    "build": "bun run --filter @ponder/utils build && bun run --filter @ponder/client build && bun run --filter ponder build && bun run --filter @ponder/react build && bun run --filter create-ponder build",
     "format": "biome format . --write",
     "lint": "biome check .",
-    "lint:fix": "pnpm lint --write",
-    "test": "pnpm --parallel --no-bail test",
-    "test:bun": "pnpm --parallel --no-bail test:bun",
-    "typecheck": "pnpm --filter \"./packages/**\" --recursive typecheck"
+    "lint:fix": "biome check . --write",
+    "test": "bun run --filter '*' --parallel --no-exit-on-error test",
+    "test:bun": "bun run --filter '*' --parallel --no-exit-on-error --if-present test:bun",
+    "typecheck": "bun run --filter './packages/*' --sequential --if-present typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.4",
@@ -20,9 +28,12 @@
     "typescript": "5.4.5",
     "viem": "2.35.0"
   },
-  "packageManager": "pnpm@12.15.0",
+  "trustedDependencies": [
+    "@biomejs/biome",
+    "esbuild"
+  ],
+  "packageManager": "bun@1.4.5",
   "engines": {
-    "bun": ">=1.4.0",
-    "pnpm": ">=12"
+    "bun": ">=1.4.0"
   }
 }

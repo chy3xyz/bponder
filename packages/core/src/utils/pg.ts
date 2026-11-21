@@ -5,8 +5,8 @@ import type { Logger } from "@/internal/logger.js";
 // The default parser for numeric[] (1231) seems to parse values as Number
 // or perhaps through JSON.parse(). Use the int8[] (1016) parser instead,
 // which properly returns an array of strings.
-const bigIntArrayParser = pg.types.getTypeParser(1016);
-pg.types.setTypeParser(1231, bigIntArrayParser);
+const bigIntArrayParser = pg.types.getTypeParser(1016 as never);
+pg.types.setTypeParser(1231 as never, bigIntArrayParser);
 
 export const PG_BIGINT_MAX = 9223372036854775807n;
 export const PG_INTEGER_MAX = 2147483647;
@@ -66,7 +66,7 @@ export function createPool(config: PoolConfig, logger: Logger) {
       callback: (err: Error) => void | undefined,
     ): void | Promise<void> {
       if (callback) {
-        super.connect((error) => {
+        super.connect((error: Error) => {
           if (error) return callback(error);
           this.query(
             `
@@ -151,7 +151,7 @@ export function createReadonlyPool(
       callback: (err: Error) => void | undefined,
     ): void | Promise<void> {
       if (callback) {
-        super.connect((error) => {
+        super.connect((error: Error) => {
           if (error) return callback(error);
           this.query(
             `
