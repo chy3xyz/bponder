@@ -107,7 +107,7 @@ const startCommand = new Command("start")
   )
   .option(
     "--native",
-    "Start the Bun-native path without Vite, loading config and schema via import()",
+    "Start Bun-native indexing without Vite, loading config, schema, and handlers via import()",
   )
   .showHelpAfterError()
   .action(async (_, command) => {

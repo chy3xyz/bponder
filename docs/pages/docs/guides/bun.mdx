@@ -54,7 +54,7 @@ ponder start --native
 PONDER_BUN_NATIVE=1 ponder start
 ```
 
-This loads `ponder.config.ts` and `ponder.schema.ts` with Bun `import()` and does not boot Vite. It logs chain keys and `onchainTable` names. If `DATABASE_URL` is set, it starts the same Bun-native `/v1` HTTP server as `ponder serve --native` and runs `migrateUser` for each identifiable `@ponder/schema` table. `--schema` / `DATABASE_SCHEMA` selects the Postgres schema (`public` by default); invalid identifiers exit with an error. Classic `ponder start` without `--native` is unchanged.
+This loads `ponder.config.ts` and `ponder.schema.ts` with Bun `import()`, resolves `ponder:registry` / `ponder:schema` with a Bun plugin, and runs production indexing (`createDatabase`, `migrate`, `migrateSync`, then `runOmnichain` or `runMultichain`) without Vite. `ordering: "experimental_isolated"` is not supported on this path — use classic `ponder start` without `--native`. If the compiled database is Postgres, it also starts the Bun-native `/v1` HTTP server. `--schema` / `DATABASE_SCHEMA` is required, matching classic `ponder start`. Classic `ponder start` without `--native` is unchanged.
 
 ## Known limitations
 

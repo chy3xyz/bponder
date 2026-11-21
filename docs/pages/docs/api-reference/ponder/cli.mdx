@@ -64,7 +64,7 @@ Options:
   -h, --help                 display help for command
 ```
 
-Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip Vite and load `ponder.config.ts` plus `ponder.schema.ts` with Bun `import()`. The command logs chain keys and `onchainTable` names. If `DATABASE_URL` is set, it starts the Bun-native `/v1` HTTP server and runs `migrateUser` for each identifiable table. `--schema` / `DATABASE_SCHEMA` selects the Postgres schema (`public` by default). Classic `ponder start` without `--native` is unchanged. [Read more](/docs/guides/bun#bun-native-ponder-start).
+Pass `--native` (or set `PONDER_BUN_NATIVE=1`) to skip Vite and run production indexing on the Bun-native path: config/schema via `import()`, indexing files via a Bun plugin for `ponder:registry` and `ponder:schema`, then `createDatabase` / `migrate` / `migrateSync` and `runOmnichain` or `runMultichain`. `ordering: "experimental_isolated"` errors and asks for classic `ponder start`. If the compiled database is Postgres, it also starts the Bun-native `/v1` HTTP server. `--schema` / `DATABASE_SCHEMA` is required. Classic `ponder start` without `--native` is unchanged. [Read more](/docs/guides/bun#bun-native-ponder-start).
 
 ## serve
 
