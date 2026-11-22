@@ -16,7 +16,6 @@ import {
   compileBunNativeNamespace,
   compileBunNativePre,
   loadBunApiApp,
-  loadBunApiApp,
   loadBunIndexingFunctions,
   registerPonderBunPlugin,
   toIndexingConfig,
