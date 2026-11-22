@@ -21,25 +21,9 @@ From the Railway console:
 
 The start command must run on Bun (`>=1.4.0`). Node.js is not a supported runtime.
 
-:::code-group
-
-```bash [bun]
+```bash
 bun run start --schema $RAILWAY_DEPLOYMENT_ID
 ```
-
-```bash [pnpm]
-pnpm start --schema $RAILWAY_DEPLOYMENT_ID
-```
-
-```bash [yarn]
-yarn start --schema $RAILWAY_DEPLOYMENT_ID
-```
-
-```bash [npm]
-npm run start -- --schema $RAILWAY_DEPLOYMENT_ID
-```
-
-:::
 
 5. Set the healthcheck path and timeout. In **Settings** → **Deploy**, set the **Healthcheck Path** to `/ready` and the **Healthcheck Timeout** to `3600` seconds (1 hour, the maximum allowed).
 

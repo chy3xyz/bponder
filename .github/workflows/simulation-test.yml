@@ -1,8 +1,8 @@
 name: Simulation Test
 
+# Requires a self-hosted runner + DATABASE_URL / PONDER_RPC_URL_* secrets.
+# Schedule disabled on this fork until those are provisioned (queued forever otherwise).
 on:
-  schedule:
-    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
 
 concurrency:
