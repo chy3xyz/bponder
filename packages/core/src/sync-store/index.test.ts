@@ -1157,12 +1157,14 @@ test("getEventData() applies one block range to logs and traces queries", async 
 
   const queries = querySpy.mock.calls.map((call) => {
     const [query, params] = call as unknown as [
-      string | { text: string; values: unknown[] },
+      string | { text: string; values?: unknown[] },
       unknown[]?,
     ];
-    return typeof query === "string"
-      ? { text: query, values: params }
-      : { text: query.text, values: query.values };
+    // node-postgres may pass values on the query config or as the 2nd arg.
+    if (typeof query === "string") {
+      return { text: query, values: params };
+    }
+    return { text: query.text, values: query.values ?? params };
   });
   const logsQuery = queries.find(({ text }) =>
     text.includes(`from "${ponderSyncSchema.PONDER_SYNC_SCHEMA}"."logs"`),
