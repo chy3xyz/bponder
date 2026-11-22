@@ -42,6 +42,7 @@ As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is t
 |---|---|
 | `PONDER_DATABASE_DRIVER=pg` escape | Node-postgres remains available; not deleted. |
 | `simulation-test` / benchmark | Still **not run** this session (no `.env.local` / port `55432`). |
+| Utils live `getLogsRetryHelper` | Needs `RPC_URL_ALCHEMY_1` / `INFURA` / `QUICKNODE` repo secrets; workflow skips cleanly when unset. Public RPC assertion drift remains out of band. |
 
 **jsonb under Bun.SQL:** Ponder `json()` / `jsonb()` `mapToDriverValue` pass objects through when `PONDER_DATABASE_DRIVER` selects Bun.SQL (not merely `process.versions.bun`); node-postgres / PGlite still `JSON.stringify`. Covered by `drizzle/json.bun.test.ts` + meta helpers.
 
