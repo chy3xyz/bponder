@@ -139,6 +139,41 @@ describe("toIndexingConfig", () => {
   });
 });
 
+describe("registerPonderBunPlugin", () => {
+  test("busts ponder:schema cache across sequential schema files", async () => {
+    const dirA = makeTempDir();
+    const dirB = makeTempDir();
+    const schemaA = join(dirA, "ponder.schema.ts");
+    const schemaB = join(dirB, "ponder.schema.ts");
+    writeFileSync(
+      schemaA,
+      `import { onchainTable } from ${JSON.stringify(onchainTablePath)};
+export const alpha = onchainTable("alpha", (t) => ({
+  id: t.text().primaryKey(),
+}));
+`,
+    );
+    writeFileSync(
+      schemaB,
+      `import { onchainTable } from ${JSON.stringify(onchainTablePath)};
+export const beta = onchainTable("beta", (t) => ({
+  id: t.text().primaryKey(),
+}));
+`,
+    );
+
+    registerPonderBunPlugin({ schemaFile: schemaA });
+    const modA = await import("ponder:schema");
+    expect(Object.keys(modA.default)).toContain("alpha");
+    expect(Object.keys(modA.default)).not.toContain("beta");
+
+    registerPonderBunPlugin({ schemaFile: schemaB });
+    const modB = await import("ponder:schema");
+    expect(Object.keys(modB.default)).toContain("beta");
+    expect(Object.keys(modB.default)).not.toContain("alpha");
+  });
+});
+
 describe("loadBunIndexingFunctions", () => {
   test("loads ponder.on handlers through ponder:registry and ponder:schema", async () => {
     const dir = makeTempDir();
