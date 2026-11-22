@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ponder-sh/ponder",
+    "url": "https://github.com/chy3xyz/bponder",
     "directory": "packages/react"
   },
   "scripts": {

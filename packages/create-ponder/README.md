@@ -32,11 +32,10 @@ You will be asked for a project name, and if you are using a [template](https://
 After the prompts, the CLI will create a project directory, install dependencies, and initialize a git repository.
 
 ```bash
+# bponder is Bun-only — prefer Bun
 bun create ponder
-# or
-pnpm create ponder
-# or
-npm init ponder@latest
+# or, from this repo's package:
+bunx create-ponder
 ```
 
 ### 2. Start the development server
@@ -46,11 +45,7 @@ Ponder has a development server that automatically reloads when you save changes
 First, `cd` into your project directory, then start the server.
 
 ```bash
-bun dev
-# or
-pnpm dev
-# or
-npm run dev
+bun run dev
 ```
 
 ### 3. Specify contracts & chains

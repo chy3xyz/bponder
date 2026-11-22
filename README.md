@@ -14,7 +14,7 @@ It is **not** the official [ponder.sh](https://ponder.sh) project. Package names
 | Config/indexing load | Bun `import()` + plugin (no Vite by default) | Vite SSR loader |
 | Upstream | Fork of `ponder-sh/ponder` | Canonical project |
 
-Repo: [github.com/chy3xyz/bponder](https://github.com/chy3xyz/bponder) · Branch: `feat/bun-native`
+Repo: [github.com/chy3xyz/bponder](https://github.com/chy3xyz/bponder) · Default branch: `main`
 
 ## Why this fork
 
@@ -121,4 +121,4 @@ Forked from [ponder-sh/ponder](https://github.com/ponder-sh/ponder). Upstream pr
 MIT-licensed (see [LICENSE](./LICENSE)). Copyright notices from upstream are retained.
 
 [license-badge]: https://img.shields.io/github/license/chy3xyz/bponder?label=License
-[license-url]: https://github.com/chy3xyz/bponder/blob/feat/bun-native/LICENSE
+[license-url]: https://github.com/chy3xyz/bponder/blob/main/LICENSE
