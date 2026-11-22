@@ -1,4 +1,4 @@
-import { compileBunNative } from "@/build/bunNativeBuild.js";
+import { compileBunNative, loadBunApiApp } from "@/build/bunNativeBuild.js";
 import { createDatabase, type Database } from "@/database/index.js";
 import type { Logger } from "@/internal/logger.js";
 import { MetricsService } from "@/internal/metrics.js";
@@ -6,6 +6,7 @@ import type { Options } from "@/internal/options.js";
 import { createShutdown } from "@/internal/shutdown.js";
 import { runMultichain } from "@/runtime/multichain.js";
 import { runOmnichain } from "@/runtime/omnichain.js";
+import { createBunNativeHttpFetch } from "@/server/bunNativeHttp.js";
 import { startBunServer, stopBunServer } from "@/server/bunServe.js";
 import { createBunV1ApiFetch } from "@/server/bunV1Api.js";
 import { createBunV1HandlersFromReadonlyQB } from "@/server/bunV1Readonly.js";
@@ -156,11 +157,29 @@ export async function runBunNativeApp({
   }
 
   try {
+    const apiResult = await loadBunApiApp({
+      apiFile: common.options.apiFile,
+      database,
+      indexingBuild,
+    });
+    if (apiResult.status === "error") {
+      common.logger.error({
+        msg: "Failed to load Bun-native Hono API",
+        error: apiResult.error,
+      });
+      await exit({ code: 1 });
+      return;
+    }
+
     const { getStatus, executeSql } = createBunV1HandlersFromReadonlyQB(
       database.readonlyQB,
     );
+    const v1Fetch = createBunV1ApiFetch({ getStatus, executeSql });
     const server = startBunServer({
-      fetch: createBunV1ApiFetch({ getStatus, executeSql }),
+      fetch: createBunNativeHttpFetch({
+        v1Fetch,
+        honoApp: apiResult.result.app,
+      }),
       hostname: options.hostname,
       port: options.port,
     });
@@ -174,6 +193,7 @@ export async function runBunNativeApp({
         msg: "Started Bun-native HTTP server",
         url: origin,
         port: server.port,
+        hono: apiResult.result.app !== undefined,
       },
       ["url"],
     );
@@ -181,6 +201,11 @@ export async function runBunNativeApp({
       msg: "Started returning 200 responses",
       endpoint: "/health",
     });
+    if (apiResult.result.app !== undefined) {
+      logger.info({
+        msg: "Mounted Hono API from src/api on Bun.serve",
+      });
+    }
 
     shutdown.add(() => stopBunServer(server));
     return shutdown.kill;

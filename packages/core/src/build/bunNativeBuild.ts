@@ -3,10 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { glob } from "glob";
+import { Hono } from "hono";
 import superjson from "superjson";
 import { ponder } from "@/app/ponder.js";
 import type { PonderConfig } from "@/config/defineConfig.js";
 import type { Config } from "@/config/index.js";
+import type { Database } from "@/database/index.js";
 import { MAX_DATABASE_OBJECT_NAME_LENGTH } from "@/drizzle/onchain.js";
 import type { Common } from "@/internal/common.js";
 import { BuildError } from "@/internal/errors.js";
@@ -18,6 +20,10 @@ import type {
   Schema,
   SchemaBuild,
 } from "@/internal/types.js";
+import {
+  type BunHonoLike,
+  validateBunNativeHonoRoutes,
+} from "@/server/bunNativeHttp.js";
 import { PONDER_SYNC_SCHEMAS } from "@/sync-store/schema.js";
 import type { Result } from "@/utils/result.js";
 import { loadBunConfig, loadBunSchema } from "./bunLoader.js";
@@ -133,12 +139,99 @@ export default schema;
           loader: "js",
         };
       });
+      // Same virtual module as the Vite ponder:api plugin (db + publicClients).
+      build.onResolve({ filter: /^api$/, namespace: "ponder" }, () => ({
+        path: "api",
+        namespace: "ponder-api",
+      }));
+      build.onLoad({ filter: /.*/, namespace: "ponder-api" }, () => ({
+        contents: `import { createPublicClient, custom } from "viem";
+
+if (globalThis.PONDER_INDEXING_BUILD === undefined || globalThis.PONDER_DATABASE === undefined) {
+  throw new Error('Invalid dependency graph. Config, schema, and indexing function files cannot import objects from the API function file "src/api/index.ts".')
+}
+
+const publicClients = {};
+
+for (let i = 0; i < globalThis.PONDER_INDEXING_BUILD.chains.length; i++) {
+  const chain = globalThis.PONDER_INDEXING_BUILD.chains[i];
+  const rpc = globalThis.PONDER_INDEXING_BUILD.rpcs[i];
+  publicClients[chain.name] = createPublicClient({
+    chain: chain.viemChain,
+    transport: custom({
+      request(body) {
+        return rpc.request(body);
+      }
+    }),
+  })
+}
+
+export const db = globalThis.PONDER_DATABASE.readonlyQB.raw;
+export { publicClients };
+`,
+        loader: "js",
+      }));
     },
   });
 }
 
 export function clearPonderFns() {
   ponder.fns.length = 0;
+}
+
+/**
+ * Load `src/api/index.ts` as a Hono app for Bun-native HTTP.
+ * Missing file → success with `app: undefined` (only `/v1` is served).
+ */
+export async function loadBunApiApp({
+  apiFile,
+  database,
+  indexingBuild,
+}: {
+  apiFile: string;
+  database: Database;
+  indexingBuild: IndexingBuild;
+}): Promise<Result<{ app: BunHonoLike | undefined }>> {
+  if (fs.existsSync(apiFile) === false) {
+    return { status: "success", result: { app: undefined } };
+  }
+
+  globalThis.PONDER_DATABASE = database;
+  globalThis.PONDER_INDEXING_BUILD = indexingBuild;
+
+  ponderPluginSchemaEpoch += 1;
+  const importEpoch = ponderPluginSchemaEpoch;
+
+  let exports: Record<string, unknown>;
+  try {
+    exports = (await import(
+      `ponder-index:${toPosixPath(path.resolve(apiFile))}::${importEpoch}`
+    )) as Record<string, unknown>;
+  } catch (error) {
+    return { status: "error", error: asError(error) };
+  }
+
+  const app = exports.default;
+  if (
+    !(
+      app instanceof Hono ||
+      (app as { constructor?: { name?: string } })?.constructor?.name === "Hono"
+    )
+  ) {
+    return {
+      status: "error",
+      error: buildError(
+        "API endpoint file does not export a Hono instance as the default export. Read more: https://ponder.sh/docs/api-reference/ponder/api-endpoints",
+      ),
+    };
+  }
+
+  const reserved = validateBunNativeHonoRoutes(app as BunHonoLike);
+  if (reserved !== undefined) {
+    return { status: "error", error: buildError(reserved) };
+  }
+
+  return { status: "success", result: { app: app as BunHonoLike } };
 }
 
 export function toIndexingConfig(config: PonderConfig): Config {

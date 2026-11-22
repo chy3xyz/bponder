@@ -50,9 +50,38 @@ PONDER_USE_VITE=1 ponder dev
 
 Secondary commands `ponder db list`, `ponder db prune`, and `ponder db create-views` also use the Bun-native compile path under Bun.
 
+## Custom Hono API on Bun-native
+
+Under Bun-native `ponder start` / `ponder dev`, you can still use Hono in `src/api/index.ts`. The server is still `Bun.serve`:
+
+1. Built-in `/health` and `/v1/*` are handled first
+2. Everything else is forwarded to your Hono app (`hono.fetch`)
+3. `ponder:api` (`db`, `publicClients`) works the same as on the Vite path
+
+```ts [src/api/index.ts]
+import { Hono } from "hono";
+import { db } from "ponder:api";
+import schema from "ponder:schema";
+
+const app = new Hono();
+
+app.get("/hello", (c) => c.text("Hello from Hono on Bun.serve"));
+
+app.get("/accounts", async (c) => {
+  const rows = await db.select().from(schema.account);
+  return c.json(rows);
+});
+
+export default app;
+```
+
+Do not register `/health`, `/ready`, `/status`, `/metrics`, `/client`, or `/v1/*` on the Hono app — those are reserved. If `src/api/index.ts` is missing, only `/v1` is served.
+
+`ponder serve` (read-only process) still defaults to `/v1` only; use `PONDER_USE_VITE=1` there if you need the full Hono API app without an indexer.
+
 ## Bun-native `ponder serve`
 
-Under Bun, `ponder serve` defaults to the Bun-native `/v1` stack (`Bun.serve`, no Vite or Hono) unless you set `PONDER_USE_VITE=1`. `--native` and `PONDER_BUN_NATIVE=1` still enable it explicitly.
+Under Bun, `ponder serve` defaults to the Bun-native `/v1` stack (`Bun.serve`) unless you set `PONDER_USE_VITE=1`. `--native` and `PONDER_BUN_NATIVE=1` still enable it explicitly.
 
 ```bash [shell]
 # Requires DATABASE_URL

@@ -15,6 +15,8 @@ import {
   compileBunNative,
   compileBunNativeNamespace,
   compileBunNativePre,
+  loadBunApiApp,
+  loadBunApiApp,
   loadBunIndexingFunctions,
   registerPonderBunPlugin,
   toIndexingConfig,
@@ -171,6 +173,68 @@ export const beta = onchainTable("beta", (t) => ({
     const modB = await import("ponder:schema");
     expect(Object.keys(modB.default)).toContain("beta");
     expect(Object.keys(modB.default)).not.toContain("alpha");
+  });
+});
+
+describe("loadBunApiApp", () => {
+  test("loads a Hono default export through ponder:api", async () => {
+    const dir = makeTempDir();
+    const schemaFile = join(dir, "ponder.schema.ts");
+    writeProject({
+      dir,
+      config: "export default { chains: {} };\n",
+      schema: `import { onchainTable } from ${JSON.stringify(onchainTablePath)};
+export const account = onchainTable("account", (t) => ({
+  id: t.text().primaryKey(),
+}));
+`,
+      api: `import { Hono } from "hono";
+import { db } from "ponder:api";
+import schema from "ponder:schema";
+
+const app = new Hono();
+app.get("/hello", (c) => {
+  void db;
+  void schema;
+  return c.text("ok");
+});
+export default app;
+`,
+    });
+
+    registerPonderBunPlugin({ schemaFile });
+    const fakeDatabase = {
+      readonlyQB: { raw: { select: () => ({ from: () => [] }) } },
+    };
+    const fakeIndexingBuild = {
+      chains: [{ name: "mainnet", viemChain: undefined }],
+      rpcs: [{ request: async () => null }],
+    };
+
+    const result = await loadBunApiApp({
+      apiFile: join(dir, "src", "api", "index.ts"),
+      database: fakeDatabase as never,
+      indexingBuild: fakeIndexingBuild as never,
+    });
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") return;
+    expect(result.result.app).toBeDefined();
+    const res = await result.result.app!.fetch(
+      new Request("http://localhost/hello"),
+    );
+    expect(await res.text()).toBe("ok");
+  });
+
+  test("allows a missing API file", async () => {
+    const result = await loadBunApiApp({
+      apiFile: join(makeTempDir(), "missing.ts"),
+      database: {} as never,
+      indexingBuild: {} as never,
+    });
+    expect(result.status).toBe("success");
+    if (result.status !== "success") return;
+    expect(result.result.app).toBeUndefined();
   });
 });
 
