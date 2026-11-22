@@ -175,6 +175,46 @@ export const beta = onchainTable("beta", (t) => ({
 });
 
 describe("loadBunIndexingFunctions", () => {
+  test("reloads ponder.on handlers after a prior import of the same files", async () => {
+    const dir = makeTempDir();
+    const schemaFile = join(dir, "ponder.schema.ts");
+    writeProject({
+      dir,
+      config: "export default { chains: {} };\n",
+      schema: `import { onchainTable } from ${JSON.stringify(onchainTablePath)};
+
+export const account = onchainTable("account", (t) => ({
+  id: t.text().primaryKey(),
+}));
+`,
+      indexing: `import { ponder } from "ponder:registry";
+
+ponder.on("Token:Transfer", async () => {});
+`,
+    });
+
+    registerPonderBunPlugin({ schemaFile });
+    const first = await loadBunIndexingFunctions({
+      indexingDir: join(dir, "src"),
+      apiDir: join(dir, "src", "api"),
+    });
+    expect(first.status).toBe("success");
+    if (first.status !== "success") return;
+    expect(first.result.indexingFunctions.map((e) => e.name)).toEqual([
+      "Token:Transfer",
+    ]);
+
+    const second = await loadBunIndexingFunctions({
+      indexingDir: join(dir, "src"),
+      apiDir: join(dir, "src", "api"),
+    });
+    expect(second.status).toBe("success");
+    if (second.status !== "success") return;
+    expect(second.result.indexingFunctions.map((e) => e.name)).toEqual([
+      "Token:Transfer",
+    ]);
+  });
+
   test("loads ponder.on handlers through ponder:registry and ponder:schema", async () => {
     const dir = makeTempDir();
     const schemaFile = join(dir, "ponder.schema.ts");

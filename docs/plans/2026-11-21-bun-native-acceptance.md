@@ -46,7 +46,7 @@ As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is t
 
 **jsonb under Bun.SQL:** Ponder `json()` / `jsonb()` `mapToDriverValue` pass objects through when `PONDER_DATABASE_DRIVER` selects Bun.SQL (not merely `process.versions.bun`); node-postgres / PGlite still `JSON.stringify`. Covered by `drizzle/json.bun.test.ts` + meta helpers.
 
-**Post-CI hardening (main @ `8a9c44a`+):** Main/Windows/Version/Utils green. e2e erc20/factory + heartbeat restored; `ponder:schema` epoch cache bust unit-covered; heartbeat keyed immediate write; Utils skips when RPC secrets unset; Version Actions can open PRs (`changeset-release/main`); sync-store query-spy values hardened against pg arg shape flake.
+**Post-CI hardening (main @ HEAD):** Main/Windows/Version/Utils green. e2e erc20/factory + heartbeat restored; `ponder:schema` epoch + `ponder-index` plugin reload (Bun ignores `file://?query` cache bust); heartbeat keyed immediate write; Utils skips when RPC secrets unset; Version Actions can open PRs; Main adds **Test [core] Bun.SQL** job covering production-default driver path.
 
 Focused evidence (2026-11-21):
 

@@ -105,8 +105,25 @@ export function registerPonderBunPlugin({
         path: `${ponderPluginSchemaFile}::${ponderPluginSchemaEpoch}`,
         namespace: "ponder-schema",
       }));
+      // Fresh file loads: Bun ignores ?query on file:// cache keys.
+      build.onResolve({ filter: /.*/, namespace: "ponder-index" }, (args) => ({
+        path: args.path,
+        namespace: "ponder-index",
+      }));
+      build.onLoad(
+        { filter: /.*/, namespace: "ponder-index" },
+        async (args) => {
+          const filePath = args.path.split("::")[0]!;
+          const contents = await bun.file(filePath).text();
+          const ext = path.extname(filePath);
+          const loader =
+            ext === ".ts" || ext === ".mts" || ext === ".tsx" ? "ts" : "js";
+          return { contents, loader };
+        },
+      );
       build.onLoad({ filter: /.*/, namespace: "ponder-schema" }, (args) => {
         const schemaPath = args.path.split("::")[0]!;
+        // Stable file:// so loadBunSchema and indexing share OnchainTable identity.
         const schemaHref = pathToFileURL(schemaPath).href;
         return {
           contents: `import * as schema from ${JSON.stringify(schemaHref)};
@@ -232,9 +249,15 @@ export async function loadBunIndexingFunctions({
     ignore: [apiPattern, testFilePattern],
   });
 
+  // Bust Bun's ESM cache via ponder-index plugin (file:// ?query is ignored).
+  ponderPluginSchemaEpoch += 1;
+  const importEpoch = ponderPluginSchemaEpoch;
+
   for (const file of files) {
     try {
-      await import(pathToFileURL(file).href);
+      await import(
+        `ponder-index:${toPosixPath(path.resolve(file))}::${importEpoch}`
+      );
     } catch (error) {
       return { status: "error", error: asError(error) };
     }
