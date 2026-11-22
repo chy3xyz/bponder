@@ -25,7 +25,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - run: bun add -d -w viem@${{ matrix.viem-version }}
+      # Root workspace install (Bun has no pnpm-style `-w`; add at repo root).
+      - run: bun add -d viem@${{ matrix.viem-version }}
 
       - name: Test
         run: bun run --cwd packages/utils test src/_test

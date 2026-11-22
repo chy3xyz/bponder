@@ -1064,9 +1064,7 @@ test("migrate() with crash recovery drops indexes and triggers", async () => {
   await context.common.shutdown.kill();
 });
 
-// TODO(bun-native): setInterval heartbeat updates are not observed under the
-// current PGlite + jsonb_set path in CI; cover via a dedicated Bun.SQL probe.
-test.skip("heartbeat updates the heartbeat_at value", async () => {
+test("heartbeat updates the heartbeat_at value", async () => {
   context.common.options.databaseHeartbeatInterval = 250;
   context.common.options.databaseHeartbeatTimeout = 625;
 

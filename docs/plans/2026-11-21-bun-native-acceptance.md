@@ -43,7 +43,9 @@ As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is t
 | `PONDER_DATABASE_DRIVER=pg` escape | Node-postgres remains available; not deleted. |
 | `simulation-test` / benchmark | Still **not run** this session (no `.env.local` / port `55432`). |
 
-**jsonb under Bun.SQL:** Ponder `json()` / `jsonb()` `mapToDriverValue` now passes objects through when `process.versions.bun` is set (still `JSON.stringify` for node-postgres / PGlite). `_ponder_meta` uses Ponder `jsonb`. Covered by `drizzle/json.bun.test.ts` + meta helpers.
+**jsonb under Bun.SQL:** Ponder `json()` / `jsonb()` `mapToDriverValue` pass objects through when `PONDER_DATABASE_DRIVER` selects Bun.SQL (not merely `process.versions.bun`); node-postgres / PGlite still `JSON.stringify`. Covered by `drizzle/json.bun.test.ts` + meta helpers.
+
+**Post-CI hardening (main @ `dafc323`+):** Main/Windows green. `ponder:schema` plugin keys modules by schema path + epoch so sequential apps (e2e erc20→factory) do not share a stale Bun module cache. Heartbeat updates fire immediately and filter `key = 'app'`. Utils workflow uses `bun add -d` (no invalid `-w`).
 
 Focused evidence (2026-11-21):
 

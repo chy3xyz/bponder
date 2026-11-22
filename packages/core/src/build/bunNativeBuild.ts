@@ -56,6 +56,8 @@ type BunRuntime = {
 let ponderPluginRegistered = false;
 let ponderPluginSchemaFile = "";
 let ponderPluginRegistryFile = defaultRegistryFile;
+/** Bumped on every `registerPonderBunPlugin` so Bun does not reuse a stale `ponder:schema`. */
+let ponderPluginSchemaEpoch = 0;
 
 const toPosixPath = (filePath: string) => filePath.replace(/\\/g, "/");
 
@@ -75,8 +77,10 @@ export function registerPonderBunPlugin({
   schemaFile: string;
   registryFile?: string;
 }) {
-  ponderPluginSchemaFile = toPosixPath(schemaFile);
-  ponderPluginRegistryFile = toPosixPath(registryFile);
+  // Resolve to an absolute POSIX path so file:// URLs match `loadBunSchema`.
+  ponderPluginSchemaFile = toPosixPath(path.resolve(schemaFile));
+  ponderPluginRegistryFile = toPosixPath(path.resolve(registryFile));
+  ponderPluginSchemaEpoch += 1;
 
   if (ponderPluginRegistered) return;
   ponderPluginRegistered = true;
@@ -95,13 +99,23 @@ export function registerPonderBunPlugin({
         path: ponderPluginRegistryFile,
         namespace: "file",
       }));
-      build.onLoad({ filter: /^schema$/, namespace: "ponder" }, () => ({
-        contents: `import * as schema from ${JSON.stringify(ponderPluginSchemaFile)};
-export * from ${JSON.stringify(ponderPluginSchemaFile)};
+      // Include epoch in the resolved path so each registerPonderBunPlugin
+      // call gets a fresh module (Bun caches by resolved path).
+      build.onResolve({ filter: /^schema$/, namespace: "ponder" }, () => ({
+        path: `${ponderPluginSchemaFile}::${ponderPluginSchemaEpoch}`,
+        namespace: "ponder-schema",
+      }));
+      build.onLoad({ filter: /.*/, namespace: "ponder-schema" }, (args) => {
+        const schemaPath = args.path.split("::")[0]!;
+        const schemaHref = pathToFileURL(schemaPath).href;
+        return {
+          contents: `import * as schema from ${JSON.stringify(schemaHref)};
+export * from ${JSON.stringify(schemaHref)};
 export default schema;
 `,
-        loader: "js",
-      }));
+          loader: "js",
+        };
+      });
     },
   });
 }

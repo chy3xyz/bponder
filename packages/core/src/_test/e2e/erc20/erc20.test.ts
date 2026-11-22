@@ -31,8 +31,7 @@ const cliOptions = {
   logFormat: "pretty",
 };
 
-// Covered by bunNativeApp.e2e.bun.test.ts; Vite/Hono e2e still needs table-identity work under Bun.
-test.skip("erc20", async () => {
+test("erc20", async () => {
   const port = await getFreePort();
   const client = createClient({ url: `http://localhost:${port}` });
 

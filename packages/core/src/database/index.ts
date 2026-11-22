@@ -1229,19 +1229,22 @@ CREATE TABLE IF NOT EXISTS "${namespace.schema}"."${PONDER_CHECKPOINT_TABLE_NAME
         }
       }
 
-      heartbeatInterval = setInterval(async () => {
+      const writeHeartbeat = async () => {
         try {
           const heartbeat = Date.now();
 
           const endClock = startClock();
 
           await adminQB.wrap({ label: "update_heartbeat" }, (db) =>
-            db.update(PONDER_META).set({
-              value: jsonbSetOnValue(
-                "{heartbeat_at}",
-                sql`to_jsonb(${heartbeat})`,
-              ),
-            }),
+            db
+              .update(PONDER_META)
+              .set({
+                value: jsonbSetOnValue(
+                  "{heartbeat_at}",
+                  sql`to_jsonb(${heartbeat}::bigint)`,
+                ),
+              })
+              .where(eq(PONDER_META.key, "app")),
           );
 
           common.logger.trace({
@@ -1259,7 +1262,15 @@ CREATE TABLE IF NOT EXISTS "${namespace.schema}"."${PONDER_CHECKPOINT_TABLE_NAME
             error,
           });
         }
-      }, common.options.databaseHeartbeatInterval);
+      };
+
+      // Fire once immediately so short-interval tests observe a change without
+      // waiting a full setInterval period (and so a stuck timer is obvious).
+      void writeHeartbeat();
+      heartbeatInterval = setInterval(
+        writeHeartbeat,
+        common.options.databaseHeartbeatInterval,
+      );
 
       return result.crashRecoveryCheckpoint;
     },
