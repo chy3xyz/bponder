@@ -1,15 +1,62 @@
-import pg, { type PoolConfig } from "pg";
-import parse from "pg-connection-string";
 import type { Logger } from "@/internal/logger.js";
+import { requireOptionalPeer } from "./loadOptional.js";
 
-// The default parser for numeric[] (1231) seems to parse values as Number
-// or perhaps through JSON.parse(). Use the int8[] (1016) parser instead,
-// which properly returns an array of strings.
-const bigIntArrayParser = pg.types.getTypeParser(1016 as never);
-pg.types.setTypeParser(1231 as never, bigIntArrayParser);
+type PgModule = typeof import("pg");
+type PoolConfig = import("pg").PoolConfig;
+
+const PG_INSTALL_HINT =
+  "Install it with `bun add pg` (or set PONDER_DATABASE_DRIVER=bun to use Bun.SQL).";
+
+let pgModule: PgModule | undefined;
+
+function loadPg(): PgModule {
+  if (pgModule !== undefined) return pgModule;
+  pgModule = requireOptionalPeer<PgModule>("pg", PG_INSTALL_HINT);
+  // The default parser for numeric[] (1231) seems to parse values as Number
+  // or perhaps through JSON.parse(). Use the int8[] (1016) parser instead,
+  // which properly returns an array of strings.
+  const bigIntArrayParser = pgModule.types.getTypeParser(1016 as never);
+  pgModule.types.setTypeParser(1231 as never, bigIntArrayParser);
+  return pgModule;
+}
 
 export const PG_BIGINT_MAX = 9223372036854775807n;
 export const PG_INTEGER_MAX = 2147483647;
+
+type ConnectionStringParse = (connectionString: string) => {
+  host?: string | null;
+  database?: string | null;
+  port?: string | null;
+};
+
+function loadConnectionStringParse(): ConnectionStringParse {
+  const mod = requireOptionalPeer<unknown>(
+    "pg-connection-string",
+    "Install it with `bun add pg-connection-string` (or set PONDER_DATABASE_DRIVER=bun to use Bun.SQL).",
+  );
+  if (typeof mod === "function") {
+    const fn = mod as ConnectionStringParse & {
+      parse?: ConnectionStringParse;
+    };
+    if (typeof fn.parse === "function") return fn.parse;
+    return fn;
+  }
+  if (mod !== null && typeof mod === "object") {
+    const record = mod as {
+      parse?: ConnectionStringParse;
+      default?: ConnectionStringParse | { parse?: ConnectionStringParse };
+    };
+    if (typeof record.parse === "function") return record.parse;
+    const def = record.default;
+    if (typeof def === "function") return def;
+    if (def !== null && typeof def === "object" && typeof def.parse === "function") {
+      return def.parse;
+    }
+  }
+  throw new Error(
+    "Optional dependency 'pg-connection-string' did not export a parse function. Install it with `bun add pg-connection-string`.",
+  );
+}
 
 export function getDatabaseName(conf: PoolConfig) {
   const config = parseBaseConfig(conf);
@@ -49,9 +96,7 @@ const parseBaseConfig = (
   if (!config.connectionString) return conf;
   // https://github.com/brianc/node-postgres/blob/ecff60dc8aa0bd1ad5ea8f4623af0756a86dc110/packages/pg/lib/connection-parameters.js#L53-L57
   // connString values override other values, even if a value from connstring is missing
-  const parsed = (parse as unknown as typeof parse.parse)(
-    config.connectionString,
-  );
+  const parsed = loadConnectionStringParse()(config.connectionString);
   return {
     hostname: parsed.host ?? undefined,
     database: parsed.database ?? undefined,
@@ -60,6 +105,7 @@ const parseBaseConfig = (
 };
 
 export function createPool(config: PoolConfig, logger: Logger) {
+  const pg = loadPg();
   class Client extends pg.Client {
     // @ts-expect-error
     override connect(
@@ -145,6 +191,7 @@ export function createReadonlyPool(
   logger: Logger,
   namespace: string,
 ) {
+  const pg = loadPg();
   class ReadonlyClient extends pg.Client {
     // @ts-expect-error
     override connect(

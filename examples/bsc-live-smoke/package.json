@@ -1,0 +1,17 @@
+{
+  "name": "ponder-examples-bsc-live-smoke",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "ponder start",
+    "serve": "ponder serve"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "ponder": "workspace:*",
+    "viem": "^2.21.0"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  }
+}

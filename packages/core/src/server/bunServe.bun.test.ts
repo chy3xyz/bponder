@@ -20,6 +20,7 @@ test("stops gracefully", async () => {
     stop: async (force) => {
       forceArguments.push(force);
     },
+    setFetch: () => {},
   };
 
   await stopBunServer(server, 10);
@@ -35,9 +36,27 @@ test("forces stop after the graceful shutdown timeout", async () => {
       forceArguments.push(force);
       return force === true ? Promise.resolve() : new Promise(() => {});
     },
+    setFetch: () => {},
   };
 
   await stopBunServer(server, 10);
 
   expect(forceArguments).toEqual([undefined, true]);
+});
+
+test("setFetch swaps the active handler without rebinding the port", async () => {
+  const server = startBunServer({
+    port: 0,
+    fetch: () => new Response("one"),
+  });
+
+  try {
+    const port = server.port;
+    expect(await (await fetch(`http://127.0.0.1:${port}/`)).text()).toBe("one");
+    server.setFetch(() => new Response("two"));
+    expect(await (await fetch(`http://127.0.0.1:${port}/`)).text()).toBe("two");
+    expect(server.port).toBe(port);
+  } finally {
+    await server.stop();
+  }
 });

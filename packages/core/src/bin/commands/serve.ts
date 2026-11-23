@@ -1,18 +1,15 @@
 import { eq } from "drizzle-orm";
 import { createBuild } from "@/build/index.js";
 import { createDatabase, SCHEMATA } from "@/database/index.js";
-import { createLogger, type Logger } from "@/internal/logger.js";
+import { createLogger } from "@/internal/logger.js";
 import { MetricsService } from "@/internal/metrics.js";
-import { buildOptions, type Options } from "@/internal/options.js";
+import { buildOptions } from "@/internal/options.js";
 import { createShutdown } from "@/internal/shutdown.js";
 import { createServer } from "@/server/index.js";
 import type { CliOptions } from "../ponder.js";
 import { assertBunRuntime } from "../utils/assertBun.js";
-import {
-  getUnsupportedBunNativeSchema,
-  isBunNativeServeEnabled,
-  startBunNativeServe,
-} from "../utils/bunNativeServe.js";
+import { runBunNativeServe } from "../utils/bunNativeApp.js";
+import { isBunNativeServeEnabled } from "../utils/bunNativeServe.js";
 import { createExit } from "../utils/exit.js";
 
 export async function serve({ cliOptions }: { cliOptions: CliOptions }) {
@@ -26,7 +23,7 @@ export async function serve({ cliOptions }: { cliOptions: CliOptions }) {
   assertBunRuntime(logger);
 
   if (isBunNativeServeEnabled({ native: cliOptions.native })) {
-    return serveBunNative({ cliOptions, options, logger });
+    return runBunNativeServe({ cliOptions, options, logger });
   }
 
   const metrics = new MetricsService();
@@ -219,77 +216,4 @@ export async function serve({ cliOptions }: { cliOptions: CliOptions }) {
   createServer({ common, database, apiBuild: apiBuildResult.result });
 
   return shutdown.kill;
-}
-
-async function serveBunNative({
-  cliOptions,
-  options,
-  logger,
-}: {
-  cliOptions: CliOptions;
-  options: Options;
-  logger: Logger;
-}) {
-  const shutdown = createShutdown();
-  const exit = createExit({
-    common: {
-      logger,
-      shutdown,
-      buildShutdown: shutdown,
-      apiShutdown: shutdown,
-    },
-    options,
-  });
-
-  const schema = cliOptions.schema ?? process.env.DATABASE_SCHEMA;
-  const unsupportedSchema = getUnsupportedBunNativeSchema({ schema });
-  if (unsupportedSchema !== undefined) {
-    logger.error({
-      msg: "The Bun-native 'ponder serve --native' command requires a valid database schema identifier",
-      schema: unsupportedSchema,
-    });
-    await exit({ code: 1 });
-    return;
-  }
-
-  const databaseUrl = process.env.DATABASE_URL?.trim();
-  if (databaseUrl === undefined || databaseUrl.length === 0) {
-    logger.error({
-      msg: "The Bun-native 'ponder serve --native' command requires DATABASE_URL",
-    });
-    await exit({ code: 1 });
-    return;
-  }
-
-  try {
-    const native = await startBunNativeServe({
-      url: databaseUrl,
-      port: options.port,
-      hostname: options.hostname,
-      schema,
-    });
-
-    logger.info(
-      {
-        msg: "Started Bun-native HTTP server",
-        url: native.origin,
-        port: native.server.port,
-      },
-      ["url"],
-    );
-    logger.info({
-      msg: "Started returning 200 responses",
-      endpoint: "/health",
-    });
-
-    shutdown.add(() => native.stop());
-    return shutdown.kill;
-  } catch (error) {
-    logger.error({
-      msg: "Failed to start Bun-native HTTP server",
-      error: error instanceof Error ? error : new Error(String(error)),
-    });
-    await exit({ code: 1 });
-    return;
-  }
 }

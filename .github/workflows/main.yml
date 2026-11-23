@@ -74,7 +74,7 @@ jobs:
         run: bun run build
 
       - name: Bundle
-        run: bun run --cwd examples/with-nextjs/frontend build
+        run: bun run --cwd examples/with-solidstart/frontend build
 
   test:
     name: Test [core]

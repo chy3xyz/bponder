@@ -46,15 +46,17 @@ PONDER_USE_VITE=1 ponder start
 PONDER_USE_VITE=1 ponder dev
 ```
 
-`ordering: "experimental_isolated"` runs on `Bun.Worker` with the same Vite-free compile path. If the compiled database is Postgres, native `start` / `dev` also start the Bun-native `/v1` HTTP server from the same `createDatabase` connection. `--schema` / `DATABASE_SCHEMA` is required for `ponder start`.
+`ordering: "experimental_isolated"` runs on `Bun.Worker` with the same Vite-free compile path. If the compiled database is Postgres, native `start` / `dev` also start the Bun-native HTTP server from the same `createDatabase` connection (`/v1` plus optional Hono). `--schema` / `DATABASE_SCHEMA` is required for `ponder start`.
+
+Native `ponder dev` watches `src/api`, indexing sources, `ponder.config.ts`, and `ponder.schema.ts`. Changes under `src/api` remount the Hono app in place. Config, schema, or indexing-function changes require restarting `ponder dev` (API-only hot reload is supported today). Use `PONDER_USE_VITE=1` for the classic Vite hot-reload path.
 
 Secondary commands `ponder db list`, `ponder db prune`, and `ponder db create-views` also use the Bun-native compile path under Bun.
 
 ## Custom Hono API on Bun-native
 
-Under Bun-native `ponder start` / `ponder dev`, you can still use Hono in `src/api/index.ts`. The server is still `Bun.serve`:
+Under Bun-native `ponder start`, `ponder dev`, and `ponder serve`, you can use Hono in `src/api/index.ts`. The server is `Bun.serve`:
 
-1. Built-in `/health` and `/v1/*` are handled first
+1. Built-in `/health`, `/ready`, `/metrics`, `/status`, and `/v1/*` are handled first
 2. Everything else is forwarded to your Hono app (`hono.fetch`)
 3. `ponder:api` (`db`, `publicClients`) works the same as on the Vite path
 
@@ -75,24 +77,24 @@ app.get("/accounts", async (c) => {
 export default app;
 ```
 
-Do not register `/health`, `/ready`, `/status`, `/metrics`, `/client`, or `/v1/*` on the Hono app — those are reserved. If `src/api/index.ts` is missing, only `/v1` is served.
+Do not register `/health`, `/ready`, `/status`, `/metrics`, `/client`, or `/v1/*` on the Hono app — those are reserved. If `src/api/index.ts` is missing, only the built-in routes (including `/v1`) are served.
 
 `client({ db, schema })` works under Bun.SQL: `/sql/db` uses drizzle `prepareQuery`, and live invalidation uses `Bun.SQL.listen` / `NOTIFY`. You can still use `POST /v1/sql` for simple readonly SQL.
 
-`ponder serve` (read-only process) still defaults to `/v1` only; use `PONDER_USE_VITE=1` there if you need the full Hono API app without an indexer.
-
 ## Bun-native `ponder serve`
 
-Under Bun, `ponder serve` defaults to the Bun-native `/v1` stack (`Bun.serve`) unless you set `PONDER_USE_VITE=1`. `--native` and `PONDER_BUN_NATIVE=1` still enable it explicitly.
+Under Bun, `ponder serve` defaults to the Bun-native stack (`Bun.serve`) unless you set `PONDER_USE_VITE=1`. `--native` and `PONDER_BUN_NATIVE=1` still enable it explicitly.
 
 ```bash [shell]
-# Requires DATABASE_URL
+# Requires DATABASE_URL (and an existing schema from a prior start)
 ponder serve
 # or force native
 ponder serve --native
 ```
 
-This starts `GET /health`, `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` SSE, then prints the listen URL. Port and hostname still come from `-p` / `-H` (or `PORT`). `--schema` / `DATABASE_SCHEMA` selects the Postgres schema (`public` by default); invalid identifiers exit with an error.
+Like `start` / `dev`, Bun-native `serve` mounts `/v1` and optional Hono from `src/api/index.ts` (no indexer). Built-in routes include `GET /health`, `GET /ready`, `GET /metrics`, `GET /status`, readonly `POST /v1/sql`, and `GET /v1/live` SSE. Port and hostname still come from `-p` / `-H` (or `PORT`). `--schema` / `DATABASE_SCHEMA` selects the Postgres schema (`public` by default); invalid identifiers exit with an error.
+
+To force the classic Vite/Hono path instead:
 
 ```bash [shell]
 PONDER_USE_VITE=1 ponder serve
@@ -102,6 +104,8 @@ PONDER_USE_VITE=1 ponder serve
 
 If you encounter an issue with bponder that might be caused by Bun, please [open a GitHub issue](https://github.com/chy3xyz/bponder/issues).
 
+- Bun.SQL does not expose streaming PostgreSQL `COPY FROM`. Large flushes use batched inserts. For maximum backfill throughput, temporarily set `PONDER_DATABASE_DRIVER=pg`.
+- Under Bun.SQL, `database.poolConfig` mainly applies `connectionString` (or `DATABASE_URL`) and `max`. Other node-postgres `PoolConfig` fields (for example `ssl`, idle timeouts, and custom connection options) are ignored by the Bun.SQL client.
 - The `/metrics` endpoint omits the default Node.js Prometheus metrics that `prom-client` used to attach (names prefixed with `nodejs_` or `process_`).
-- Bun.SQL does not expose streaming PostgreSQL `COPY FROM`; large flushes use batched inserts.
-- Escape hatches remain: `PONDER_USE_VITE=1`, `PONDER_DATABASE_DRIVER=pg`.
+- Native `ponder dev` remounts the Hono API on `src/api` changes; indexing / config / schema changes require a process restart. Use `PONDER_USE_VITE=1` for full Vite hot reload.
+- Escape hatches remain optional peers: install `vite` for `PONDER_USE_VITE=1`, and `pg` + `pg-connection-string` for `PONDER_DATABASE_DRIVER=pg`.

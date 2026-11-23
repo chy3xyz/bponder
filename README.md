@@ -89,11 +89,13 @@ const { rows } = await client.sql("SELECT * FROM ens_name LIMIT 10");
 
 ## Escape hatches
 
-| Env | Effect |
-| --- | --- |
-| `PONDER_USE_VITE=1` | Classic Vite loader / Hono serve path |
-| `PONDER_DATABASE_DRIVER=pg` | Force node-postgres instead of Bun.SQL |
-| `PONDER_BUN_NATIVE=1` / `--native` | Force Bun-native path (already default under Bun) |
+`vite`, `pg`, and `pg-connection-string` are **optional peers**. Install them only when you use an escape hatch.
+
+| Env | Effect | Install |
+| --- | --- | --- |
+| `PONDER_USE_VITE=1` | Classic Vite loader / Hono serve path | `bun add vite` |
+| `PONDER_DATABASE_DRIVER=pg` | Force node-postgres instead of Bun.SQL | `bun add pg pg-connection-string` |
+| `PONDER_BUN_NATIVE=1` / `--native` | Force Bun-native path (already default under Bun) | — |
 
 ## Status
 

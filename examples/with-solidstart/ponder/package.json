@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "ponder-examples-with-nextjs-ponder",
+  "name": "ponder-examples-with-solidstart-ponder",
   "type": "module",
   "scripts": {
     "dev": "ponder dev",

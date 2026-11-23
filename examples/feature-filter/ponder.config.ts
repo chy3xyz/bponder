@@ -17,6 +17,7 @@ export default createConfig({
       startBlock: 14438081,
       filter: {
         event: "Swap",
+        args: {},
       },
     },
   },

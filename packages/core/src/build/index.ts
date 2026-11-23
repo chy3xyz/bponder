@@ -8,7 +8,6 @@ import { glob } from "glob";
 import { Hono } from "hono";
 import superjson from "superjson";
 import { hexToNumber } from "viem";
-import { createServer, createServerModuleRunner, normalizePath } from "vite";
 import type { CliOptions } from "@/bin/ponder.js";
 import type { Config } from "@/config/index.js";
 import type { Database } from "@/database/index.js";
@@ -30,6 +29,7 @@ import type {
   SchemaBuild,
 } from "@/internal/types.js";
 import { PONDER_SYNC_SCHEMAS } from "@/sync-store/schema.js";
+import { importOptionalPeer } from "@/utils/loadOptional.js";
 import { createPool, getDatabaseName } from "@/utils/pg.js";
 import { createPglite } from "@/utils/pglite.js";
 import { getNextAvailablePort } from "@/utils/port.js";
@@ -100,6 +100,12 @@ export const createBuild = async ({
   common: Common;
   cliOptions: CliOptions;
 }): Promise<Build> => {
+  const { createServer, createServerModuleRunner, normalizePath } =
+    await importOptionalPeer<typeof import("vite")>(
+      "vite",
+      "Install it with `bun add vite` (Bun-native indexing does not need Vite; only set PONDER_USE_VITE=1 when you want the Vite build path).",
+    );
+
   const escapeRegex = /[.*+?^${}()|[\]\\]/g;
 
   globalThis.PONDER_COMMON = common;

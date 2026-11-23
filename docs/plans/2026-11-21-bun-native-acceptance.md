@@ -41,8 +41,14 @@ As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is t
 | Item | Why it remains |
 |---|---|
 | `PONDER_DATABASE_DRIVER=pg` escape | Node-postgres remains available; not deleted. |
-| `simulation-test` / benchmark | Still **not run** (no `.env.local` / self-hosted runner). Schedule removed; `workflow_dispatch` only until runner + RPC/DB secrets exist. |
+| `simulation-test` / benchmark | Still **not run**. Needs `DATABASE_URL` (no DB name; scripts append), `PONDER_RPC_URL_{1,10,130,8453}`, templates/cache, typically self-hosted. **simulation-test** also needs `PONDER_USE_VITE=1` (or native `onBuild`) because fault injection depends on `onBuild`, which Bun-native drops. |
 | Utils live `getLogsRetryHelper` | Needs `RPC_URL_ALCHEMY_1` / `INFURA` / `QUICKNODE` repo secrets; workflow skips cleanly when unset. Public RPC assertion drift remains out of band. |
+
+### Parallel follow-ups landed (post-acceptance)
+
+- Bun-native `ponder serve` mounts Hono `src/api` + `/ready` `/metrics` `/status` (same compose path as `start` / `dev`).
+- Native `ponder dev` watches sources and remounts Hono on `src/api` changes (`setFetch`); indexing/config/schema still need process restart.
+- Docs: COPY/batched-insert + `poolConfig` Bun.SQL semantics + serve/Hono/`dev` hot-reload notes.
 
 **jsonb under Bun.SQL:** Ponder `json()` / `jsonb()` `mapToDriverValue` pass objects through when `PONDER_DATABASE_DRIVER` selects Bun.SQL (not merely `process.versions.bun`); node-postgres / PGlite still `JSON.stringify`. Covered by `drizzle/json.bun.test.ts` + meta helpers.
 
@@ -100,6 +106,8 @@ This session did not re-run the spike scripts.
 - live RPC (`PONDER_RPC_URL_*`)
 - typically port `55432` for the isolated Docker Postgres
 
+**Bun-native blocker:** the harness fault-injection / RPC·DB mocks rely on `onBuild`, but Bun-native `start()` → `runBunNativeApp` drops `onBuild`. Full fuzz currently needs `PONDER_USE_VITE=1`, or a follow-up to wire `onBuild` into the native path. Harness DB helpers still use `drizzle-orm/node-postgres` + `pg` (not Bun.SQL).
+
 **This session:** `simulation-test/.env.local` is absent; `127.0.0.1:55432` is closed; no template DBs were created. The suite was **not invoked**.
 
 Do not treat CI schedule (`.github/workflows/simulation-test.yml`, Bun 1.4.4) as a local green result.
@@ -137,7 +145,7 @@ Workspace `package.json` files (including `packages/core`) have **no** `"@hono/n
 
 Lockfile still contains **transitive** `@hono/node-server@2.1.5` via `vocs` (docs) and `@modelcontextprotocol/sdk`, and `ws@8.13.0` / `ws@8.18.3` as transitive packages. Those are not production `ponder` dependencies.
 
-`pg` remains a **direct** production dependency of `ponder` (`packages/core/package.json`). That is deferred (item 6), not a failure of this checkbox.
+`pg` / `vite` / `pg-connection-string` are **optional peers** of `ponder` (not production dependencies). Install them only for escape hatches.
 
 Evidence command:
 
@@ -154,8 +162,8 @@ See `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`. Summary at HEAD
 
 | Deferred | Why it remains | Where |
 |---|---|---|
-| `pg` escape hatch | Under Bun, `createDatabase` defaults to Bun.SQL; `PONDER_DATABASE_DRIVER=pg` still available. `pg` package not deleted. | `packages/core/src/database/bunSqlDriver.ts`, `utils/pg.ts` |
-| Vite escape hatch | `PONDER_USE_VITE=1` restores Vite `createBuild` for `start` / `dev` / `serve`. | `packages/core/src/build/index.ts`, `plugin.ts` |
+| `pg` escape hatch | Under Bun, `createDatabase` defaults to Bun.SQL; `PONDER_DATABASE_DRIVER=pg` needs optional peers `pg` + `pg-connection-string`. | `packages/core/src/database/bunSqlDriver.ts`, `utils/pg.ts`, `utils/loadOptional.ts` |
+| Vite escape hatch | `PONDER_USE_VITE=1` restores Vite `createBuild` when optional peer `vite` is installed. | `packages/core/src/build/index.ts`, `plugin.ts`, `utils/loadOptional.ts` |
 | Node `isolatedWorker.ts` | Retained for the Vite escape path; Bun uses `isolatedWorker.bun.ts` + `compileBunNative`. | `isolatedWorker.ts`, `isolatedWorker.bun.ts` |
 | `simulation-test` / benchmark | Not run on this branch (need Postgres `:55432`, RPC, `.env.local`). | `simulation-test/`, `benchmark/` |
 

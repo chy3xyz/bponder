@@ -5,6 +5,8 @@ export type BunFetchHandler = (
 export type BunServer = {
   port: number;
   stop: (force?: boolean) => Promise<void>;
+  /** Swap the active fetch handler without rebinding the port (dev hot reload). */
+  setFetch: (fetch: BunFetchHandler) => void;
 };
 
 export async function stopBunServer(
@@ -49,11 +51,19 @@ export function startBunServer({
   hostname?: string;
   port: number;
 }): BunServer {
+  let activeFetch = fetch;
   const bun = (globalThis as typeof globalThis & { Bun: BunRuntime }).Bun;
-  const server = bun.serve({ fetch, hostname, port });
+  const server = bun.serve({
+    fetch: (request) => activeFetch(request),
+    hostname,
+    port,
+  });
 
   return {
     port: server.port ?? port,
     stop: (force = false) => server.stop(force),
+    setFetch: (next) => {
+      activeFetch = next;
+    },
   };
 }

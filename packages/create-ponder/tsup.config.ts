@@ -30,7 +30,7 @@ export default defineConfig({
     await cpy(
       [
         path.join(examplesPath, "**", "*"),
-        "!**/with-nextjs/**",
+        "!**/with-solidstart/**",
         "!**/with-foundry/**",
         "!**/with-trpc/**",
         "!**/with-client/**",
