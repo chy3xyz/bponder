@@ -185,19 +185,29 @@ export function clearPonderFns() {
  */
 export async function loadBunApiApp({
   apiFile,
+  common,
   database,
   indexingBuild,
+  preBuild,
+  namespaceBuild,
 }: {
   apiFile: string;
+  common: Common;
   database: Database;
   indexingBuild: IndexingBuild;
+  preBuild: PreBuild;
+  namespaceBuild: NamespaceBuild;
 }): Promise<Result<{ app: BunHonoLike | undefined }>> {
   if (fs.existsSync(apiFile) === false) {
     return { status: "success", result: { app: undefined } };
   }
 
+  // Same globals the Vite API loader + `client()` middleware expect.
+  globalThis.PONDER_COMMON = common;
   globalThis.PONDER_DATABASE = database;
   globalThis.PONDER_INDEXING_BUILD = indexingBuild;
+  globalThis.PONDER_PRE_BUILD = preBuild;
+  globalThis.PONDER_NAMESPACE_BUILD = namespaceBuild;
 
   ponderPluginSchemaEpoch += 1;
   const importEpoch = ponderPluginSchemaEpoch;

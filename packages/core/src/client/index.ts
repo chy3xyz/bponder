@@ -91,6 +91,24 @@ export const client = ({
     );
   }
 
+  const driver = globalThis.PONDER_DATABASE.driver;
+  // Bun.SQL drizzle does not expose the node-postgres session used by live SQL.
+  // Keep Hono apps loadable; route SQL-over-HTTP to /v1/sql instead.
+  if (driver.engine === "bun") {
+    globalThis.PONDER_COMMON.logger.warn({
+      msg: "client() SQL-over-HTTP is unavailable with PONDER_DATABASE_DRIVER=bun; use POST /v1/sql or PONDER_DATABASE_DRIVER=pg",
+    });
+    return createMiddleware(async (c) =>
+      c.json(
+        {
+          error:
+            "SQL-over-HTTP via client() requires PONDER_DATABASE_DRIVER=pg. Use POST /v1/sql under Bun.SQL.",
+        },
+        501,
+      ),
+    );
+  }
+
   const tables = Object.values(schema).filter(isTable);
   const views = Object.values(schema).filter(isView);
   const tableNames = new Set(tables.map(getTableName));
@@ -103,7 +121,6 @@ export const client = ({
   const session: PgSession = db._.session;
   // @ts-expect-error
   const dialect: PgDialect = session.dialect;
-  const driver = globalThis.PONDER_DATABASE.driver;
 
   const perTableResolver = new Map<string, PromiseWithResolvers<void>>();
   const perViewTables = new Map<string, Set<string>>();

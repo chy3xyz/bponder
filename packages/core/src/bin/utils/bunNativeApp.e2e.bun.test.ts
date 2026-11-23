@@ -72,6 +72,10 @@ if (skip) {
           const health = await fetch(`http://127.0.0.1:${port}/health`);
           expect(health.status).toBe(200);
 
+          const hello = await fetch(`http://127.0.0.1:${port}/hello`);
+          expect(hello.status).toBe(200);
+          expect(await hello.text()).toBe("hono-ok");
+
           const { address } = await deployErc20({ sender: ALICE });
           await mintErc20({
             erc20: address,

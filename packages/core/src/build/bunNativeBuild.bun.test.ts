@@ -212,8 +212,14 @@ export default app;
 
     const result = await loadBunApiApp({
       apiFile: join(dir, "src", "api", "index.ts"),
+      common: createCommon(dir) as never,
       database: fakeDatabase as never,
       indexingBuild: fakeIndexingBuild as never,
+      preBuild: {
+        databaseConfig: { kind: "postgres" },
+        ordering: "multichain",
+      } as never,
+      namespaceBuild: { schema: "public", viewsSchema: undefined },
     });
 
     expect(result.status).toBe("success");
@@ -226,10 +232,17 @@ export default app;
   });
 
   test("allows a missing API file", async () => {
+    const dir = makeTempDir();
     const result = await loadBunApiApp({
-      apiFile: join(makeTempDir(), "missing.ts"),
+      apiFile: join(dir, "missing.ts"),
+      common: createCommon(dir) as never,
       database: {} as never,
       indexingBuild: {} as never,
+      preBuild: {
+        databaseConfig: { kind: "postgres" },
+        ordering: "multichain",
+      } as never,
+      namespaceBuild: { schema: "public", viewsSchema: undefined },
     });
     expect(result.status).toBe("success");
     if (result.status !== "success") return;

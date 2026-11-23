@@ -159,8 +159,11 @@ export async function runBunNativeApp({
   try {
     const apiResult = await loadBunApiApp({
       apiFile: common.options.apiFile,
+      common,
       database,
       indexingBuild,
+      preBuild,
+      namespaceBuild,
     });
     if (apiResult.status === "error") {
       common.logger.error({
