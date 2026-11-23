@@ -1,6 +1,6 @@
 {
   "name": "bponder-react",
-  "version": "0.18.9",
+  "version": "1.0.0",
   "description": "React hook library for Ponder SQL over HTTP queries",
   "license": "MIT",
   "repository": {
@@ -39,7 +39,7 @@
     }
   },
   "peerDependencies": {
-    "bponder-client": ">=0.18.9",
+    "bponder-client": ">=1.0.0",
     "@tanstack/react-query": ">=5.0.0",
     "react": ">=18",
     "typescript": ">=5.4.0"

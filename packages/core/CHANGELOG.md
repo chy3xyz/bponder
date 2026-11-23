@@ -1,5 +1,61 @@
 # ponder
 
+## 1.0.0
+
+### Major Changes
+
+- [`77ff658`](https://github.com/chy3xyz/bponder/commit/77ff6585ad1541c7a897be57bcb72b7a21935765) - Required Bun (`engines.bun: ">=1.4.0"`) and dropped Node as a supported runtime. The CLI now exits unless it is running on Bun.
+  
+  Added a Bun.serve HTTP stack with `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` SSE. Under Bun, `ponder start`, `ponder dev`, and `ponder serve` use the Bun-native path by default (`PONDER_USE_VITE=1` restores Vite).
+  
+  Rewrote `bponder-client` and `bponder-react` against the `/v1` contract (`createClient({ url })`, `sql`/`query`, `getStatus`, and live SSE). Existing client and hook call sites for the previous SQL-over-HTTP API are breaking.
+  
+  Updated `create-bponder` to scaffold Bun-only apps with `ponder …` scripts and Bun as the default package manager.
+  
+  Under Bun, `createDatabase` defaults to Bun.SQL via `drizzle-orm/bun-sql` (`PONDER_DATABASE_DRIVER=pg` restores node-postgres). PGlite remains available for tests. Vite remains an escape hatch (`PONDER_USE_VITE=1`).
+
+- Renamed published packages from `ponder` / `@ponder/*` / `create-ponder` to `bponder` / `@bponder/*` / `create-bponder`. Virtual modules are now `bponder:registry`, `bponder:schema`, and `bponder:api`, and the CLI binary is `bponder`.
+
+- Renamed scoped packages `@bponder/*` to unscoped `bponder-client`, `bponder-react`, `bponder-utils`, and `bponder-schema` for npm publishing without an organization scope.
+
+### Patch Changes
+
+- [`bef2029`](https://github.com/chy3xyz/bponder/commit/bef2029d77019cb6cb5bb91ca1298d5a0b683c05) - Completed `client()` middleware support under Bun.SQL: `/sql/db` now executes via drizzle `prepareQuery` (normalizing row-array results), and live query invalidation uses `Bun.SQL.listen` instead of returning `501`.
+
+- [`e0d8647`](https://github.com/chy3xyz/bponder/commit/e0d86474bb92e1dc473b286b9d568bb3b63622ba) - Fixed a crash that caused Bun-native apps using `client()` in `src/api` to fail at startup under Bun.SQL. The middleware now returns `501` and points callers to `POST /v1/sql` (or `PONDER_DATABASE_DRIVER=pg`).
+
+- [`3b8e3ed`](https://github.com/chy3xyz/bponder/commit/3b8e3ed5db2da4dcc2ff8937a05b09fab9582f25) - Removed Node version gates from the CLI and required Bun at startup. Dropped `pg-copy-streams` and the `ws` package in favor of Drizzle insert fallbacks and the global `WebSocket`.
+
+- [`b43fb48`](https://github.com/chy3xyz/bponder/commit/b43fb485631daa60eb6260c3a7e3f975e577db7e) - Added an opt-in Bun GraphQL fetch handler at `POST /graphql`. Default `createBunV1ApiFetch` and `startBunServer` do not mount GraphQL.
+
+- [`e981900`](https://github.com/chy3xyz/bponder/commit/e98190084172681adafcfe43389917fd0562e17a) - Fixed a bug that caused `Validation failed: Found 0 registered indexing functions` when Bun reloaded the same indexing files (ESM cache skipped re-running `ponder.on`).
+
+- [`57a0103`](https://github.com/chy3xyz/bponder/commit/57a0103f2315c5751687d905399f99c7484fc585) - Made Bun-native indexing the default for `ponder start` and `ponder dev` when running on Bun. Set `PONDER_USE_VITE=1` to use the classic Vite path. `ponder serve` still requires `--native` or `PONDER_BUN_NATIVE=1` for the Bun-native `/v1` stack.
+
+- [`e9d9e39`](https://github.com/chy3xyz/bponder/commit/e9d9e39f5e363641e3e494df452712c512c1f284) - Added Hono `src/api` support on the default Bun-native `ponder start` / `ponder dev` path. `Bun.serve` still owns `/health` and `/v1/*`, then falls through to the Hono app.
+
+- [`d9d4fc5`](https://github.com/chy3xyz/bponder/commit/d9d4fc5fd978c5f1ab049246fc0d0ce318990b79) - Improved Bun-native `ponder serve` to mount Hono from `src/api` like `start` / `dev`, and added `/ready`, `/metrics`, and `/status` on the Bun-native HTTP path. Native `ponder dev` remounts the Hono API when `src/api` changes.
+
+- [`d32b1a6`](https://github.com/chy3xyz/bponder/commit/d32b1a6ed83d4252869c83c9698de09ebb6f0767) - Added `ponder serve --native` (and `PONDER_BUN_NATIVE=1`) to start the Bun-native `/v1` HTTP server without the Vite/Hono API.
+  
+  `ponder serve --native` now exits with an error when `--schema` or `DATABASE_SCHEMA` is set to a value other than `public`, because that path does not apply the schema yet.
+
+- [`f7d04a0`](https://github.com/chy3xyz/bponder/commit/f7d04a0d231f02e825d046a2794bacd8d7dfef08) - Updated `ponder start --native` to load indexing functions through a Bun plugin (`bponder:registry`, `bponder:schema`), compile with the production build helpers, migrate the database, and run omnichain or multichain indexing. `ordering: "experimental_isolated"` now errors and asks for classic `ponder start`. Classic `ponder start` without `--native` is unchanged.
+
+- [`e7912e1`](https://github.com/chy3xyz/bponder/commit/e7912e114280b08e0b6b8be4ea65d26966f589b0) - Added `ponder start --native` (and `PONDER_BUN_NATIVE=1`) to load `ponder.config.ts` and `ponder.schema.ts` with Bun `import()` instead of Vite. When `DATABASE_URL` is set, the command starts the Bun-native `/v1` HTTP server and applies `migrateUser` for identifiable `onchainTable` exports.
+
+- [`b0a59dc`](https://github.com/chy3xyz/bponder/commit/b0a59dc3368efd0a18f999e5303cd2b1357df206) - Fixed a bug that caused `ponder start --native` to serve `/v1` from a separate Bun.SQL connection, so queries could not see rows written by indexing. `/v1` now reads the same `createDatabase` instance through `readonlyQB`. `ponder dev --native` (and `PONDER_BUN_NATIVE=1`) uses the same path.
+
+- [`aef5bb8`](https://github.com/chy3xyz/bponder/commit/aef5bb82ca56d69ab31ac3885a88c9965142653c) - Fixed a Bun.SQL bug that stored `json` / `jsonb` column values as JSON string scalars, which caused errors such as `cannot set path in scalar` when updating `_ponder_meta` (heartbeat / ready). Under Bun, Ponder's `json()` and `jsonb()` columns now pass objects through to the driver; node-postgres and PGlite still receive `JSON.stringify` output.
+
+- [`a119a3f`](https://github.com/chy3xyz/bponder/commit/a119a3fb766007ca345ab0e3dd8d53c81cebdb5b) - Added a Bun-native `/v1` HTTP contract with `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` SSE.
+
+- [`24d3ae9`](https://github.com/chy3xyz/bponder/commit/24d3ae9592b9d3b33112669aab43fb4d3490bc47) - Fixed a bug that caused Postgres `flush()` error recovery to throw `copy is not a function` instead of the original constraint error, such as `duplicate key value violates unique constraint`, after `pg-copy-streams` was removed. Large inserts without COPY now chunk by `databaseMaxQueryParameters`.
+
+- [`d9d4fc5`](https://github.com/chy3xyz/bponder/commit/d9d4fc5fd978c5f1ab049246fc0d0ce318990b79) - Made `vite`, `pg`, and `pg-connection-string` optional peer dependencies. Bun-native indexing no longer requires them; install them only for `PONDER_USE_VITE=1` or `PONDER_DATABASE_DRIVER=pg`.
+
+- [`028481b`](https://github.com/chy3xyz/bponder/commit/028481bf6f0b001c8741676e77b7da7d60606b63) - Added Bun-native database, historical indexing, and status server APIs.
+
 ## 0.18.9
 
 ### Patch Changes

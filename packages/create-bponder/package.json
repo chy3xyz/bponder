@@ -1,6 +1,6 @@
 {
   "name": "create-bponder",
-  "version": "0.18.9",
+  "version": "1.0.0",
   "type": "module",
   "description": "CLI tool to create Ponder projects",
   "license": "MIT",

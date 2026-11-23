@@ -1,6 +1,6 @@
 {
   "name": "bponder-schema",
-  "version": "0.18.9",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

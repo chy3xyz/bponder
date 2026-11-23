@@ -1,5 +1,29 @@
 # bponder-react
 
+## 1.0.0
+
+### Major Changes
+
+- [`77ff658`](https://github.com/chy3xyz/bponder/commit/77ff6585ad1541c7a897be57bcb72b7a21935765) - Required Bun (`engines.bun: ">=1.4.0"`) and dropped Node as a supported runtime. The CLI now exits unless it is running on Bun.
+  
+  Added a Bun.serve HTTP stack with `GET /v1/status`, readonly `POST /v1/sql`, and `GET /v1/live` SSE. Under Bun, `ponder start`, `ponder dev`, and `ponder serve` use the Bun-native path by default (`PONDER_USE_VITE=1` restores Vite).
+  
+  Rewrote `bponder-client` and `bponder-react` against the `/v1` contract (`createClient({ url })`, `sql`/`query`, `getStatus`, and live SSE). Existing client and hook call sites for the previous SQL-over-HTTP API are breaking.
+  
+  Updated `create-bponder` to scaffold Bun-only apps with `ponder …` scripts and Bun as the default package manager.
+  
+  Under Bun, `createDatabase` defaults to Bun.SQL via `drizzle-orm/bun-sql` (`PONDER_DATABASE_DRIVER=pg` restores node-postgres). PGlite remains available for tests. Vite remains an escape hatch (`PONDER_USE_VITE=1`).
+
+- Renamed published packages from `ponder` / `@ponder/*` / `create-ponder` to `bponder` / `@bponder/*` / `create-bponder`. Virtual modules are now `bponder:registry`, `bponder:schema`, and `bponder:api`, and the CLI binary is `bponder`.
+
+- Renamed scoped packages `@bponder/*` to unscoped `bponder-client`, `bponder-react`, `bponder-utils`, and `bponder-schema` for npm publishing without an organization scope.
+
+### Patch Changes
+
+- [`fa74eb4`](https://github.com/chy3xyz/bponder/commit/fa74eb431e3f7dc7dd39a368e6276729a77f2c27) - Rewrote `bponder-react` hooks to query the Bun `/v1` contract through `client.sql`, `client.query`, `getStatus`, and live status SSE.
+- Updated dependencies [[`7b7b420`](https://github.com/chy3xyz/bponder/commit/7b7b4200ebb585acb23f6ebcdb9b592b906404ca), [`77ff658`](https://github.com/chy3xyz/bponder/commit/77ff6585ad1541c7a897be57bcb72b7a21935765), `2901567`, `2901567`]:
+  - bponder-client@1.0.0
+
 ## 0.18.9
 
 ### Patch Changes
