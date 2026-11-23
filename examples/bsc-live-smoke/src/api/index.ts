@@ -1,5 +1,5 @@
-import { db } from "ponder:api";
-import { transfer } from "ponder:schema";
+import { db } from "bponder:api";
+import { transfer } from "bponder:schema";
 import { Hono } from "hono";
 
 const app = new Hono();

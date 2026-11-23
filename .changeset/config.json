@@ -3,11 +3,11 @@
   "changelog": [
     "@changesets/changelog-github",
     {
-      "repo": "ponder-sh/ponder"
+      "repo": "chy3xyz/bponder"
     }
   ],
   "commit": false,
-  "fixed": [["ponder", "create-ponder", "@ponder/client", "@ponder/react"]],
+  "fixed": [["bponder", "create-bponder", "bponder-client", "bponder-react"]],
   "snapshot": {
     "useCalculatedVersion": true
   },

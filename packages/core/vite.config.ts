@@ -9,8 +9,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
-      "@ponder/client": path.resolve(import.meta.dirname, "../client/src"),
-      "@ponder/utils": path.resolve(import.meta.dirname, "../utils/src"),
+      "bponder-client": path.resolve(import.meta.dirname, "../client/src"),
+      "bponder-utils": path.resolve(import.meta.dirname, "../utils/src"),
       graphql: graphqlPath,
     },
   },

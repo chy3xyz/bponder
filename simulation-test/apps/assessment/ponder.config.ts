@@ -1,4 +1,4 @@
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 import { parseAbi } from "viem";
 
 export default createConfig({

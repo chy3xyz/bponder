@@ -2,21 +2,21 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import type { Common } from "@/internal/common.js";
 
-export const ponderEnv = `/// <reference types="ponder/virtual" />
+export const ponderEnv = `/// <reference types="bponder/virtual" />
 
-declare module "ponder:internal" {
+declare module "bponder:internal" {
   const config: typeof import("./ponder.config.ts");
   const schema: typeof import("./ponder.schema.ts");
 }
 
-declare module "ponder:schema" {
+declare module "bponder:schema" {
   export * from "./ponder.schema.ts";
 }
 
 // This file enables type checking and editor autocomplete for this Ponder project.
 // After upgrading, you may find that changes have been made to this file.
 // If this happens, please commit the changes. Do not manually edit this file.
-// See https://ponder.sh/docs/requirements#typescript for more information.
+// See https://github.com/chy3xyz/bponder for more information.
 `;
 
 export function runCodegen({ common }: { common: Common }) {

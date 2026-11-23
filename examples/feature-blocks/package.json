@@ -1,18 +1,18 @@
 {
-  "name": "ponder-examples-feature-blocks",
+  "name": "bponder-examples-feature-blocks",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "ponder dev",
-    "start": "ponder start",
-    "db": "ponder db",
-    "codegen": "ponder codegen",
-    "serve": "ponder serve",
+    "dev": "bponder dev",
+    "start": "bponder start",
+    "db": "bponder db",
+    "codegen": "bponder codegen",
+    "serve": "bponder serve",
     "typecheck": "tsc"
   },
   "dependencies": {
-    "ponder": "workspace:*",
-    "hono": "^4.5.0",
+    "bponder": "file:../../packages/core",
+    "hono": "4.5.0",
     "viem": "2.35.0"
   },
   "devDependencies": {

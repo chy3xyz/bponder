@@ -1,5 +1,5 @@
-import type { Plugin } from "vite";
 import type { Common } from "@/internal/common.js";
+import type { VitePlugin } from "@/types/vite-plugin.js";
 
 const virtualModule = () => `export const ponder = {
   fns: [],
@@ -41,7 +41,7 @@ export const db = globalThis.PONDER_DATABASE.readonlyQB.raw;
 export { publicClients };
 `;
 
-export const vitePluginPonder = (options: Common["options"]): Plugin => {
+export const vitePluginPonder = (options: Common["options"]): VitePlugin => {
   // On Windows, options.schemaFile is a Windows-style path. We need to convert it to a
   // Unix-style path for codegen, because TS import paths are Unix-style even on Windows.
   const schemaPath = options.schemaFile.replace(/\\/g, "/");
@@ -49,15 +49,15 @@ export const vitePluginPonder = (options: Common["options"]): Plugin => {
   return {
     name: "ponder",
     resolveId: (id) => {
-      if (id === "ponder:registry") return id;
-      if (id === "ponder:schema") return id;
-      if (id === "ponder:api") return id;
+      if (id === "bponder:registry") return id;
+      if (id === "bponder:schema") return id;
+      if (id === "bponder:api") return id;
       return null;
     },
     load: (id) => {
-      if (id === "ponder:registry") return virtualModule();
-      if (id === "ponder:schema") return schemaModule(schemaPath);
-      if (id === "ponder:api") return apiModule();
+      if (id === "bponder:registry") return virtualModule();
+      if (id === "bponder:schema") return schemaModule(schemaPath);
+      if (id === "bponder:api") return apiModule();
       return null;
     },
   };

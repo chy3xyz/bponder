@@ -1,7 +1,7 @@
 # Bun historical slice
 
 Minimal Bun-first example using `defineConfig`, `ponder.on`,
-`@ponder/schema`, Bun SQL migrations, historical indexing, and the Bun status
+`bponder-schema`, Bun SQL migrations, historical indexing, and the Bun status
 server.
 
 ## Run

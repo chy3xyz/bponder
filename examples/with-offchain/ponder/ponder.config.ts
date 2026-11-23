@@ -1,4 +1,4 @@
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 import { erc721Abi } from "viem";
 
 export default createConfig({

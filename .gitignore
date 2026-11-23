@@ -4,6 +4,8 @@ node_modules
 .vercel
 .DS_Store
 tmp
+.output
+dist/binaries
 
 # IDE
 .idea

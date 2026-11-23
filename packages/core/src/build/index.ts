@@ -100,11 +100,14 @@ export const createBuild = async ({
   common: Common;
   cliOptions: CliOptions;
 }): Promise<Build> => {
-  const { createServer, createServerModuleRunner, normalizePath } =
-    await importOptionalPeer<typeof import("vite")>(
-      "vite",
-      "Install it with `bun add vite` (Bun-native indexing does not need Vite; only set PONDER_USE_VITE=1 when you want the Vite build path).",
-    );
+  // Vite is an optional peer — loaded only for `PONDER_USE_VITE=1`.
+  // Avoid `typeof import("vite")` so typecheck does not require the package.
+  // Soft-typed: `vite` is an optional peer with no local type package.
+  const viteMod: any = await importOptionalPeer(
+    "vite",
+    "Install it with `bun add vite` (Bun-native indexing does not need Vite; only set PONDER_USE_VITE=1 when you want the Vite build path).",
+  );
+  const { createServer, createServerModuleRunner, normalizePath } = viteMod;
 
   const escapeRegex = /[.*+?^${}()|[\]\\]/g;
 
@@ -195,7 +198,7 @@ export const createBuild = async ({
     resolve: { tsconfigPaths: true },
     // Load `ponder` with Node instead of transforming it. This matters when `ponder`
     // is a linked package, which Vite does not externalize by default.
-    ssr: { external: ["ponder"] },
+    ssr: { external: ["bponder"] },
     plugins: [vitePluginPonder(common.options)],
   });
 
@@ -371,7 +374,7 @@ export const createBuild = async ({
       }
       const contentHash = hash.digest("hex");
 
-      const exports = await moduleRunner.import("ponder:registry");
+      const exports = await moduleRunner.import("bponder:registry");
 
       return {
         status: "success",
@@ -693,7 +696,7 @@ export const createBuild = async ({
             }),
           );
           invalidateDepTree(glob.sync(apiPattern));
-          invalidateDepTree(["ponder:registry", "ponder:api"]);
+          invalidateDepTree(["bponder:registry", "bponder:api"]);
 
           onReload("indexing");
         }

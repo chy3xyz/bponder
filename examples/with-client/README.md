@@ -1,4 +1,4 @@
-# Ponder with `@ponder/client`
+# Ponder with `bponder-client`
 
 Classic Ponder monorepo example. The Ponder app still uses `createConfig` until the production CLI cuts over to `defineConfig`.
 

@@ -15,17 +15,17 @@ export async function notifyUpdate({ options }: { options: CLIOptions }) {
       const packageManager = getPackageManager({ options });
       const updateMessage =
         packageManager === "bun"
-          ? "bun install --global create-ponder"
+          ? "bun install --global create-bponder"
           : packageManager === "pnpm"
-            ? "pnpm add -g create-ponder"
+            ? "pnpm add -g create-bponder"
             : packageManager === "npm"
-              ? "npm install -g create-ponder"
-              : "yarn global add create-ponder";
+              ? "npm install -g create-bponder"
+              : "yarn global add create-bponder";
 
       log(
         pico.bold(
           `${pico.yellow(
-            "A new version of `create-ponder` is available!",
+            "A new version of `create-bponder` is available!",
           )}\nYou can update by running: ${pico.cyan(updateMessage)}\n`,
         ),
       );

@@ -1,4 +1,4 @@
-import { onchainTable } from "ponder";
+import { onchainTable } from "bponder";
 
 export const transfer = onchainTable("transfer", (t) => ({
   id: t.text().primaryKey(),

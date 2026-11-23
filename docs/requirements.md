@@ -1,0 +1,57 @@
+# Requirements
+
+Get Ponder running on your machine
+
+The `create-bponder` CLI is the easiest way to [get started](./get-started.md) with Ponder. If it runs without error, your system likely meets the requirements.
+
+Ponder is a **Bun-native** indexing runtime. Apps run on [Bun](https://bun.sh), not Node.js. Node is not a supported runtime.
+
+## System requirements
+
+- macOS, Linux, or Windows (including WSL).
+- [Bun](https://bun.sh) 1.4.0 or later. The `ponder` and `create-bponder` CLIs use a Bun shebang (`#!/usr/bin/env bun`).
+- [PostgreSQL](https://www.postgresql.org/download/) version 14, 15, 16 or 17 for production. Local development can use PGlite (no server required) or Postgres.
+
+Confirm the runtime:
+
+**shell**
+
+```bash
+bun --version
+```
+
+## Create a project
+
+**shell**
+
+```bash
+bun create ponder
+```
+
+`create-bponder` must be invoked with Bun. After scaffold, generated `package.json` files set `engines.bun` to `>=1.4.0` and scripts stay as `ponder dev` / `ponder start` — **do not** wrap them in `bun --bun`. The CLI shebang already selects Bun, so `bun run dev` is enough.
+
+This repository’s monorepo uses **Bun** as the package manager (`bun install`). Generated apps typically use `bun install` as well; `create-bponder --pnpm` / `--npm` / `--yarn` remain available if you prefer another client. The process that runs `ponder` must be Bun either way.
+
+[Read more](./api-reference/create-bponder.md) in the `create-bponder` API reference. Existing Node apps should follow the [migration guide](./migration-guide.md).
+
+## TypeScript
+
+Ponder uses advanced TypeScript features to offer end-to-end type safety without code generation. We **strongly** recommend taking the time to set up a working TypeScript development environment – it will pay dividends in the long run.
+
+### Requirements
+
+- TypeScript `>=5.0.4`, viem `>=2`, and hono `>=4.5`
+- ABIs must be asserted `as const` following [ABIType guidelines](https://abitype.dev/guide/getting-started#usage)
+- The `ponder-env.d.ts` file must be present and up to date
+
+### `ponder-env.d.ts`
+
+This file powers Ponder's zero-codegen type system. It contains a declaration for the `bponder:registry` virtual module which exports types derived from `ponder.config.ts` and `ponder.schema.ts`.
+
+After upgrading to a new version of `ponder`, the dev server might make changes to `ponder-env.d.ts`. When this happens, please accept and commit the changes.
+
+### VSCode / Cursor
+
+By default, VSCode's TypeScript language features use an internal version of TypeScript. Sometimes, this version does not meet Ponder's requirement of `>=5.0.4`.
+
+To change VSCode's TypeScript version, run `TypeScript: Select TypeScript version..."` from the command palette and select `Use Workspace Version` or [update VSCode's version](https://stackoverflow.com/questions/39668731/what-typescript-version-is-visual-studio-code-using-how-to-update-it).

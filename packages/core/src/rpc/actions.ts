@@ -1,7 +1,7 @@
 import {
   type GetLogsRetryHelperParameters,
   getLogsRetryHelper,
-} from "@ponder/utils";
+} from "bponder-utils";
 import {
   BlockNotFoundError,
   type Hash,

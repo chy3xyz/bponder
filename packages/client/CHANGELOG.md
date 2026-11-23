@@ -1,4 +1,4 @@
-# @ponder/client
+# bponder-client
 
 ## 0.18.9
 
@@ -258,7 +258,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#1915](https://github.com/ponder-sh/ponder/pull/1915) [`f16cb9f`](https://github.com/ponder-sh/ponder/commit/f16cb9f51cae63405102fffff88eb0f3e1386b5f) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated `getStatus()` in `@ponder/client` to use the `/status` path with a "GET" request.
+- [#1915](https://github.com/ponder-sh/ponder/pull/1915) [`f16cb9f`](https://github.com/ponder-sh/ponder/commit/f16cb9f51cae63405102fffff88eb0f3e1386b5f) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated `getStatus()` in `bponder-client` to use the `/status` path with a "GET" request.
 
 ## 0.11.37
 
@@ -444,7 +444,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#1509](https://github.com/ponder-sh/ponder/pull/1509) [`e267f7e29d0996384590f898553e323499a8b616`](https://github.com/ponder-sh/ponder/commit/e267f7e29d0996384590f898553e323499a8b616) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed some (not all) type compatibility issues when using `@ponder/client` and `@ponder/react`.
+- [#1509](https://github.com/ponder-sh/ponder/pull/1509) [`e267f7e29d0996384590f898553e323499a8b616`](https://github.com/ponder-sh/ponder/commit/e267f7e29d0996384590f898553e323499a8b616) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed some (not all) type compatibility issues when using `bponder-client` and `bponder-react`.
 
 ## 0.9.10
 

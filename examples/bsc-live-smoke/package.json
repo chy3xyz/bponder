@@ -1,14 +1,14 @@
 {
-  "name": "ponder-examples-bsc-live-smoke",
+  "name": "bponder-examples-bsc-live-smoke",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "ponder start",
-    "serve": "ponder serve"
+    "start": "bponder start",
+    "serve": "bponder serve"
   },
   "dependencies": {
-    "hono": "^4.6.0",
-    "ponder": "workspace:*",
+    "hono": "4.5.0",
+    "bponder": "file:../../packages/core",
     "viem": "^2.21.0"
   },
   "engines": {

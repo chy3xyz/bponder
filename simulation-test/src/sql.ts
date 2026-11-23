@@ -1,4 +1,4 @@
-import * as PONDER_SYNC from "@ponder/sync-store/schema.js";
+import * as PONDER_SYNC from "@bponder-core/sync-store/schema.js";
 import type { SQL } from "drizzle-orm";
 import { and, eq, getTableName } from "drizzle-orm";
 

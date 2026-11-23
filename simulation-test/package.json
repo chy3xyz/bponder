@@ -17,9 +17,10 @@
     "@types/pg": "^8.10.9",
     "@types/seedrandom": "^3.0.8",
     "commander": "^12.0.0",
+    "drizzle-kit": "^0.30.6",
     "drizzle-orm": "0.41.0",
     "pg": "^8.16.2",
-    "ponder": "workspace:*",
+    "bponder": "workspace:*",
     "seedrandom": "^3.0.5"
   }
 }

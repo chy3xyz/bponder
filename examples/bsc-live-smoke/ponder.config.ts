@@ -1,4 +1,4 @@
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 import { parseAbiItem } from "viem";
 
 const rpc = process.env.PONDER_RPC_URL_56;

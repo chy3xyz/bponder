@@ -1,7 +1,7 @@
-import { db } from "ponder:api";
-import schema from "ponder:schema";
+import { db } from "bponder:api";
+import schema from "bponder:schema";
 import { Hono } from "hono";
-import { graphql } from "ponder";
+import { graphql } from "bponder";
 
 const app = new Hono();
 

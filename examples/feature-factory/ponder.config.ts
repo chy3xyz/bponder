@@ -1,5 +1,5 @@
 import { parseAbiItem } from "abitype";
-import { createConfig, factory } from "ponder";
+import { createConfig, factory } from "bponder";
 
 import { LlamaCoreAbi } from "./abis/LlamaCoreAbi";
 import { LlamaPolicyAbi } from "./abis/LlamaPolicyAbi";

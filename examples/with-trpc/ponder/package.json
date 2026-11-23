@@ -1,19 +1,19 @@
 {
   "private": true,
-  "name": "ponder-examples-with-trpc-ponder",
+  "name": "bponder-examples-with-trpc-ponder",
   "type": "module",
   "scripts": {
-    "dev": "ponder dev",
-    "start": "ponder start",
-    "db": "ponder db",
-    "codegen": "ponder codegen",
+    "dev": "bponder dev",
+    "start": "bponder start",
+    "db": "bponder db",
+    "codegen": "bponder codegen",
     "typecheck": "tsc"
   },
   "dependencies": {
     "@hono/trpc-server": "^0.3.2",
-    "ponder": "workspace:*",
+    "bponder": "file:../../../packages/core",
     "@trpc/server": "^10.45.2",
-    "hono": "^4.5.0",
+    "hono": "4.5.0",
     "viem": "2.35.0",
     "zod": "^3.23.8"
   },

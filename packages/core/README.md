@@ -25,9 +25,9 @@ Join [Ponder's telegram chat](https://t.me/pondersh) for support, feedback, and 
 
 ## Quickstart
 
-### 1. Run `create-ponder`
+### 1. Run `create-bponder`
 
-You will be asked for a project name, and if you are using a [template](https://ponder.sh/docs/api-reference/create-ponder#templates) (recommended).
+You will be asked for a project name, and if you are using a [template](https://ponder.sh/docs/api-reference/create-bponder#templates) (recommended).
 
 After the prompts, the CLI will create a project directory, install dependencies, and initialize a git repository.
 
@@ -60,7 +60,7 @@ Ponder fetches event logs for the contracts in `ponder.config.ts`, and passes th
 ```ts
 // ponder.config.ts
 
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 import { BaseRegistrarAbi } from "./abis/BaseRegistrar";
  
 export default createConfig({
@@ -88,7 +88,7 @@ The `ponder.schema.ts` file specifies the database schema, which should match th
 ```ts
 // ponder.schema.ts
 
-import { onchainTable } from "ponder";
+import { onchainTable } from "bponder";
 
 export const ensName = onchainTable("ens_name", (t) => ({
   name: p.text().primaryKey(),
@@ -104,8 +104,8 @@ Files in the `src/` directory contain **indexing functions**, which are TypeScri
 ```ts
 // src/BaseRegistrar.ts
 
-import { ponder } from "ponder:registry";
-import schema from "ponder:schema";
+import { ponder } from "bponder:registry";
+import schema from "bponder:schema";
 
 ponder.on("BaseRegistrar:NameRegistered", async ({ event, context }) => {
   const { name, owner } = event.params;
@@ -162,10 +162,10 @@ If you're interested in contributing to Ponder, please read the [contribution gu
 ## Packages
 
 - [`ponder`](https://www.npmjs.com/package/ponder)
-- [`@ponder/client`](https://www.npmjs.com/package/@ponder/client)
-- [`@ponder/react`](https://www.npmjs.com/package/@ponder/react)
-- [`@ponder/utils`](https://www.npmjs.com/package/@ponder/utils)
-- [`create-ponder`](https://www.npmjs.com/package/create-ponder)
+- [`bponder-client`](https://www.npmjs.com/package/bponder-client)
+- [`bponder-react`](https://www.npmjs.com/package/bponder-react)
+- [`bponder-utils`](https://www.npmjs.com/package/bponder-utils)
+- [`create-bponder`](https://www.npmjs.com/package/create-bponder)
 
 ## About
 

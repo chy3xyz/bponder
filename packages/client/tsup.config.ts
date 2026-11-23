@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  name: "@ponder/client",
+  name: "bponder-client",
   entry: ["src/index.ts"],
   outDir: "dist",
   format: ["esm"],

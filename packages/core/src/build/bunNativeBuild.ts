@@ -62,7 +62,7 @@ type BunRuntime = {
 let ponderPluginRegistered = false;
 let ponderPluginSchemaFile = "";
 let ponderPluginRegistryFile = defaultRegistryFile;
-/** Bumped on every `registerPonderBunPlugin` so Bun does not reuse a stale `ponder:schema`. */
+/** Bumped on every `registerPonderBunPlugin` so Bun does not reuse a stale `bponder:schema`. */
 let ponderPluginSchemaEpoch = 0;
 
 const toPosixPath = (filePath: string) => filePath.replace(/\\/g, "/");
@@ -99,15 +99,15 @@ export function registerPonderBunPlugin({
   bun.plugin({
     name: "ponder-native",
     setup(build) {
-      // Bun splits `ponder:registry` / `ponder:schema` into namespace
+      // Bun splits `bponder:registry` / `bponder:schema` into namespace
       // `ponder` and path `registry` / `schema`.
-      build.onResolve({ filter: /^registry$/, namespace: "ponder" }, () => ({
+      build.onResolve({ filter: /^registry$/, namespace: "bponder" }, () => ({
         path: ponderPluginRegistryFile,
         namespace: "file",
       }));
       // Include epoch in the resolved path so each registerPonderBunPlugin
       // call gets a fresh module (Bun caches by resolved path).
-      build.onResolve({ filter: /^schema$/, namespace: "ponder" }, () => ({
+      build.onResolve({ filter: /^schema$/, namespace: "bponder" }, () => ({
         path: `${ponderPluginSchemaFile}::${ponderPluginSchemaEpoch}`,
         namespace: "ponder-schema",
       }));
@@ -139,8 +139,8 @@ export default schema;
           loader: "js",
         };
       });
-      // Same virtual module as the Vite ponder:api plugin (db + publicClients).
-      build.onResolve({ filter: /^api$/, namespace: "ponder" }, () => ({
+      // Same virtual module as the Vite bponder:api plugin (db + publicClients).
+      build.onResolve({ filter: /^api$/, namespace: "bponder" }, () => ({
         path: "api",
         namespace: "ponder-api",
       }));

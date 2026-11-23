@@ -1,11 +1,11 @@
-/// <reference types="ponder/virtual" />
+/// <reference types="bponder/virtual" />
 
-declare module "ponder:internal" {
+declare module "bponder:internal" {
   const config: typeof import("./ponder.config.js");
   const schema: typeof import("./ponder.schema.js");
 }
 
-declare module "ponder:schema" {
+declare module "bbponder:schema" {
   export * from "./ponder.schema.ts";
 }
 

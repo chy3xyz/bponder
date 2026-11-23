@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { integer, onchainTable, text } from "@ponder/schema";
+import { integer, onchainTable, text } from "bponder-schema";
 import {
   type BunSqlDatabase,
   createBunSqlDatabase,

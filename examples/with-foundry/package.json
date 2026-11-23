@@ -1,5 +1,5 @@
 {
-  "name": "ponder-examples-with-foundry",
+  "name": "bponder-examples-with-foundry",
   "private": true,
   "type": "module",
   "devDependencies": {

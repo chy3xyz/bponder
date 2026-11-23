@@ -1,5 +1,0 @@
-dist/
-.vocs/
-.vercel/
-pages.gen.ts
-.env.local

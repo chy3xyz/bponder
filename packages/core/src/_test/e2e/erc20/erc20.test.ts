@@ -1,5 +1,5 @@
 import path from "node:path";
-import { createClient } from "@ponder/client";
+import { createClient } from "bponder-client";
 import { rimrafSync } from "rimraf";
 import { parseEther, zeroAddress } from "viem";
 import { beforeEach, expect, test } from "vitest";

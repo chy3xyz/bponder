@@ -1,4 +1,4 @@
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 import { erc20ABI } from "./abis/erc20ABI";
 
 export default createConfig({

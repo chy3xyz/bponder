@@ -1,4 +1,4 @@
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 
 import { ExampleContractAbi } from "./abis/ExampleContractAbi";
 

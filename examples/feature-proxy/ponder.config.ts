@@ -1,4 +1,4 @@
-import { createConfig, mergeAbis } from "ponder";
+import { createConfig, mergeAbis } from "bponder";
 
 import { RouterImplAbi } from "./abis/RouterImplAbi";
 import { RouterProxyAbi } from "./abis/RouterProxyAbi";

@@ -1,5 +1,5 @@
-import { ponder } from "ponder:registry";
-import schema from "ponder:schema";
+import { ponder } from "bponder:registry";
+import schema from "bponder:schema";
 
 ponder.on("weth9:Deposit", async ({ event, context }) => {
   await context.db.insert(schema.depositEvent).values({

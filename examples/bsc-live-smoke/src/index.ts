@@ -1,5 +1,5 @@
-import { ponder } from "ponder:registry";
-import { transfer } from "ponder:schema";
+import { ponder } from "bponder:registry";
+import { transfer } from "bponder:schema";
 
 ponder.on("WBNB:Transfer", async ({ event, context }) => {
   await context.db.insert(transfer).values({

@@ -1,5 +1,5 @@
 {
-  "name": "ponder-examples-with-offchain-offchain",
+  "name": "bponder-examples-with-offchain-offchain",
   "private": true,
   "type": "module",
   "scripts": {},
@@ -7,7 +7,7 @@
     "bun": ">=1.4.0"
   },
   "dependencies": {
-    "@ponder/client": "workspace:*",
+    "bponder-client": "file:../../../packages/client",
     "drizzle-orm": "0.41.0",
     "pg": "^8.16.2"
   },

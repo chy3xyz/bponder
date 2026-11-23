@@ -1,4 +1,4 @@
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 
 import { weth9Abi } from "./abis/weth9Abi";
 

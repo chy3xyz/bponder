@@ -1,4 +1,4 @@
-import { start } from "@ponder/bin/commands/start.js";
+import { start } from "@bponder-core/bin/commands/start.js";
 import { Command } from "commander";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";

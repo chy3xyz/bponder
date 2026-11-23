@@ -1,5 +1,5 @@
 {
-  "name": "create-ponder",
+  "name": "create-bponder",
   "version": "0.18.9",
   "type": "module",
   "description": "CLI tool to create Ponder projects",
@@ -7,7 +7,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/chy3xyz/bponder",
-    "directory": "packages/create-ponder"
+    "directory": "packages/create-bponder"
   },
   "files": [
     "dist",
@@ -16,7 +16,7 @@
     "LICENSE"
   ],
   "bin": {
-    "create-ponder": "./dist/index.js"
+    "create-bponder": "./dist/index.js"
   },
   "scripts": {
     "build": "tsup",
@@ -46,8 +46,7 @@
     "abitype": "^0.10.2",
     "dotenv": "^16.3.1",
     "rimraf": "^5.0.5",
-    "tsup": "^8.0.1",
-    "vitest": "5.0.2"
+    "tsup": "^8.0.1"
   },
   "engines": {
     "bun": ">=1.4.0"

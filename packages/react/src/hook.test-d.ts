@@ -1,4 +1,4 @@
-import type { Client, Status } from "@ponder/client";
+import type { Client, Status } from "bponder-client";
 import { usePonderClient, usePonderQuery, usePonderStatus } from "./hook.js";
 import type { PonderQueryResult } from "./utils.js";
 

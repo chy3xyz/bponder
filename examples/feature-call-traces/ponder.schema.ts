@@ -1,4 +1,4 @@
-import { onchainTable } from "ponder";
+import { onchainTable } from "bponder";
 
 export const multicall = onchainTable("multicall", (t) => ({
   from: t.hex().primaryKey(),

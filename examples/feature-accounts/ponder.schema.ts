@@ -1,4 +1,4 @@
-import { onchainTable } from "ponder";
+import { onchainTable } from "bponder";
 
 export const transactionEvents = onchainTable("transaction_events", (t) => ({
   to: t.hex().primaryKey(),

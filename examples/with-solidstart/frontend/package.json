@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "ponder-examples-with-solidstart-frontend",
+  "name": "bponder-examples-with-solidstart-frontend",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ponder/client": "workspace:*",
+    "bponder-client": "file:../../../packages/client",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.16.0",
     "@solidjs/start": "^2.2.3",

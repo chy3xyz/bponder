@@ -62,7 +62,7 @@
 
 - [#2450](https://github.com/ponder-sh/ponder/pull/2450) [`98a50b5`](https://github.com/ponder-sh/ponder/commit/98a50b5f050f5df92a8fb9efb8cca0548a814f41) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug that caused a log that failed to decode to change how later logs of the same event were decoded when the event has an array parameter.
 
-- [#2456](https://github.com/ponder-sh/ponder/pull/2456) [`9a20a02`](https://github.com/ponder-sh/ponder/commit/9a20a0263d64f64214d14197a8a4a8e01954e755) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug that caused a `p.json()` or `p.jsonb()` column value that is a string containing JSON, such as `"1"`, `"true"`, or `'{"a":1}'`, to be returned parsed by GraphQL, `@ponder/client`, and database reads, while the indexing cache returned the string.
+- [#2456](https://github.com/ponder-sh/ponder/pull/2456) [`9a20a02`](https://github.com/ponder-sh/ponder/commit/9a20a0263d64f64214d14197a8a4a8e01954e755) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug that caused a `p.json()` or `p.jsonb()` column value that is a string containing JSON, such as `"1"`, `"true"`, or `'{"a":1}'`, to be returned parsed by GraphQL, `bponder-client`, and database reads, while the indexing cache returned the string.
 
 - [#2459](https://github.com/ponder-sh/ponder/pull/2459) [`d6a876a`](https://github.com/ponder-sh/ponder/commit/d6a876a7b35e6ef90d0ffeee2079e33a5c608159) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug that caused some `context.db` and `context.client` calls to fail with `TypeError: Cannot read properties of undefined` in indexing functions of logs without a transaction, such as on ZKsync.
 
@@ -80,7 +80,7 @@
 
 - [#2447](https://github.com/ponder-sh/ponder/pull/2447) [`f900797`](https://github.com/ponder-sh/ponder/commit/f9007977e5960ffac670670cac4e6da2ba9d07fc) Thanks [@cruzdanilo](https://github.com/cruzdanilo)! - Improved backfill speed for block ranges with many blocks and sparse events.
 - Updated dependencies [[`f900797`](https://github.com/ponder-sh/ponder/commit/f9007977e5960ffac670670cac4e6da2ba9d07fc)]:
-  - @ponder/utils@0.3.1
+  - bponder-utils@0.3.1
 
 ## 0.18.4
 
@@ -230,7 +230,7 @@ No changes in this release.
 
 - [#2332](https://github.com/ponder-sh/ponder/pull/2332) [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated the minimum supported TypeScript version to `5.4.0`. Newly created Ponder projects now use TypeScript `5.4.0`.
 
-- [#2332](https://github.com/ponder-sh/ponder/pull/2332) [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated the minimum required Node.js version from `18.14` to `22`. Running `ponder dev`, `ponder start`, `ponder serve`, `ponder codegen`, or `create-ponder` on older Node.js versions now exits with the error `Invalid Node.js version`.
+- [#2332](https://github.com/ponder-sh/ponder/pull/2332) [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated the minimum required Node.js version from `18.14` to `22`. Running `ponder dev`, `ponder start`, `ponder serve`, `ponder codegen`, or `create-bponder` on older Node.js versions now exits with the error `Invalid Node.js version`.
 
 ### Patch Changes
 
@@ -239,7 +239,7 @@ No changes in this release.
 - [#2332](https://github.com/ponder-sh/ponder/pull/2332) [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30) Thanks [@kyscott18](https://github.com/kyscott18)! - Removed anonymous telemetry collection from Ponder.
 
 - Updated dependencies [[`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30), [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30)]:
-  - @ponder/utils@0.3.0
+  - bponder-utils@0.3.0
 
 ## 0.16.10
 
@@ -282,7 +282,7 @@ No changes in this release.
 - [#2287](https://github.com/ponder-sh/ponder/pull/2287) [`b7a0a0b`](https://github.com/ponder-sh/ponder/commit/b7a0a0b8d41f84dcaedcc4696618c5e209440072) Thanks [@kyscott18](https://github.com/kyscott18)! - Include `tsconfig.json` as part of NPM payload.
 
 - Updated dependencies [[`b7a0a0b`](https://github.com/ponder-sh/ponder/commit/b7a0a0b8d41f84dcaedcc4696618c5e209440072)]:
-  - @ponder/utils@0.2.18
+  - bponder-utils@0.2.18
 
 ## 0.16.4
 
@@ -329,7 +329,7 @@ No changes in this release.
 - [#2241](https://github.com/ponder-sh/ponder/pull/2241) [`d3839fb`](https://github.com/ponder-sh/ponder/commit/d3839fbeb2270bc27de864055e6026e9fc581e63) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug with `ponder db list` that caused `TypeError: leftSelect.getSelectedFields is not a function`.
 
 - Updated dependencies [[`9c36e5e`](https://github.com/ponder-sh/ponder/commit/9c36e5ef3c39f9d8ec2debf10fa2a04aacc7841f)]:
-  - @ponder/utils@0.2.17
+  - bponder-utils@0.2.17
 
 ## 0.15.17
 
@@ -434,7 +434,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`ecd8bff`](https://github.com/ponder-sh/ponder/commit/ecd8bff9c42463be84a27cc64bcbb09eff8359c7)]:
-  - @ponder/utils@0.2.16
+  - bponder-utils@0.2.16
 
 ## 0.15.0
 
@@ -469,7 +469,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`ac518fc`](https://github.com/ponder-sh/ponder/commit/ac518fc3ed32a7d41f7b6e625eb72d2a8b665f7b)]:
-  - @ponder/utils@0.2.15
+  - bponder-utils@0.2.15
 
 ## 0.14.10
 
@@ -529,7 +529,7 @@ No changes in this release.
 
 - [`3b6901f`](https://github.com/ponder-sh/ponder/commit/3b6901fc0601a60a235382728447bf0c7e3a61ee) Thanks [@kyscott18](https://github.com/kyscott18)! - Improved performance of live indexing.
 
-- [#2132](https://github.com/ponder-sh/ponder/pull/2132) [`2596650`](https://github.com/ponder-sh/ponder/commit/2596650ce8614264b200f184b0a150287c91e913) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug with `@ponder/client` query parsing.
+- [#2132](https://github.com/ponder-sh/ponder/pull/2132) [`2596650`](https://github.com/ponder-sh/ponder/commit/2596650ce8614264b200f184b0a150287c91e913) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug with `bponder-client` query parsing.
 
 - [`3b6901f`](https://github.com/ponder-sh/ponder/commit/3b6901fc0601a60a235382728447bf0c7e3a61ee) Thanks [@kyscott18](https://github.com/kyscott18)! - Added query caching for `client` middleware.
 
@@ -588,7 +588,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`9cdb708`](https://github.com/ponder-sh/ponder/commit/9cdb70825814cca82cb0a9b4e4d36a4701b74516)]:
-  - @ponder/utils@0.2.14
+  - bponder-utils@0.2.14
 
 ## 0.13.9
 
@@ -645,7 +645,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`3176395`](https://github.com/ponder-sh/ponder/commit/3176395493a702b34e42ec5fe16895afb7cef8ae)]:
-  - @ponder/utils@0.2.13
+  - bponder-utils@0.2.13
 
 ## 0.13.1
 
@@ -712,19 +712,19 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`5de9cc0`](https://github.com/ponder-sh/ponder/commit/5de9cc0de28711b3e1d1e36a7ae60c83eb7fed39)]:
-  - @ponder/utils@0.2.12
+  - bponder-utils@0.2.12
 
 ## 0.12.17
 
 ### Patch Changes
 
-- [#2007](https://github.com/ponder-sh/ponder/pull/2007) [`cfb5fb3`](https://github.com/ponder-sh/ponder/commit/cfb5fb303f29ddb13843000368f45fdf4a2937ec) Thanks [@kyscott18](https://github.com/kyscott18)! - Added several math functions to `@ponder/client` query allow list.
+- [#2007](https://github.com/ponder-sh/ponder/pull/2007) [`cfb5fb3`](https://github.com/ponder-sh/ponder/commit/cfb5fb303f29ddb13843000368f45fdf4a2937ec) Thanks [@kyscott18](https://github.com/kyscott18)! - Added several math functions to `bponder-client` query allow list.
 
 ## 0.12.16
 
 ### Patch Changes
 
-- [#2004](https://github.com/ponder-sh/ponder/pull/2004) [`769d8a0`](https://github.com/ponder-sh/ponder/commit/769d8a0f1a0eb91e69c48cdecef079038ac85441) Thanks [@kyscott18](https://github.com/kyscott18)! - Added support for validating `@ponder/client` queries with window defintions. Fixed the error `WindowDef not supported`.
+- [#2004](https://github.com/ponder-sh/ponder/pull/2004) [`769d8a0`](https://github.com/ponder-sh/ponder/commit/769d8a0f1a0eb91e69c48cdecef079038ac85441) Thanks [@kyscott18](https://github.com/kyscott18)! - Added support for validating `bponder-client` queries with window defintions. Fixed the error `WindowDef not supported`.
 
 ## 0.12.15
 
@@ -775,7 +775,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`5e6f338`](https://github.com/ponder-sh/ponder/commit/5e6f3380a6a78b800dd4c31dd3e3ddc6cc772eab)]:
-  - @ponder/utils@0.2.11
+  - bponder-utils@0.2.11
 
 ## 0.12.7
 
@@ -836,7 +836,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`f1df991`](https://github.com/ponder-sh/ponder/commit/f1df991ca83d934568289fc6c117c650d60066ad)]:
-  - @ponder/utils@0.2.10
+  - bponder-utils@0.2.10
 
 ## 0.11.42
 
@@ -868,7 +868,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#1915](https://github.com/ponder-sh/ponder/pull/1915) [`f16cb9f`](https://github.com/ponder-sh/ponder/commit/f16cb9f51cae63405102fffff88eb0f3e1386b5f) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated `getStatus()` in `@ponder/client` to use the `/status` path with a "GET" request.
+- [#1915](https://github.com/ponder-sh/ponder/pull/1915) [`f16cb9f`](https://github.com/ponder-sh/ponder/commit/f16cb9f51cae63405102fffff88eb0f3e1386b5f) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated `getStatus()` in `bponder-client` to use the `/status` path with a "GET" request.
 
 ## 0.11.37
 
@@ -939,7 +939,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`9d9c4b9`](https://github.com/ponder-sh/ponder/commit/9d9c4b9ca8516388874a246d7b9d179ab0fd861f)]:
-  - @ponder/utils@0.2.9
+  - bponder-utils@0.2.9
 
 ## 0.11.26
 
@@ -995,7 +995,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#1839](https://github.com/ponder-sh/ponder/pull/1839) [`76b3a3e`](https://github.com/ponder-sh/ponder/commit/76b3a3e34e3e8c40952be50d62883f5210b01a0e) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug impacting live queries for `@ponder/client` and `@ponder/react` introduced in `v0.11.0`.
+- [#1839](https://github.com/ponder-sh/ponder/pull/1839) [`76b3a3e`](https://github.com/ponder-sh/ponder/commit/76b3a3e34e3e8c40952be50d62883f5210b01a0e) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug impacting live queries for `bponder-client` and `bponder-react` introduced in `v0.11.0`.
 
 ## 0.11.18
 
@@ -1066,7 +1066,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`58cb1c5`](https://github.com/ponder-sh/ponder/commit/58cb1c5ab6c867bbf8e86b28cb8848607282166b)]:
-  - @ponder/utils@0.2.8
+  - bponder-utils@0.2.8
 
 ## 0.11.9
 
@@ -1135,7 +1135,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`5507be933867f74b16db6e842897b6545f2e7567`](https://github.com/ponder-sh/ponder/commit/5507be933867f74b16db6e842897b6545f2e7567)]:
-  - @ponder/utils@0.2.7
+  - bponder-utils@0.2.7
 
 ## 0.11.0
 
@@ -1188,23 +1188,23 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`27886fef0788e7ee1c25221087ecd6af05ea6197`](https://github.com/ponder-sh/ponder/commit/27886fef0788e7ee1c25221087ecd6af05ea6197)]:
-  - @ponder/utils@0.2.6
+  - bponder-utils@0.2.6
 
 ## 0.10.21
 
 ### Patch Changes
 
 - Updated dependencies [[`e9b0fb99772baff7d3008a9dd1c8383e6182df59`](https://github.com/ponder-sh/ponder/commit/e9b0fb99772baff7d3008a9dd1c8383e6182df59)]:
-  - @ponder/utils@0.2.5
+  - bponder-utils@0.2.5
 
 ## 0.10.20
 
 ### Patch Changes
 
-- [#1701](https://github.com/ponder-sh/ponder/pull/1701) [`1f547d61d8821e10ae7f22cbd2b60d86ba4a727a`](https://github.com/ponder-sh/ponder/commit/1f547d61d8821e10ae7f22cbd2b60d86ba4a727a) Thanks [@khaidarkairbek](https://github.com/khaidarkairbek)! - Fixed "Invalid Query" error when using `@ponder/client` queries using `findMany` or `findFirst` that include the `with` option (relational queries).
+- [#1701](https://github.com/ponder-sh/ponder/pull/1701) [`1f547d61d8821e10ae7f22cbd2b60d86ba4a727a`](https://github.com/ponder-sh/ponder/commit/1f547d61d8821e10ae7f22cbd2b60d86ba4a727a) Thanks [@khaidarkairbek](https://github.com/khaidarkairbek)! - Fixed "Invalid Query" error when using `bponder-client` queries using `findMany` or `findFirst` that include the `with` option (relational queries).
 
 - Updated dependencies [[`4157106917d81df2809616a19297c7e80a70f1f5`](https://github.com/ponder-sh/ponder/commit/4157106917d81df2809616a19297c7e80a70f1f5)]:
-  - @ponder/utils@0.2.4
+  - bponder-utils@0.2.4
 
 ## 0.10.19
 
@@ -1398,7 +1398,7 @@ No changes in this release.
 
 - [#1552](https://github.com/ponder-sh/ponder/pull/1552) [`b0618efd5b07feb851463327b4517fdfb31c2384`](https://github.com/ponder-sh/ponder/commit/b0618efd5b07feb851463327b4517fdfb31c2384) Thanks [@normanzb](https://github.com/normanzb)! - Fixed an issue where libraries that subclass `Hono` (like `@hono/zod-openapi`) were not supported by API functions.
 
-- [#1560](https://github.com/ponder-sh/ponder/pull/1560) [`818d20eef48a247b513d7eadfa7c04be74f36477`](https://github.com/ponder-sh/ponder/commit/818d20eef48a247b513d7eadfa7c04be74f36477) Thanks [@typedarray](https://github.com/typedarray)! - Fixed a bug introduced in `0.9.20` where the `ponder` entrypoint included Node.js-only imports like `"node:path"`, breaking some workflows that use `@ponder/client` in browser environments.
+- [#1560](https://github.com/ponder-sh/ponder/pull/1560) [`818d20eef48a247b513d7eadfa7c04be74f36477`](https://github.com/ponder-sh/ponder/commit/818d20eef48a247b513d7eadfa7c04be74f36477) Thanks [@typedarray](https://github.com/typedarray)! - Fixed a bug introduced in `0.9.20` where the `ponder` entrypoint included Node.js-only imports like `"node:path"`, breaking some workflows that use `bponder-client` in browser environments.
 
 ## 0.9.22
 
@@ -1482,7 +1482,7 @@ No changes in this release.
 
 - [#1517](https://github.com/ponder-sh/ponder/pull/1517) [`452c6997466144b775f7f7e8e43715c6a1f287e1`](https://github.com/ponder-sh/ponder/commit/452c6997466144b775f7f7e8e43715c6a1f287e1) Thanks [@typedarray](https://github.com/typedarray)! - Fixed a bug where hex value arguments to singular query fields in GraphQL did not respect case-insensitive comparison.
 
-- [#1509](https://github.com/ponder-sh/ponder/pull/1509) [`e267f7e29d0996384590f898553e323499a8b616`](https://github.com/ponder-sh/ponder/commit/e267f7e29d0996384590f898553e323499a8b616) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed some (not all) type compatibility issues when using `@ponder/client` and `@ponder/react`.
+- [#1509](https://github.com/ponder-sh/ponder/pull/1509) [`e267f7e29d0996384590f898553e323499a8b616`](https://github.com/ponder-sh/ponder/commit/e267f7e29d0996384590f898553e323499a8b616) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed some (not all) type compatibility issues when using `bponder-client` and `bponder-react`.
 
 ## 0.9.10
 
@@ -1672,7 +1672,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#1407](https://github.com/ponder-sh/ponder/pull/1407) [`bfc51efc1e767ff2670494ecbb14b332bc2d3d05`](https://github.com/ponder-sh/ponder/commit/bfc51efc1e767ff2670494ecbb14b332bc2d3d05) Thanks [@typedarray](https://github.com/typedarray)! - Fixed a Windows bug introduced in `0.8.0` where the build would fail with the error "Failed to load url (...) in ponder:schema". Fixed a Windows bug where the build would fail when using an in-memory PGlite database with the error "Path contains invalid characters: memory://".
+- [#1407](https://github.com/ponder-sh/ponder/pull/1407) [`bfc51efc1e767ff2670494ecbb14b332bc2d3d05`](https://github.com/ponder-sh/ponder/commit/bfc51efc1e767ff2670494ecbb14b332bc2d3d05) Thanks [@typedarray](https://github.com/typedarray)! - Fixed a Windows bug introduced in `0.8.0` where the build would fail with the error "Failed to load url (...) in bponder:schema". Fixed a Windows bug where the build would fail when using an in-memory PGlite database with the error "Path contains invalid characters: memory://".
 
 ## 0.8.15
 
@@ -1817,7 +1817,7 @@ No changes in this release.
 - [#1280](https://github.com/ponder-sh/ponder/pull/1280) [`38ffc034b80ac0e5259efaebd2e170e95b75fa9c`](https://github.com/ponder-sh/ponder/commit/38ffc034b80ac0e5259efaebd2e170e95b75fa9c) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed return type for `db.insert()` with multiple values.
 
 - Updated dependencies [[`0bb76fdc10bdf4f88980ed99d06c0e672094dce7`](https://github.com/ponder-sh/ponder/commit/0bb76fdc10bdf4f88980ed99d06c0e672094dce7)]:
-  - @ponder/utils@0.2.3
+  - bponder-utils@0.2.3
 
 ## 0.7.10
 
@@ -1920,7 +1920,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`0cbdf01f85f4180a62d0de671c7adc299b704104`](https://github.com/ponder-sh/ponder/commit/0cbdf01f85f4180a62d0de671c7adc299b704104)]:
-  - @ponder/utils@0.2.2
+  - bponder-utils@0.2.2
 
 ## 0.6.21
 
@@ -2054,7 +2054,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`6a5c8a54b9d976fa760c863512044d82702d0bb7`](https://github.com/ponder-sh/ponder/commit/6a5c8a54b9d976fa760c863512044d82702d0bb7)]:
-  - @ponder/utils@0.2.1
+  - bponder-utils@0.2.1
 
 ## 0.6.0
 
@@ -2077,7 +2077,7 @@ No changes in this release.
 ### Patch Changes
 
 - Updated dependencies [[`d9656a9af390f6c0a375cbbabfc85f90f510b13f`](https://github.com/ponder-sh/ponder/commit/d9656a9af390f6c0a375cbbabfc85f90f510b13f), [`d9656a9af390f6c0a375cbbabfc85f90f510b13f`](https://github.com/ponder-sh/ponder/commit/d9656a9af390f6c0a375cbbabfc85f90f510b13f)]:
-  - @ponder/utils@0.2.0
+  - bponder-utils@0.2.0
 
 ## 0.5.24
 
@@ -2120,7 +2120,7 @@ No changes in this release.
 - [#1068](https://github.com/ponder-sh/ponder/pull/1068) [`a1557d9a16ea6d6a4060838d06f03c4a251da1b9`](https://github.com/ponder-sh/ponder/commit/a1557d9a16ea6d6a4060838d06f03c4a251da1b9) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed a bug with factory contracts fetching and writing extra logs to the database.
 
 - Updated dependencies [[`7c17ff32e8907b4a38d74cea2a431b689236048c`](https://github.com/ponder-sh/ponder/commit/7c17ff32e8907b4a38d74cea2a431b689236048c)]:
-  - @ponder/utils@0.1.8
+  - bponder-utils@0.1.8
 
 ## 0.5.19
 
@@ -2277,7 +2277,7 @@ No changes in this release.
 - [#963](https://github.com/ponder-sh/ponder/pull/963) [`c58d6316d03d0e229ee8c9255f4a3d0604378241`](https://github.com/ponder-sh/ponder/commit/c58d6316d03d0e229ee8c9255f4a3d0604378241) Thanks [@kyscott18](https://github.com/kyscott18)! - Added an indexing status endpoint at `/status` and a `{ _meta { status } }` field in the GraphQL API. [Read more](https://ponder.sh/docs/advanced/status).
 
 - Updated dependencies [[`e82e385b777cf6fccaf779fe8b12151b56456b68`](https://github.com/ponder-sh/ponder/commit/e82e385b777cf6fccaf779fe8b12151b56456b68)]:
-  - @ponder/utils@0.1.7
+  - bponder-utils@0.1.7
 
 ## 0.4.41
 
@@ -2347,10 +2347,10 @@ No changes in this release.
 
 ### Patch Changes
 
-- [`4ef2d6212e59b4c4ba0723e78a1c204db3d94542`](https://github.com/ponder-sh/ponder/commit/4ef2d6212e59b4c4ba0723e78a1c204db3d94542) Thanks [@0xOlias](https://github.com/0xOlias)! - Added `replaceBigInts` utility function to `@ponder/utils` (re-exported from `@ponder/core`). [Read more](https://ponder.sh/docs/utilities/replace-bigints).
+- [`4ef2d6212e59b4c4ba0723e78a1c204db3d94542`](https://github.com/ponder-sh/ponder/commit/4ef2d6212e59b4c4ba0723e78a1c204db3d94542) Thanks [@0xOlias](https://github.com/0xOlias)! - Added `replaceBigInts` utility function to `bponder-utils` (re-exported from `@ponder/core`). [Read more](https://ponder.sh/docs/utilities/replace-bigints).
 
 - Updated dependencies [[`4ef2d6212e59b4c4ba0723e78a1c204db3d94542`](https://github.com/ponder-sh/ponder/commit/4ef2d6212e59b4c4ba0723e78a1c204db3d94542)]:
-  - @ponder/utils@0.1.6
+  - bponder-utils@0.1.6
 
 ## 0.4.31
 
@@ -2389,7 +2389,7 @@ No changes in this release.
 - [#893](https://github.com/ponder-sh/ponder/pull/893) [`d0ec6b3022f8a3463bfdd41d100c178242c11d1c`](https://github.com/ponder-sh/ponder/commit/d0ec6b3022f8a3463bfdd41d100c178242c11d1c) Thanks [@kyscott18](https://github.com/kyscott18)! - Added a JSON column type with `p.json()`.
 
 - Updated dependencies [[`9d64a31a527914145c86b0c8e43b9d185e35a1e1`](https://github.com/ponder-sh/ponder/commit/9d64a31a527914145c86b0c8e43b9d185e35a1e1)]:
-  - @ponder/utils@0.1.5
+  - bponder-utils@0.1.5
 
 ## 0.4.26
 
@@ -2530,14 +2530,14 @@ No changes in this release.
 - [#806](https://github.com/ponder-sh/ponder/pull/806) [`398939198f5edcf9328410e5930f1ebc207ea502`](https://github.com/ponder-sh/ponder/commit/398939198f5edcf9328410e5930f1ebc207ea502) Thanks [@0xOlias](https://github.com/0xOlias)! - Added support for Windows via PowerShell and command prompt (cmd.exe).
 
 - Updated dependencies [[`2d9fcbae895b1c7388683fec5c0f36999ead29ce`](https://github.com/ponder-sh/ponder/commit/2d9fcbae895b1c7388683fec5c0f36999ead29ce)]:
-  - @ponder/utils@0.1.4
+  - bponder-utils@0.1.4
 
 ## 0.4.6
 
 ### Patch Changes
 
 - Updated dependencies [[`db106f5ffc302f1a02dcb54f31432420fae3c3cc`](https://github.com/ponder-sh/ponder/commit/db106f5ffc302f1a02dcb54f31432420fae3c3cc)]:
-  - @ponder/utils@0.1.3
+  - bponder-utils@0.1.3
 
 ## 0.4.5
 
@@ -2636,7 +2636,7 @@ No changes in this release.
 - [#718](https://github.com/ponder-sh/ponder/pull/718) [`bc5e0165c825967e04f6fa3f7a48f53002364c4c`](https://github.com/ponder-sh/ponder/commit/bc5e0165c825967e04f6fa3f7a48f53002364c4c) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed a bug where the process would sometimes not exit when it encountered a fatal error. Now, if there is a fatal error, the process will attempt a graceful shutdown and then exit. If the graceful shutdown does not finish within 5 seconds, the process will forcefully exit with code 1.
 
 - Updated dependencies [[`464a98f1500815739a3384e6b34eb05aaf0c0253`](https://github.com/ponder-sh/ponder/commit/464a98f1500815739a3384e6b34eb05aaf0c0253)]:
-  - @ponder/utils@0.1.2
+  - bponder-utils@0.1.2
 
 ## 0.3.4
 
@@ -2649,7 +2649,7 @@ No changes in this release.
 - [#727](https://github.com/ponder-sh/ponder/pull/727) [`3fca36582ce8e1a7bcd54cbe331a4f8e7d210ec5`](https://github.com/ponder-sh/ponder/commit/3fca36582ce8e1a7bcd54cbe331a4f8e7d210ec5) Thanks [@jaylmiller](https://github.com/jaylmiller)! - Updated datatypes for p.float columns in postgres to double and sqlite to real. Note that this busts the indexing cache
 
 - Updated dependencies [[`fe99c31a100acfc602cc511a15b1f625e034c29e`](https://github.com/ponder-sh/ponder/commit/fe99c31a100acfc602cc511a15b1f625e034c29e)]:
-  - @ponder/utils@0.1.1
+  - bponder-utils@0.1.1
 
 ## 0.3.3
 
@@ -2671,10 +2671,10 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#692](https://github.com/ponder-sh/ponder/pull/692) [`5d6b541dd4a3bda979d26bb38754b77209674a98`](https://github.com/ponder-sh/ponder/commit/5d6b541dd4a3bda979d26bb38754b77209674a98) Thanks [@kyscott18](https://github.com/kyscott18)! - Re-exported `rateLimit` and `loadBalance` from `@ponder/utils`.
+- [#692](https://github.com/ponder-sh/ponder/pull/692) [`5d6b541dd4a3bda979d26bb38754b77209674a98`](https://github.com/ponder-sh/ponder/commit/5d6b541dd4a3bda979d26bb38754b77209674a98) Thanks [@kyscott18](https://github.com/kyscott18)! - Re-exported `rateLimit` and `loadBalance` from `bponder-utils`.
 
 - Updated dependencies [[`5d6b541dd4a3bda979d26bb38754b77209674a98`](https://github.com/ponder-sh/ponder/commit/5d6b541dd4a3bda979d26bb38754b77209674a98)]:
-  - @ponder/utils@0.1.0
+  - bponder-utils@0.1.0
 
 ## 0.3.1
 
@@ -2714,12 +2714,12 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#688](https://github.com/ponder-sh/ponder/pull/688) [`2a1842e1db2329b1c88c613b0a64ff8c7695e829`](https://github.com/ponder-sh/ponder/commit/2a1842e1db2329b1c88c613b0a64ff8c7695e829) Thanks [@kyscott18](https://github.com/kyscott18)! - Created `@ponder/utils` package. Moved `eth_getLogs` retry helper from `@ponder/core` to `@ponder/utils`.
+- [#688](https://github.com/ponder-sh/ponder/pull/688) [`2a1842e1db2329b1c88c613b0a64ff8c7695e829`](https://github.com/ponder-sh/ponder/commit/2a1842e1db2329b1c88c613b0a64ff8c7695e829) Thanks [@kyscott18](https://github.com/kyscott18)! - Created `bponder-utils` package. Moved `eth_getLogs` retry helper from `@ponder/core` to `bponder-utils`.
 
 - [#689](https://github.com/ponder-sh/ponder/pull/689) [`33b0fda4ca3f777fd9a8e1d6f3ca85efb12ec677`](https://github.com/ponder-sh/ponder/commit/33b0fda4ca3f777fd9a8e1d6f3ca85efb12ec677) Thanks [@kyscott18](https://github.com/kyscott18)! - Fix issue with maxHistoricalTaskConcurrency config being ignored.
 
 - Updated dependencies [[`2a1842e1db2329b1c88c613b0a64ff8c7695e829`](https://github.com/ponder-sh/ponder/commit/2a1842e1db2329b1c88c613b0a64ff8c7695e829)]:
-  - @ponder/utils@0.0.1
+  - bponder-utils@0.0.1
 
 ## 0.2.15
 
@@ -3119,7 +3119,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#270](https://github.com/0xOlias/ponder/pull/270) [`9919db8`](https://github.com/0xOlias/ponder/commit/9919db807e546d220d92706f00910afaa4424ea2) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed a bug where the server would crash if no event handlers were registered in a file that had `import { ponder } from "ponder:registry"`
+- [#270](https://github.com/0xOlias/ponder/pull/270) [`9919db8`](https://github.com/0xOlias/ponder/commit/9919db807e546d220d92706f00910afaa4424ea2) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed a bug where the server would crash if no event handlers were registered in a file that had `import { ponder } from "bponder:registry"`
 
 ## 0.0.75
 
@@ -3347,7 +3347,7 @@ No changes in this release.
 - [#151](https://github.com/0xOlias/ponder/pull/151) [`ace6a36`](https://github.com/0xOlias/ponder/commit/ace6a3664c2e1354701e2225d0f5c92c3eae9a28) Thanks [@0xOlias](https://github.com/0xOlias)! - Added support for a "setup" event which is processed before all log events. The "setup" event handler argument only includes `context` (no `event` property). Example:
 
   ```ts
-  import { ponder } from "ponder:registry";
+  import { ponder } from "bponder:registry";
 
   ponder.on("setup", async ({ context }) => {
     const { MyEntity } = context.entities;
@@ -3455,18 +3455,18 @@ No changes in this release.
 
 - [#118](https://github.com/0xOlias/ponder/pull/118) [`84b4ca0`](https://github.com/0xOlias/ponder/commit/84b4ca0b7e3b4e73ff6daa8c317b48a22b4ca652) Thanks [@0xOlias](https://github.com/0xOlias)! - Updated package exports to include cjs and esm
 
-- [#118](https://github.com/0xOlias/ponder/pull/118) [`84b4ca0`](https://github.com/0xOlias/ponder/commit/84b4ca0b7e3b4e73ff6daa8c317b48a22b4ca652) Thanks [@0xOlias](https://github.com/0xOlias)! - Added support for a path alias `ponder:registry` in Ponder project `src` files.
+- [#118](https://github.com/0xOlias/ponder/pull/118) [`84b4ca0`](https://github.com/0xOlias/ponder/commit/84b4ca0b7e3b4e73ff6daa8c317b48a22b4ca652) Thanks [@0xOlias](https://github.com/0xOlias)! - Added support for a path alias `bponder:registry` in Ponder project `src` files.
 
   ```ts
   // src/SomeContract.ts
-  import { ponder } from "ponder:registry";
+  import { ponder } from "bponder:registry";
 
   ponder.on(...)
   ```
 
   ```ts
   // src/nested/AnotherContract.ts
-  import { ponder } from "ponder:registry";
+  import { ponder } from "bponder:registry";
 
   ponder.on(...)
 
@@ -3631,7 +3631,7 @@ No changes in this release.
   });
   ```
 
-  Updated `create-ponder` to use this pattern for newly generated projects
+  Updated `create-bponder` to use this pattern for newly generated projects
 
 - [#71](https://github.com/0xOlias/ponder/pull/71) [`e90c241`](https://github.com/0xOlias/ponder/commit/e90c2410a33ea61a05d24f82c8aa2bafb0696612) Thanks [@0xOlias](https://github.com/0xOlias)! - Added two options to Source (in ponder.ts): `source.endBlock` and `source.isIndexed`.
 

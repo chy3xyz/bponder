@@ -1,5 +1,5 @@
-import { type Context, ponder } from "ponder:registry";
-import schema from "ponder:schema";
+import { type Context, ponder } from "bponder:registry";
+import schema from "bponder:schema";
 import { type Address, erc20Abi, zeroAddress } from "viem";
 
 // Reset period values in seconds

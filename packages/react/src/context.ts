@@ -1,6 +1,6 @@
 "use client";
 
-import type { Client } from "@ponder/client";
+import type { Client } from "bponder-client";
 import { createContext, createElement, type ReactNode } from "react";
 
 export const PonderContext = createContext<Client | undefined>(undefined);

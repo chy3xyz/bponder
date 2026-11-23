@@ -54,17 +54,17 @@ const getPonderMetaTable = (schema?: string) => {
 };
 
 /**
- * Middleware for `@ponder/client`.
+ * Middleware for `bponder-client`.
  *
  * @param db - Drizzle database instance
  * @param schema - Ponder schema
  *
  * @example
  * ```ts
- * import { db } from "ponder:api";
- * import schema from "ponder:schema";
+ * import { db } from "bponder:api";
+ * import schema from "bponder:schema";
  * import { Hono } from "hono";
- * import { client } from "ponder";
+ * import { client } from "bponder";
  *
  * const app = new Hono();
  *
@@ -292,7 +292,7 @@ export const client = ({
         });
       } catch (error) {
         globalThis.PONDER_COMMON.logger.warn({
-          msg: 'Failed to start Bun.SQL LISTEN for "@ponder/client" middleware',
+          msg: 'Failed to start Bun.SQL LISTEN for "bponder-client" middleware',
           error: error as Error,
         });
       }
@@ -319,7 +319,7 @@ export const client = ({
             }
 
             globalThis.PONDER_COMMON.logger.info({
-              msg: `Established listen connection for "@ponder/client" middleware`,
+              msg: `Established listen connection for "bponder-client" middleware`,
             });
 
             client.on("notification", (notification) => {
@@ -378,7 +378,7 @@ export const client = ({
 
             client.on("error", async (error) => {
               globalThis.PONDER_COMMON.logger.warn({
-                msg: `Failed listen connection for "@ponder/client" middleware`,
+                msg: `Failed listen connection for "bponder-client" middleware`,
                 retry_delay: 250,
                 error,
               });
@@ -397,7 +397,7 @@ export const client = ({
             await client.query(`LISTEN "${channel}"`);
           } catch (error) {
             globalThis.PONDER_COMMON.logger.warn({
-              msg: `Failed listen connection for "@ponder/client" middleware`,
+              msg: `Failed listen connection for "bponder-client" middleware`,
               retry_delay: 250,
               error: error as Error,
             });

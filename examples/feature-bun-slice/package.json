@@ -1,13 +1,13 @@
 {
-  "name": "ponder-examples-feature-bun-slice",
+  "name": "bponder-examples-feature-bun-slice",
   "private": true,
   "type": "module",
   "scripts": {
     "smoke": "bun run scripts/smoke.ts"
   },
   "dependencies": {
-    "@ponder/schema": "workspace:*",
-    "ponder": "workspace:*"
+    "bponder-schema": "file:../../packages/schema",
+    "bponder": "file:../../packages/core"
   },
   "engines": {
     "bun": ">=1.4.0"

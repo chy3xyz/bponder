@@ -1,5 +1,5 @@
-import { ponder } from "ponder:registry";
-import schema from "ponder:schema";
+import { ponder } from "bponder:registry";
+import schema from "bponder:schema";
 import { parseAbi } from "viem";
 
 ponder.on("ChainlinkPriceOracle:block", async ({ event, context }) => {

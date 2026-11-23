@@ -1,25 +1,25 @@
 import childProcess from "node:child_process";
 import crypto from "node:crypto";
-import { type PonderApp, start } from "@ponder/bin/commands/start.js";
-import { createQB } from "@ponder/database/queryBuilder.js";
-import { getPrimaryKeyColumns } from "@ponder/drizzle/index.js";
+import { type PonderApp, start } from "@bponder-core/bin/commands/start.js";
+import { createQB } from "@bponder-core/database/queryBuilder.js";
+import { getPrimaryKeyColumns } from "@bponder-core/drizzle/index.js";
 import type {
   EventCallback,
   Factory,
   FragmentAddress,
-} from "@ponder/internal/types.js";
-import { eth_getBlockByNumber } from "@ponder/rpc/actions.js";
-import { createRpc } from "@ponder/rpc/index.js";
+} from "@bponder-core/internal/types.js";
+import { eth_getBlockByNumber } from "@bponder-core/rpc/actions.js";
+import { createRpc } from "@bponder-core/rpc/index.js";
 import {
   decodeFragment,
   getFactoryFragmentIds,
   getFragments,
   isFragmentAddressFactory,
-} from "@ponder/runtime/fragments.js";
-import * as PONDER_SYNC from "@ponder/sync-store/schema.js";
-import { decodeCheckpoint } from "@ponder/utils/checkpoint";
-import { getChunks, intervalUnion } from "@ponder/utils/interval.js";
-import { promiseWithResolvers } from "@ponder/utils/promiseWithResolvers.js";
+} from "@bponder-core/runtime/fragments.js";
+import * as PONDER_SYNC from "@bponder-core/sync-store/schema.js";
+import { decodeCheckpoint } from "bponder-utils/checkpoint";
+import { getChunks, intervalUnion } from "bponder-utils/interval.js";
+import { promiseWithResolvers } from "bponder-utils/promiseWithResolvers.js";
 import { Command } from "commander";
 import {
   and,

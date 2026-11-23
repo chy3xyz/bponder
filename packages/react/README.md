@@ -1,4 +1,4 @@
-# @ponder/react
+# bponder-react
 
 React hook library for Ponder SQL over HTTP queries.
 

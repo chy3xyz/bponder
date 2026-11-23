@@ -1,5 +1,5 @@
 {
-  "name": "@ponder/client",
+  "name": "bponder-client",
   "version": "0.18.9",
   "description": "Client library for Ponder SQL over HTTP queries",
   "license": "MIT",

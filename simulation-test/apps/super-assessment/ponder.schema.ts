@@ -1,4 +1,4 @@
-import { onchainTable, primaryKey } from "ponder";
+import { onchainTable, primaryKey } from "bponder";
 
 export const checkpoints = onchainTable("checkpoints", (t) => ({
   chainId: t.int8({ mode: "number" }).primaryKey(),

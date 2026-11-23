@@ -1,16 +1,16 @@
 {
   "private": true,
   "type": "module",
-  "name": "ponder-examples-with-foundry-ponder",
+  "name": "bponder-examples-with-foundry-ponder",
   "scripts": {
-    "codegen": "ponder codegen",
-    "dev": "ponder dev",
-    "start": "ponder start",
+    "codegen": "bponder codegen",
+    "dev": "bponder dev",
+    "start": "bponder start",
     "typecheck": "tsc"
   },
   "dependencies": {
-    "ponder": "workspace:*",
-    "hono": "^4.5.0",
+    "bponder": "file:../../../packages/core",
+    "hono": "4.5.0",
     "viem": "2.35.0"
   },
   "devDependencies": {

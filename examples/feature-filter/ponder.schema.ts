@@ -1,4 +1,4 @@
-import { onchainTable } from "ponder";
+import { onchainTable } from "bponder";
 
 export const swapEvent = onchainTable("swapEvent", (t) => ({
   id: t.text().primaryKey(),

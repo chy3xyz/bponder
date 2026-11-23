@@ -1,4 +1,4 @@
-# @ponder/client
+# bponder-client
 
 Client library for Ponder SQL over HTTP queries.
 

@@ -1,4 +1,4 @@
-import type { Client } from "@ponder/client";
+import type { Client } from "bponder-client";
 import type { QueryKey } from "@tanstack/react-query";
 
 export type PonderQuerySource =

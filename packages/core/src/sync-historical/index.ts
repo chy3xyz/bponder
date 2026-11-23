@@ -1,4 +1,4 @@
-import { getLogsRetryHelper } from "@ponder/utils";
+import { getLogsRetryHelper } from "bponder-utils";
 import {
   type Address,
   type Hash,

@@ -87,7 +87,7 @@ In the root directory, run the build command:
 bun run build
 ```
 
-After the build completes, Bun links workspace packages for development. Example apps under `examples/` resolve the local `ponder` package.
+After the build completes, Bun links workspace packages (`packages/*`, `benchmark`, `simulation-test`) for development. `examples/` is **outside** the workspace graph (keeps root installs lean); each example uses `file:` deps into `packages/*`, so run `bun install` inside an example directory when you need it.
 
 <div align="right">
   <a href="#get-started">&uarr; back to top</a></b>
@@ -129,11 +129,7 @@ Any test-friendly Postgres server will do. MacOS users can download [Postgres.ap
 
 ## Write documentation
 
-Ponder uses [Vocs](https://vocs.dev) and Markdown for the documentation website (located at [`docs`](../docs)). To start the docs website in dev mode, run:
-
-```bash
-bun run --filter ponder-docs dev
-```
+Docs are plain Markdown under [`docs/`](../docs) (see [`docs/README.md`](../docs/README.md)). There is no Vocs / docs website build — edit `.md` files directly and link relatively.
 
 <div align="right">
   <a href="#get-started">&uarr; back to top</a></b>
@@ -154,25 +150,23 @@ When you submit a pull request, a GitHub Action will automatically lint, build, 
 
 ## Versioning and releases
 
-Ponder uses [changesets](https://github.com/changesets/changesets) to manage package versioning and NPM releases.
-
-Ponder is still in alpha, so all changes should be marked as a patch.
+bponder uses [changesets](https://github.com/changesets/changesets) to manage package versioning and npm releases. CI publishes with [npm Trusted Publishing (OIDC)](https://docs.npmjs.com/trusted-publishers/) from `.github/workflows/release.yml` — no long-lived `NPM_TOKEN`. See [Publishing to npm](../docs/guides/npm-publish.md).
 
 ### Changesets workflow
 
 1. Write a PR that includes a public API change or bug fix.
-2. Create a changeset using `bunx changeset`. The changesets CLI will ask you which package is affected (`ponder` or `create-ponder`) and if the change is a patch, minor, or major release.
-3. The changesets CLI will generate a Markdown file in `.changeset/` that includes the details you provided. Commit this file to your PR branch (e.g. `git commit -m "chore: changeset"`).
+2. Create a changeset using `bunx changeset`. Affected packages are typically `bponder`, `create-bponder`, `bponder-client`, or `bponder-react` (patch / minor / major).
+3. The changesets CLI will generate a Markdown file in `.changeset/`. Commit it to your PR branch (e.g. `git commit -m "chore: changeset"`).
 4. When you push this commit to remote, a GitHub bot will detect the changeset and add a comment to your PR with a preview of the changelog.
-5. Merge your PR. The changesets Github Action workflow will open (or update) a PR with the title `"chore: version packages"`. The changes in your PR **will not be released** until this PR is merged.
+5. Merge your PR. The version workflow opens (or updates) a PR titled `"chore: version packages"`. Changes are **not** released until that PR is merged.
 
 ### Prereleases
 
-If you want to do a release before merging code to main, follow the steps above, creating a changeset but stop before merging your pr. Instead, trigger the `snapshot.yml` workflow. This will create a [snapshot](https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md) release available on npm with an automatically generated tag in the name (i.e `0.11.4-kjs/drizzle-20250516152012`).
+To cut a pre-merge snapshot, create a changeset then run **Actions → Release** on your branch (`workflow_dispatch`). That publishes a [snapshot](https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md) tag via OIDC (Trusted Publisher must already be configured).
 
 ### Releases
 
-When you're ready to release, merge the `"chore: version packages"` PR into `main`. This will trigger the changesets Github Action workflow to build packages, publish to NPM, and create a new GitHub release.
+Merge the `"chore: version packages"` PR into `main`. The Release workflow builds packages and runs `changeset publish` with OIDC. Each npm package must have Trusted Publisher set to workflow `release.yml` and GitHub environment `npm`.
 
 <div align="right">
   <a href="#get-started">&uarr; back to top</a></b>

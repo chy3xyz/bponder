@@ -15,8 +15,8 @@ import { buildDataLoaderCache, buildGraphQLSchema } from "./index.js";
  * - Docs: https://ponder.sh/docs/api-reference/ponder/api-endpoints#graphql
  *
  * @example
- * import { db } from "ponder:api";
- * import schema from "ponder:schema";
+ * import { db } from "bponder:api";
+ * import schema from "bponder:schema";
  * import { graphql } from "@/index.js";
  * import { Hono } from "hono";
  *

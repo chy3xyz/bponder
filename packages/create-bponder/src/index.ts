@@ -148,7 +148,7 @@ export async function run({
   log();
   log(
     `Welcome to ${pico.bold(
-      pico.blue("create-ponder"),
+      pico.blue("create-bponder"),
     )} – the quickest way to get started with Ponder!`,
   );
   log();
@@ -252,7 +252,7 @@ export async function run({
         Object.values(config.contracts).some((c) => Array.isArray(c.abi))
           ? ", mergeAbis"
           : ""
-      } } from "ponder";
+      } } from "bponder";
 
       ${Object.values(config.contracts)
         .flatMap((c) => c.abi)
@@ -309,7 +309,7 @@ export async function run({
         .slice(0, 4);
 
       const indexingFunctionFileContents = `
-      import { ponder } from 'ponder:registry'
+      import { ponder } from 'bponder:registry'
 
       ${eventNamesToWrite
         .map(
@@ -333,7 +333,7 @@ export async function run({
   // Create package.json for project
   const packageJson = await fs.readJSON(path.join(projectPath, "package.json"));
   packageJson.name = projectName;
-  packageJson.dependencies.ponder = `^${rootPackageJson.version}`;
+  packageJson.dependencies.bponder = `^${rootPackageJson.version}`;
   packageJson.engines = {
     bun: rootPackageJson.engines?.bun ?? ">=1.4.0",
   };
@@ -385,7 +385,7 @@ export async function run({
             "commit",
             "--no-verify",
             "--message",
-            "chore: initial commit from create-ponder",
+            "chore: initial commit from create-bponder",
           ],
           { cwd: projectPath },
         );
@@ -433,7 +433,7 @@ async function ensureBunScaffold(projectPath: string) {
   if (!(await fs.pathExists(bunfigPath))) {
     await fs.writeFile(
       bunfigPath,
-      "# Ponder requires Bun >=1.4.0 (https://bun.sh).\n# `ponder` uses a Bun shebang, so `bun run dev` is enough — no `--bun` flag.\n",
+      "# Ponder requires Bun >=1.4.0 (https://bun.sh).\n# `bponder` uses a Bun shebang, so `bun run dev` is enough — no `--bun` flag.\n",
     );
   }
 
@@ -463,7 +463,7 @@ function isCliEntrypoint(): boolean {
 function assertBunRuntime(): void {
   if (process.versions.bun !== undefined) return;
   process.stderr.write(
-    "create-ponder requires Bun >=1.4.0. Run with `bun` (https://bun.sh).\n",
+    "create-bponder requires Bun >=1.4.0. Run with `bun` (https://bun.sh).\n",
   );
   process.exit(1);
 }

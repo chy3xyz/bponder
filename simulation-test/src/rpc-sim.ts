@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
-import { zeroLogsBloom } from "@ponder/sync-realtime/bloom.js";
-import { promiseWithResolvers } from "@ponder/utils/promiseWithResolvers.js";
-import { createQueue } from "@ponder/utils/queue.js";
+import { zeroLogsBloom } from "@bponder-core/sync-realtime/bloom.js";
+import { promiseWithResolvers } from "bponder-utils/promiseWithResolvers.js";
+import { createQueue } from "bponder-utils/queue.js";
 import { and, eq } from "drizzle-orm";
 import seedrandom from "seedrandom";
 import {

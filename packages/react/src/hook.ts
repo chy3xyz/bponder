@@ -1,6 +1,6 @@
 "use client";
 
-import type { Client, Status } from "@ponder/client";
+import type { Client, Status } from "bponder-client";
 import {
   type DefaultError,
   type QueryKey,

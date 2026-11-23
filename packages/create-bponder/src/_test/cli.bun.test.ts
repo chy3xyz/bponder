@@ -52,7 +52,7 @@ test("create empty", async () => {
 
   expect(pkg.engines).toEqual({ bun: ">=1.4.0" });
   expect(pkg.engines?.node).toBeUndefined();
-  expect(pkg.scripts?.dev).toBe("ponder dev");
+  expect(pkg.scripts?.dev).toBe("bponder dev");
   for (const script of Object.values(pkg.scripts ?? {})) {
     expect(script).not.toContain("bun --bun");
   }

@@ -3,26 +3,23 @@
   "private": true,
   "workspaces": [
     "benchmark",
-    "docs",
     "simulation-test",
-    "examples/**",
     "packages/*"
   ],
   "scripts": {
     "bench:ponder:ci": "bun run --cwd benchmark benchmark",
-    "build": "bun run --cwd packages/utils build && bun run --cwd packages/client build && bun run --cwd packages/core build && bun run --cwd packages/react build && bun run --cwd packages/create-ponder build",
+    "build": "bun run --cwd packages/utils build && bun run --cwd packages/client build && bun run --cwd packages/core build && bun run --cwd packages/react build && bun run --cwd packages/create-bponder build",
     "format": "biome format . --write",
     "lint": "biome check .",
     "lint:fix": "biome check . --write",
     "test": "bun run --cwd packages/core test",
     "test:bun": "bun run --cwd packages/core test:bun",
-    "typecheck": "bun run --cwd packages/utils typecheck && bun run --cwd packages/client typecheck && bun run --cwd packages/core typecheck && bun run --cwd packages/react typecheck && bun run --cwd packages/create-ponder typecheck"
+    "typecheck": "bun run --cwd packages/utils typecheck && bun run --cwd packages/client typecheck && bun run --cwd packages/core typecheck && bun run --cwd packages/react typecheck && bun run --cwd packages/create-bponder typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.4",
     "@changesets/changelog-github": "1.0.1",
     "@changesets/cli": "3.0.3",
-    "drizzle-kit": "^0.30.6",
     "hono": "4.5.0",
     "typescript": "5.4.5",
     "viem": "2.35.0"
@@ -31,6 +28,10 @@
     "@biomejs/biome",
     "esbuild"
   ],
+  "overrides": {
+    "hono": "4.5.0",
+    "vite": "6.4.1"
+  },
   "packageManager": "bun@1.4.5",
   "engines": {
     "bun": ">=1.4.0"

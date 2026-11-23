@@ -7,10 +7,10 @@ declare const schema: typeof import("../ponder.schema.js");
 
 // @ts-expect-error
 // biome-ignore lint/suspicious/noRedeclare: Generated registry imports intentionally shadow the local declarations.
-import { ponder } from "ponder:registry";
+import { ponder } from "bponder:registry";
 // @ts-expect-error
 // biome-ignore lint/suspicious/noRedeclare: Generated registry imports intentionally shadow the local declarations.
-import schema from "ponder:schema";
+import schema from "bponder:schema";
 
 ponder.on("Pair:Swap", async ({ event, context }) => {
   await context.db.insert(schema.swapEvent).values({

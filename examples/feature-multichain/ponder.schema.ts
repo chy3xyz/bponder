@@ -1,4 +1,4 @@
-import { onchainTable, primaryKey } from "ponder";
+import { onchainTable, primaryKey } from "bponder";
 
 export const account = onchainTable(
   "account",

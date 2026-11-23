@@ -1,5 +1,5 @@
 {
-  "name": "ponder",
+  "name": "bponder",
   "version": "0.18.9",
   "description": "An open-source TypeScript framework for EVM data indexing",
   "license": "MIT",
@@ -23,7 +23,7 @@
     "LICENSE"
   ],
   "bin": {
-    "ponder": "./src/bin/ponder.ts"
+    "bponder": "./src/bin/ponder.ts"
   },
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -73,8 +73,8 @@
     "@escape.tech/graphql-armor-max-aliases": "^2.3.0",
     "@escape.tech/graphql-armor-max-depth": "^2.2.0",
     "@escape.tech/graphql-armor-max-tokens": "^2.3.0",
-    "@ponder/schema": "workspace:*",
-    "@ponder/utils": "workspace:*",
+    "bponder-schema": "workspace:*",
+    "bponder-utils": "workspace:*",
     "abitype": "^0.10.2",
     "ansi-escapes": "^7.0.0",
     "commander": "^12.0.0",
@@ -95,7 +95,7 @@
   },
   "devDependencies": {
     "@pgsql/types": "16.0.0",
-    "@ponder/client": "workspace:*",
+    "bponder-client": "workspace:*",
     "@types/babel__code-frame": "^7.0.6",
     "@types/bun": "1.4.5",
     "@types/glob": "^8.1.0",
@@ -105,13 +105,13 @@
     "@viem/anvil": "^0.0.6",
     "@wagmi/cli": "^1.5.2",
     "chokidar": "^4.0.3",
+    "drizzle-kit": "^0.30.6",
     "execa": "^8.0.1",
     "mitata": "^1.0.34",
     "pg": "^8.16.2",
     "pg-connection-string": "^2.6.2",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.2",
-    "vite": "8.3.1",
     "vitest": "5.0.2"
   },
   "engines": {

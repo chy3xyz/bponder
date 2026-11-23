@@ -1,4 +1,4 @@
-# create-ponder
+# create-bponder
 
 ## 0.18.9
 
@@ -30,7 +30,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#2438](https://github.com/ponder-sh/ponder/pull/2438) [`bf8acf2`](https://github.com/ponder-sh/ponder/commit/bf8acf271a450c9308c8d07287ee43cd82c4fd1d) Thanks [@kyscott18](https://github.com/kyscott18)! - Removed ESLint and `eslint-config-ponder` from projects created by `create-ponder`. The `eslint-config-ponder` package is no longer maintained.
+- [#2438](https://github.com/ponder-sh/ponder/pull/2438) [`bf8acf2`](https://github.com/ponder-sh/ponder/commit/bf8acf271a450c9308c8d07287ee43cd82c4fd1d) Thanks [@kyscott18](https://github.com/kyscott18)! - Removed ESLint and `eslint-config-ponder` from projects created by `create-bponder`. The `eslint-config-ponder` package is no longer maintained.
 
 ## 0.18.2
 
@@ -68,7 +68,7 @@ No changes in this release.
 
 - [#2332](https://github.com/ponder-sh/ponder/pull/2332) [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated the minimum supported TypeScript version to `5.4.0`. Newly created Ponder projects now use TypeScript `5.4.0`.
 
-- [#2332](https://github.com/ponder-sh/ponder/pull/2332) [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated the minimum required Node.js version from `18.14` to `22`. Running `ponder dev`, `ponder start`, `ponder serve`, `ponder codegen`, or `create-ponder` on older Node.js versions now exits with the error `Invalid Node.js version`.
+- [#2332](https://github.com/ponder-sh/ponder/pull/2332) [`5075dc1`](https://github.com/ponder-sh/ponder/commit/5075dc1251f1253457c60ad8c9a722229a19cd30) Thanks [@kyscott18](https://github.com/kyscott18)! - Updated the minimum required Node.js version from `18.14` to `22`. Running `ponder dev`, `ponder start`, `ponder serve`, `ponder codegen`, or `create-bponder` on older Node.js versions now exits with the error `Invalid Node.js version`.
 
 ## 0.16.10
 
@@ -668,15 +668,15 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#997](https://github.com/ponder-sh/ponder/pull/997) [`0afd6fa3d322fa08219765cb656402942de06ce0`](https://github.com/ponder-sh/ponder/commit/0afd6fa3d322fa08219765cb656402942de06ce0) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed an issue where the `create-ponder` subgraph template would not fetch IPFS files correctly. Added a `--skip-install` option to `create-ponder`.
+- [#997](https://github.com/ponder-sh/ponder/pull/997) [`0afd6fa3d322fa08219765cb656402942de06ce0`](https://github.com/ponder-sh/ponder/commit/0afd6fa3d322fa08219765cb656402942de06ce0) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed an issue where the `create-bponder` subgraph template would not fetch IPFS files correctly. Added a `--skip-install` option to `create-bponder`.
 
 ## 0.5.1
 
 ### Patch Changes
 
-- [#987](https://github.com/ponder-sh/ponder/pull/987) [`fb8c0a2e80cdf4a991090a600b04b26d0a9743ad`](https://github.com/ponder-sh/ponder/commit/fb8c0a2e80cdf4a991090a600b04b26d0a9743ad) Thanks [@robiiinos](https://github.com/robiiinos)! - Fixed default contract address in `create-ponder` empty template.
+- [#987](https://github.com/ponder-sh/ponder/pull/987) [`fb8c0a2e80cdf4a991090a600b04b26d0a9743ad`](https://github.com/ponder-sh/ponder/commit/fb8c0a2e80cdf4a991090a600b04b26d0a9743ad) Thanks [@robiiinos](https://github.com/robiiinos)! - Fixed default contract address in `create-bponder` empty template.
 
-- [#991](https://github.com/ponder-sh/ponder/pull/991) [`0f7879b5fc78869794c221482e8cfdf9b7adcd67`](https://github.com/ponder-sh/ponder/commit/0f7879b5fc78869794c221482e8cfdf9b7adcd67) Thanks [@mirshko](https://github.com/mirshko)! - Added support for Alchemy Subgraph (Satsuma) subgraphs in the `create-ponder` subgraph template via the `--subgraph-provider` option or prompt.
+- [#991](https://github.com/ponder-sh/ponder/pull/991) [`0f7879b5fc78869794c221482e8cfdf9b7adcd67`](https://github.com/ponder-sh/ponder/commit/0f7879b5fc78869794c221482e8cfdf9b7adcd67) Thanks [@mirshko](https://github.com/mirshko)! - Added support for Alchemy Subgraph (Satsuma) subgraphs in the `create-bponder` subgraph template via the `--subgraph-provider` option or prompt.
 
 ## 0.5.0
 
@@ -878,7 +878,7 @@ No changes in this release.
 
 - [#582](https://github.com/ponder-sh/ponder/pull/582) [`e7219d90178725fc51a8078358583844d7fe4a61`](https://github.com/ponder-sh/ponder/commit/e7219d90178725fc51a8078358583844d7fe4a61) Thanks [@grayleonard](https://github.com/grayleonard)! - Re-added subgraph ID support
 
-- [#585](https://github.com/ponder-sh/ponder/pull/585) [`2e208b41a0923ffa9b9179519294968ddd4b9cab`](https://github.com/ponder-sh/ponder/commit/2e208b41a0923ffa9b9179519294968ddd4b9cab) Thanks [@0xOlias](https://github.com/0xOlias)! - Renamed `create-ponder` CLI options `--etherscan-contract-link` to `--etherscan` and `--subgraph-id` to `--subgraph`.
+- [#585](https://github.com/ponder-sh/ponder/pull/585) [`2e208b41a0923ffa9b9179519294968ddd4b9cab`](https://github.com/ponder-sh/ponder/commit/2e208b41a0923ffa9b9179519294968ddd4b9cab) Thanks [@0xOlias](https://github.com/0xOlias)! - Renamed `create-bponder` CLI options `--etherscan-contract-link` to `--etherscan` and `--subgraph-id` to `--subgraph`.
 
 ## 0.1.7
 
@@ -902,7 +902,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#535](https://github.com/ponder-sh/ponder/pull/535) [`d9277db8922dd6e7203b35daeb98673807559cbf`](https://github.com/ponder-sh/ponder/commit/d9277db8922dd6e7203b35daeb98673807559cbf) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed bug where create-ponder was still prompting for a template choice even when an etherscan contract link was submitted
+- [#535](https://github.com/ponder-sh/ponder/pull/535) [`d9277db8922dd6e7203b35daeb98673807559cbf`](https://github.com/ponder-sh/ponder/commit/d9277db8922dd6e7203b35daeb98673807559cbf) Thanks [@kyscott18](https://github.com/kyscott18)! - Fixed bug where create-bponder was still prompting for a template choice even when an etherscan contract link was submitted
 
 ## 0.1.1
 
@@ -936,7 +936,7 @@ No changes in this release.
 
 - [#328](https://github.com/0xOlias/ponder/pull/328) [`caaf75c`](https://github.com/0xOlias/ponder/commit/caaf75cf360b98499826349b5eb594d95e42cc98) Thanks [@eliobricenov](https://github.com/eliobricenov)! - Added support for Windows via WSL.
 
-- [#338](https://github.com/0xOlias/ponder/pull/338) [`9816bc9`](https://github.com/0xOlias/ponder/commit/9816bc9e5eb8743e3c7f1b78270413b9255cf19e) Thanks [@eliobricenov](https://github.com/eliobricenov)! - Updated create-ponder bin script name from "ponder" to "create-ponder" to fix yarn create ponder
+- [#338](https://github.com/0xOlias/ponder/pull/338) [`9816bc9`](https://github.com/0xOlias/ponder/commit/9816bc9e5eb8743e3c7f1b78270413b9255cf19e) Thanks [@eliobricenov](https://github.com/eliobricenov)! - Updated create-bponder bin script name from "bponder" to "create-bponder" to fix yarn create ponder
 
 ## 0.0.87
 
@@ -944,7 +944,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#310](https://github.com/0xOlias/ponder/pull/310) [`2ba4b30`](https://github.com/0xOlias/ponder/commit/2ba4b3001402e629dd8956787686a44605c22fa0) Thanks [@eliobricenov](https://github.com/eliobricenov)! - Created `eslint-config-ponder` package and added a prompt to include it during `create-ponder`.
+- [#310](https://github.com/0xOlias/ponder/pull/310) [`2ba4b30`](https://github.com/0xOlias/ponder/commit/2ba4b3001402e629dd8956787686a44605c22fa0) Thanks [@eliobricenov](https://github.com/eliobricenov)! - Created `eslint-config-ponder` package and added a prompt to include it during `create-bponder`.
 
 ## 0.0.85
 
@@ -1006,7 +1006,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#233](https://github.com/0xOlias/ponder/pull/233) [`1a44573`](https://github.com/0xOlias/ponder/commit/1a4457399ad33ab5652d054ded42bc5718cb5462) Thanks [@0xOlias](https://github.com/0xOlias)! - Added support for explorer.zora.energy links in `create-ponder` etherscan template.
+- [#233](https://github.com/0xOlias/ponder/pull/233) [`1a44573`](https://github.com/0xOlias/ponder/commit/1a4457399ad33ab5652d054ded42bc5718cb5462) Thanks [@0xOlias](https://github.com/0xOlias)! - Added support for explorer.zora.energy links in `create-bponder` etherscan template.
 
 ## 0.0.64
 
@@ -1026,7 +1026,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [`b6c55c1`](https://github.com/0xOlias/ponder/commit/b6c55c185180f0efd50666b09efbdb20074f8906) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed bug where `create-ponder` Etherscan template would not work for old (non-compliant) EIP-1967 proxies
+- [`b6c55c1`](https://github.com/0xOlias/ponder/commit/b6c55c185180f0efd50666b09efbdb20074f8906) Thanks [@0xOlias](https://github.com/0xOlias)! - Fixed bug where `create-bponder` Etherscan template would not work for old (non-compliant) EIP-1967 proxies
 
 ## 0.0.56
 
@@ -1076,7 +1076,7 @@ No changes in this release.
 
 ### Patch Changes
 
-- [#123](https://github.com/0xOlias/ponder/pull/123) [`9d6f820`](https://github.com/0xOlias/ponder/commit/9d6f820e9d0d1815aa6ebf7b001c0a3139c58f7c) Thanks [@0xOlias](https://github.com/0xOlias)! - Migrated to viem and added `ponder:registry` alias in generated handler code
+- [#123](https://github.com/0xOlias/ponder/pull/123) [`9d6f820`](https://github.com/0xOlias/ponder/commit/9d6f820e9d0d1815aa6ebf7b001c0a3139c58f7c) Thanks [@0xOlias](https://github.com/0xOlias)! - Migrated to viem and added `bponder:registry` alias in generated handler code
 
 ## 0.0.39
 
@@ -1146,7 +1146,7 @@ No changes in this release.
   });
   ```
 
-  Updated `create-ponder` to use this pattern for newly generated projects
+  Updated `create-bponder` to use this pattern for newly generated projects
 
 - [#72](https://github.com/0xOlias/ponder/pull/72) [`df3ec60`](https://github.com/0xOlias/ponder/commit/df3ec601852556be788335c016c99710c4277487) Thanks [@0xOlias](https://github.com/0xOlias)! - **BREAKING** Changes ponder config naming.
 

@@ -1,9 +1,9 @@
-import { db } from "ponder:api";
-import schema from "ponder:schema";
+import { db } from "bponder:api";
+import schema from "bponder:schema";
 import { trpcServer } from "@hono/trpc-server";
 import { initTRPC } from "@trpc/server";
 import { Hono } from "hono";
-import { eq } from "ponder";
+import { eq } from "bponder";
 import type { Address } from "viem";
 import { z } from "zod";
 

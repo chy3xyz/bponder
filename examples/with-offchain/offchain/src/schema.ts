@@ -1,4 +1,4 @@
-import { setDatabaseSchema } from "@ponder/client";
+import { setDatabaseSchema } from "bponder-client";
 import { relations } from "drizzle-orm";
 import * as ponderSchema from "../../ponder/ponder.schema";
 import * as offchainSchema from "./offchain";

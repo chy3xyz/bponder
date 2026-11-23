@@ -1,4 +1,4 @@
-import { defineConfig } from "ponder";
+import { defineConfig } from "bponder";
 
 export default defineConfig({
   chains: {},

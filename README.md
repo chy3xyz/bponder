@@ -23,7 +23,7 @@ Repo: [github.com/chy3xyz/bponder](https://github.com/chy3xyz/bponder) · Defaul
 - Default `/v1` stack: `GET /v1/status`, `POST /v1/sql`, `GET /v1/live`
 - Vite optional only: `PONDER_USE_VITE=1`
 
-For conceptual guides that still match shared APIs, you can read [ponder.sh/docs](https://ponder.sh/docs). Prefer this repository’s `docs/` and `docs/plans/` for Bun-native behavior, cutover notes, and acceptance status.
+For conceptual guides that still match shared APIs, you can read [ponder.sh/docs](https://ponder.sh/docs). Prefer this repository’s plain Markdown under [`docs/`](./docs/README.md) (including [`docs/plans/`](./docs/plans/)) for Bun-native behavior, cutover notes, and acceptance status.
 
 ## Install CLI (GitHub Release binary)
 
@@ -97,7 +97,7 @@ const { rows } = await client.sql("SELECT * FROM ens_name LIMIT 10");
 
 ## Publishing
 
-CI releases use npm Trusted Publishing (OIDC) via `.github/workflows/release.yml`. After a successful `bponder` npm publish, `.github/workflows/release-binaries.yml` builds multi-platform CLI zips and attaches them to a `v*` GitHub Release for `install.sh`. Setup: [Publishing to npm](./docs/pages/docs/guides/npm-publish.mdx).
+CI releases use npm Trusted Publishing (OIDC) via `.github/workflows/release.yml`. After a successful `bponder` npm publish, `.github/workflows/release-binaries.yml` builds multi-platform CLI zips and attaches them to a `v*` GitHub Release for `install.sh`. Setup: [Publishing to npm](./docs/guides/npm-publish.md).
 
 ## Escape hatches
 
@@ -115,8 +115,8 @@ Bun-native defaults are wired and covered by focused bun tests + example smokes.
 
 - `docs/plans/2026-11-21-bun-native-acceptance.md`
 - `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`
-- `docs/pages/docs/guides/bun.mdx`
-- `docs/pages/docs/migration-guide.mdx`
+- `docs/guides/bun.md`
+- `docs/migration-guide.md`
 
 ## Packages (workspace)
 

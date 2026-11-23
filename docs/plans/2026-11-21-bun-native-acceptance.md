@@ -1,6 +1,7 @@
 # Bun-native final acceptance (Task 6.2)
 
 **Date:** 2026-11-21  
+
 **Branch:** `feat/bun-native` @ HEAD  
 **Plan:** `docs/plans/2026-11-20-ponder-bun-native.md`  
 **Design:** `docs/plans/2026-11-20-ponder-bun-native-design.md`  
@@ -143,7 +144,7 @@ These smokes exercise `defineConfig` / `ponder.on` / `@ponder/schema` / `Bun.SQL
 
 Workspace `package.json` files (including `packages/core`) have **no** `"@hono/node-server"`, `"pg-copy-streams"`, or `"ws"` keys. Source has no `from "@hono/node-server"` / `from "pg-copy-streams"` / `from "ws"` imports.
 
-Lockfile still contains **transitive** `@hono/node-server@2.1.5` via `vocs` (docs) and `@modelcontextprotocol/sdk`, and `ws@8.13.0` / `ws@8.18.3` as transitive packages. Those are not production `ponder` dependencies.
+Lockfile still contains **transitive** `@hono/node-server@2.1.5` via `@modelcontextprotocol/sdk`, and `ws@8.13.0` / `ws@8.18.3` as transitive packages. Those are not production `ponder` dependencies.
 
 `pg` / `vite` / `pg-connection-string` are **optional peers** of `ponder` (not production dependencies). Install them only for escape hatches.
 

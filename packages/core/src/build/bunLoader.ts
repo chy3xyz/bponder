@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { OnchainTable } from "@ponder/schema";
+import type { OnchainTable } from "bponder-schema";
 import type { PonderConfig } from "@/config/defineConfig.js";
 
 export type BunModule = Record<string, unknown>;
@@ -15,7 +15,7 @@ export async function loadBunModule(absolutePath: string): Promise<BunModule> {
     throw fileNotFound(resolved);
   }
 
-  // Intentionally stable file:// URL so `ponder:schema` re-exports share table identity.
+  // Intentionally stable file:// URL so `bponder:schema` re-exports share table identity.
   return (await import(pathToFileURL(resolved).href)) as BunModule;
 }
 export async function loadBunConfig(configPath: string): Promise<PonderConfig> {

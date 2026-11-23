@@ -3,7 +3,7 @@ import url from "node:url";
 import {
   type GetLogsRetryHelperParameters,
   getLogsRetryHelper,
-} from "@ponder/utils";
+} from "bponder-utils";
 import {
   BlockNotFoundError,
   custom,

@@ -5,8 +5,8 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@ponder/client": ["../client/src"],
-      "@ponder/utils": ["../utils/src"]
+      "bponder-client": ["../client/src"],
+      "bponder-utils": ["../utils/src"]
     }
   }
 }

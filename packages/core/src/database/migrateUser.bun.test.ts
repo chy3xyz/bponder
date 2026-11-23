@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { boolean, integer, onchainTable, text } from "@ponder/schema";
+import { boolean, integer, onchainTable, text } from "bponder-schema";
 import { type BunSqlDatabase, createBunSqlDatabase } from "./bunSql.js";
 import { migrateUser } from "./migrateUser.js";
 

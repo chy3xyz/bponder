@@ -141,7 +141,7 @@ describe("toIndexingConfig", () => {
 });
 
 describe("registerPonderBunPlugin", () => {
-  test("busts ponder:schema cache across sequential schema files", async () => {
+  test("busts bponder:schema cache across sequential schema files", async () => {
     const dirA = makeTempDir();
     const dirB = makeTempDir();
     const schemaA = join(dirA, "ponder.schema.ts");
@@ -164,19 +164,19 @@ export const beta = onchainTable("beta", (t) => ({
     );
 
     registerPonderBunPlugin({ schemaFile: schemaA });
-    const modA = await import("ponder:schema");
+    const modA = await import("bponder:schema");
     expect(Object.keys(modA.default)).toContain("alpha");
     expect(Object.keys(modA.default)).not.toContain("beta");
 
     registerPonderBunPlugin({ schemaFile: schemaB });
-    const modB = await import("ponder:schema");
+    const modB = await import("bponder:schema");
     expect(Object.keys(modB.default)).toContain("beta");
     expect(Object.keys(modB.default)).not.toContain("alpha");
   });
 });
 
 describe("loadBunApiApp", () => {
-  test("loads a Hono default export through ponder:api", async () => {
+  test("loads a Hono default export through bponder:api", async () => {
     const dir = makeTempDir();
     const schemaFile = join(dir, "ponder.schema.ts");
     writeProject({
@@ -188,8 +188,8 @@ export const account = onchainTable("account", (t) => ({
 }));
 `,
       api: `import { Hono } from "hono";
-import { db } from "ponder:api";
-import schema from "ponder:schema";
+import { db } from "bponder:api";
+import schema from "bponder:schema";
 
 const app = new Hono();
 app.get("/hello", (c) => {
@@ -263,7 +263,7 @@ export const account = onchainTable("account", (t) => ({
   id: t.text().primaryKey(),
 }));
 `,
-      indexing: `import { ponder } from "ponder:registry";
+      indexing: `import { ponder } from "bponder:registry";
 
 ponder.on("Token:Transfer", async () => {});
 `,
@@ -291,7 +291,7 @@ ponder.on("Token:Transfer", async () => {});
     ]);
   });
 
-  test("loads ponder.on handlers through ponder:registry and ponder:schema", async () => {
+  test("loads ponder.on handlers through bponder:registry and bponder:schema", async () => {
     const dir = makeTempDir();
     const schemaFile = join(dir, "ponder.schema.ts");
     writeProject({
@@ -303,15 +303,15 @@ export const account = onchainTable("account", (t) => ({
   id: t.text().primaryKey(),
 }));
 `,
-      indexing: `import { ponder } from "ponder:registry";
-import schema, { account } from "ponder:schema";
+      indexing: `import { ponder } from "bponder:registry";
+import schema, { account } from "bponder:schema";
 
 ponder.on("Token:Transfer", async () => {
   void schema;
   void account;
 });
 `,
-      api: `import { ponder } from "ponder:registry";
+      api: `import { ponder } from "bponder:registry";
 
 ponder.on("api:only", async () => {});
 `,

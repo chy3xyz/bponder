@@ -1,4 +1,4 @@
-import { createClient } from "@ponder/client";
+import { createClient } from "bponder-client";
 
 const client = createClient({ url: "http://localhost:42069" });
 

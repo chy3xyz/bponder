@@ -1,4 +1,4 @@
-import { createClient } from "@ponder/client";
+import { createClient } from "bponder-client";
 
 const client = createClient({
   url: import.meta.env.VITE_PONDER_URL ?? "http://localhost:42069",

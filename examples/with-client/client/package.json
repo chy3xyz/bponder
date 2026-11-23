@@ -1,5 +1,5 @@
 {
-  "name": "ponder-examples-with-client-client",
+  "name": "bponder-examples-with-client-client",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "bun": ">=1.4.0"
   },
   "dependencies": {
-    "@ponder/client": "workspace:*"
+    "bponder-client": "file:../../../packages/client"
   },
   "devDependencies": {
     "@types/pg": "^8.10.9",

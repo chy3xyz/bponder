@@ -1,8 +1,8 @@
-declare module "ponder:registry" {
-  import type { Virtual } from "ponder";
+declare module "bponder:registry" {
+  import type { Virtual } from "bponder";
 
-  type config = typeof import("ponder:internal").config;
-  type schema = typeof import("ponder:internal").schema;
+  type config = typeof import("bponder:internal").config;
+  type schema = typeof import("bponder:internal").schema;
 
   export const ponder: Virtual.Registry<config["default"], schema>;
 
@@ -20,18 +20,18 @@ declare module "ponder:registry" {
     Virtual.IndexingFunctionArgs<config["default"], schema, name>;
 }
 
-declare module "ponder:schema" {
-  const schema: typeof import("ponder:internal").schema;
+declare module "bponder:schema" {
+  const schema: typeof import("bponder:internal").schema;
 
   export { schema as default };
 }
 
-declare module "ponder:api" {
-  import type { ReadonlyDrizzle } from "ponder";
+declare module "bponder:api" {
+  import type { ReadonlyDrizzle } from "bponder";
   import type { PublicClient } from "viem";
 
-  type schema = typeof import("ponder:internal").schema;
-  type config = typeof import("ponder:internal").config;
+  type schema = typeof import("bponder:internal").schema;
+  type config = typeof import("bponder:internal").config;
 
   export const db: ReadonlyDrizzle<schema>;
   export const publicClients: {

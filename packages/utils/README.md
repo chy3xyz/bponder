@@ -1,4 +1,4 @@
-# @ponder/utils
+# bponder-utils
 
 A collection of utilities helpful for building Ponder apps.
 

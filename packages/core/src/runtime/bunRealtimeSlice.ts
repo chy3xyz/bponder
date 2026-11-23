@@ -1,4 +1,4 @@
-import type { OnchainTable } from "@ponder/schema";
+import type { OnchainTable } from "bponder-schema";
 import type { Registration } from "../app/ponder.js";
 import type { BunSqlDatabase } from "../database/bunSql.js";
 import {

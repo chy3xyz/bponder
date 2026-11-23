@@ -1,4 +1,4 @@
-import { type Context, type Event, ponder } from "ponder:registry";
+import { type Context, type Event, ponder } from "bponder:registry";
 import {
   blocks,
   checkpoints,
@@ -6,7 +6,7 @@ import {
   traces,
   transactionReceipts,
   transactions,
-} from "ponder:schema";
+} from "bponder:schema";
 import { ZERO_CHECKPOINT_STRING } from "../../../../packages/core/src/utils/checkpoint";
 import config from "../ponder.config";
 

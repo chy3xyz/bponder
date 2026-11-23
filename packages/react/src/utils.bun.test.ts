@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { Client, SqlResult, Status } from "@ponder/client";
+import type { Client, SqlResult, Status } from "bponder-client";
 import {
   getPonderQueryOptions,
   ponderStatusQueryKey,

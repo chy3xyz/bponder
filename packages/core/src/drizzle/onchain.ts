@@ -261,7 +261,7 @@ export type PgColumnsBuilders = Omit<
    * - Docs: https://ponder.sh/docs/api-reference/ponder/schema#onchaintable
    *
    * @example
-   * import { hex, onchainTable } from "ponder";
+   * import { hex, onchainTable } from "bponder";
    *
    * export const account = onchainTable("account", (p) => ({
    *   address: p.hex(),
@@ -274,7 +274,7 @@ export type PgColumnsBuilders = Omit<
    * - Docs: https://ponder.sh/docs/api-reference/ponder/schema#onchaintable
    *
    * @example
-   * import { bigint, onchainTable } from "ponder";
+   * import { bigint, onchainTable } from "bponder";
    *
    * export const account = onchainTable("account", (p) => ({
    *   balance: p.bigint(),
@@ -287,7 +287,7 @@ export type PgColumnsBuilders = Omit<
    * - Docs: https://ponder.sh/docs/api-reference/ponder/schema#onchaintable
    *
    * @example
-   * import { bytes, onchainTable } from "ponder";
+   * import { bytes, onchainTable } from "bponder";
    *
    * export const account = onchainTable("account", (p) => ({
    *   calldata: p.bytes(),
@@ -304,7 +304,7 @@ export type PgColumnsBuilders = Omit<
  * - Docs: https://ponder.sh/docs/api-reference/ponder/schema#onchaintable
  *
  * @example
- * import { onchainTable } from "ponder";
+ * import { onchainTable } from "bponder";
  *
  * export const account = onchainTable("account", (p) => ({
  *   address: p.hex().primaryKey(),
@@ -347,7 +347,7 @@ export const onchainTable = <
  * - Docs: https://ponder.sh/docs/api-reference/ponder/schema#onchainview
  *
  * @example
- * import { onchainView } from "ponder";
+ * import { onchainView } from "bponder";
  *
  * export const accountView = onchainView("account_view").as((qb) =>
  *   qb.select().from(account),

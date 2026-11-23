@@ -2,7 +2,7 @@
 
 Monorepo example: a Bun-native Ponder indexer next to a [SolidStart](https://docs.solidjs.com/solid-start) frontend that:
 
-- queries indexed data with [`@ponder/client`](https://ponder.sh) over Bun `/v1/sql`
+- queries indexed data with [`bponder-client`](https://ponder.sh) over Bun `/v1/sql`
 - connects an injected wallet on Base with [`@wagmi/solid`](https://wagmi.sh/solid/getting-started) and [`@tanstack/solid-query`](https://tanstack.com/query)
 
 The indexer watches WETH9 `Deposit` events on Base (`0x4200…0006`) from `startBlock: "latest"`.
@@ -101,7 +101,7 @@ bun run --cwd frontend preview
 | Wagmi config | `src/lib/wagmi.ts` — `createConfig` with `base`, `injected()`, `ssr: true` |
 | Providers | `src/app.tsx` — `WagmiProvider` wrapping `QueryClientProvider` |
 | Wallet UI | `src/components/ConnectWallet.tsx` — `useConnection` / `useConnect` / `useDisconnect` |
-| Indexed data | `src/components/DepositsTable.tsx` — `client.sql(...)` via `@ponder/client` |
+| Indexed data | `src/components/DepositsTable.tsx` — `client.sql(...)` via `bponder-client` |
 | API URL | `src/lib/ponder.ts` — `VITE_PONDER_URL` |
 
 Example query used by the table:
@@ -125,4 +125,4 @@ LIMIT 10
 - [Bun guide](../../docs/pages/docs/guides/bun.mdx)
 - [SolidStart](https://docs.solidjs.com/solid-start)
 - [@wagmi/solid getting started](https://wagmi.sh/solid/getting-started)
-- [@ponder/client](../../packages/client)
+- [bponder-client](../../packages/client)

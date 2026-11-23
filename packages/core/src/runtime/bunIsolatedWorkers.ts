@@ -1,4 +1,4 @@
-import type { OnchainTable } from "@ponder/schema";
+import type { OnchainTable } from "bponder-schema";
 import type { BunSqlDatabase, BunSqlTransaction } from "../database/bunSql.js";
 
 export type BunIsolatedEvent = {
