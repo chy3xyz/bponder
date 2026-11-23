@@ -1,10 +1,9 @@
 #!/usr/bin/env bun
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { Command } from "@commander-js/extra-typings";
 import dotenv from "dotenv";
 import type { Prettify } from "@/types/utils.js";
+// Embedded at compile-time for standalone GitHub Release binaries.
+import packageJson from "../../package.json" with { type: "json" };
 import { codegen } from "./commands/codegen.js";
 import { createViews } from "./commands/createViews.js";
 import { dev } from "./commands/dev.js";
@@ -18,17 +17,7 @@ assertBunRuntime();
 
 dotenv.config({ path: ".env.local" });
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const sourcePackageJsonPath = resolve(__dirname, "../../package.json");
-const distPackageJsonPath = resolve(__dirname, "../../../package.json");
-const packageJsonPath = existsSync(sourcePackageJsonPath)
-  ? sourcePackageJsonPath
-  : distPackageJsonPath;
-const packageJson = JSON.parse(
-  readFileSync(packageJsonPath, { encoding: "utf8" }),
-);
-
-const ponder = new Command("ponder")
+const ponder = new Command("bponder")
   .usage("<command> [OPTIONS]")
   .helpOption("-h, --help", "Show this help message")
   .helpCommand(false)

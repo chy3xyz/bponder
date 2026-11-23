@@ -1,0 +1,103 @@
+# Build standalone `bponder` CLI binaries (`bun build --compile`) and attach
+# them to a GitHub Release for `install.sh`.
+#
+# Triggers:
+#   - push of tags matching `v*` (e.g. v0.18.9)
+#   - workflow_dispatch (optional tag input)
+#   - workflow_call from release.yml after npm publish
+
+name: Release binaries
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create/update (e.g. v0.18.9). Empty = v$(packages/core version)."
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      tag:
+        description: "Release tag to create/update (e.g. v0.18.9)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-binaries-${{ github.ref }}-${{ inputs.tag || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-upload:
+    name: Build & upload binaries
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.5
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [[ -n "${{ inputs.tag }}" ]]; then
+            TAG="${{ inputs.tag }}"
+          elif [[ ${GITHUB_REF_TYPE:-} = tag ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            VERSION="$(bun -e "console.log(require('./packages/core/package.json').version)")"
+            TAG="v${VERSION}"
+          fi
+          case "$TAG" in
+            v*) ;;
+            *) TAG="v${TAG}" ;;
+          esac
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using release tag: $TAG"
+
+      - name: Build cross-compiled binaries
+        run: bash scripts/build-binaries.sh dist/binaries
+
+      - name: Create or update GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          NOTES="$(cat <<EOF
+          Standalone \`bponder\` CLI binaries (Bun-compiled).
+
+          Install latest:
+
+          \`\`\`bash
+          curl -fsSL https://raw.githubusercontent.com/chy3xyz/bponder/main/install.sh | bash
+          \`\`\`
+
+          Pin this release:
+
+          \`\`\`bash
+          curl -fsSL https://raw.githubusercontent.com/chy3xyz/bponder/main/install.sh | BPONDER_VERSION=${TAG#v} bash
+          \`\`\`
+          EOF
+          )"
+          # Strip leading indentation from the heredoc above.
+          NOTES="$(printf '%s\n' "$NOTES" | sed 's/^[[:space:]]*//')"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/binaries/*.zip dist/binaries/SHA256SUMS --clobber
+          else
+            gh release create "$TAG" dist/binaries/*.zip dist/binaries/SHA256SUMS \
+              --title "bponder ${TAG}" \
+              --notes "$NOTES"
+          fi

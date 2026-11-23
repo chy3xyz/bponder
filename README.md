@@ -4,7 +4,7 @@
 
 **bponder** is a **Bun-native** fork of [Ponder](https://github.com/ponder-sh/ponder) for EVM indexing.
 
-It is **not** the official [ponder.sh](https://ponder.sh) project. Package names (`ponder`, `@ponder/client`, …) still match upstream for compatibility, but the supported runtime and HTTP/database defaults diverge (see below).
+It is **not** the official [ponder.sh](https://ponder.sh) project. Published package names are `bponder`, `bponder-client`, `bponder-react`, … (not upstream `ponder` / `@ponder/*`), and the supported runtime and HTTP/database defaults diverge (see below).
 
 | | **bponder** (this repo) | **Ponder** ([ponder.sh](https://ponder.sh)) |
 | --- | --- | --- |
@@ -25,9 +25,17 @@ Repo: [github.com/chy3xyz/bponder](https://github.com/chy3xyz/bponder) · Defaul
 
 For conceptual guides that still match shared APIs, you can read [ponder.sh/docs](https://ponder.sh/docs). Prefer this repository’s `docs/` and `docs/plans/` for Bun-native behavior, cutover notes, and acceptance status.
 
+## Install CLI (GitHub Release binary)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chy3xyz/bponder/main/install.sh | bash
+```
+
+Installs a standalone `bponder` executable (Bun-compiled) into `~/.bponder/bin`. Pin a version with `BPONDER_VERSION=0.18.9`. App projects still use `bun add bponder` (or workspace install) for the library API.
+
 ## Requirements
 
-- [Bun](https://bun.sh) `>=1.4.0`
+- [Bun](https://bun.sh) `>=1.4.0` (runtime for apps; the Release binary embeds its own Bun runtime)
 - PostgreSQL 14–17 for production (PGlite OK for local/tests)
 - Workspace install: `bun install --frozen-lockfile` (Bun is package manager + runtime)
 
@@ -51,7 +59,7 @@ Minimal app shape (same schema/config surface as Ponder, Bun runtime):
 
 ```ts
 // ponder.config.ts
-import { createConfig } from "ponder";
+import { createConfig } from "bponder";
 import { BaseRegistrarAbi } from "./abis/BaseRegistrar";
 
 export default createConfig({
@@ -74,18 +82,22 @@ export default createConfig({
 
 ```bash
 # production / dev under Bun (Vite-free by default)
-DATABASE_URL=postgres://... DATABASE_SCHEMA=my_schema ponder start
-ponder serve   # Bun-native /v1 by default under Bun
+DATABASE_URL=postgres://... DATABASE_SCHEMA=my_schema bponder start
+bponder serve   # Bun-native /v1 by default under Bun
 ```
 
-Query with `@ponder/client` against the **app origin** (client appends `/v1/*`):
+Query with `bponder-client` against the **app origin** (client appends `/v1/*`):
 
 ```ts
-import { createClient } from "@ponder/client";
+import { createClient } from "bponder-client";
 
 const client = createClient({ url: "http://localhost:42069" });
 const { rows } = await client.sql("SELECT * FROM ens_name LIMIT 10");
 ```
+
+## Publishing
+
+CI releases use npm Trusted Publishing (OIDC) via `.github/workflows/release.yml`. After a successful `bponder` npm publish, `.github/workflows/release-binaries.yml` builds multi-platform CLI zips and attaches them to a `v*` GitHub Release for `install.sh`. Setup: [Publishing to npm](./docs/pages/docs/guides/npm-publish.mdx).
 
 ## Escape hatches
 
@@ -108,13 +120,14 @@ Bun-native defaults are wired and covered by focused bun tests + example smokes.
 
 ## Packages (workspace)
 
-- `packages/core` → npm name `ponder`
-- `packages/client` → `@ponder/client`
-- `packages/react` → `@ponder/react`
-- `packages/utils` → `@ponder/utils`
-- `packages/create-ponder` → `create-ponder`
+- `packages/core` → npm name `bponder` (CLI: `bponder`)
+- `packages/client` → `bponder-client`
+- `packages/react` → `bponder-react`
+- `packages/utils` → `bponder-utils`
+- `packages/schema` → `bponder-schema`
+- `packages/create-bponder` → `create-bponder`
 
-Published npm versions may still refer to upstream; treat **this git repo** as the source of truth for the Bun-native fork.
+Virtual modules: `bponder:registry`, `bponder:schema`, `bponder:api`.
 
 ## Upstream & license
 
