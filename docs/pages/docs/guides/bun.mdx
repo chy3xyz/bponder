@@ -77,6 +77,8 @@ export default app;
 
 Do not register `/health`, `/ready`, `/status`, `/metrics`, `/client`, or `/v1/*` on the Hono app — those are reserved. If `src/api/index.ts` is missing, only `/v1` is served.
 
+`client({ db, schema })` works under Bun.SQL: `/sql/db` uses drizzle `prepareQuery`, and live invalidation uses `Bun.SQL.listen` / `NOTIFY`. You can still use `POST /v1/sql` for simple readonly SQL.
+
 `ponder serve` (read-only process) still defaults to `/v1` only; use `PONDER_USE_VITE=1` there if you need the full Hono API app without an indexer.
 
 ## Bun-native `ponder serve`

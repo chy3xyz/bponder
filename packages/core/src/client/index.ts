@@ -92,22 +92,6 @@ export const client = ({
   }
 
   const driver = globalThis.PONDER_DATABASE.driver;
-  // Bun.SQL drizzle does not expose the node-postgres session used by live SQL.
-  // Keep Hono apps loadable; route SQL-over-HTTP to /v1/sql instead.
-  if (driver.engine === "bun") {
-    globalThis.PONDER_COMMON.logger.warn({
-      msg: "client() SQL-over-HTTP is unavailable with PONDER_DATABASE_DRIVER=bun; use POST /v1/sql or PONDER_DATABASE_DRIVER=pg",
-    });
-    return createMiddleware(async (c) =>
-      c.json(
-        {
-          error:
-            "SQL-over-HTTP via client() requires PONDER_DATABASE_DRIVER=pg. Use POST /v1/sql under Bun.SQL.",
-        },
-        501,
-      ),
-    );
-  }
 
   const tables = Object.values(schema).filter(isTable);
   const views = Object.values(schema).filter(isView);
@@ -253,9 +237,66 @@ export const client = ({
 
     globalThis.PONDER_COMMON.apiShutdown.add(unsubscribe);
   } else if (driver.engine === "bun") {
-    globalThis.PONDER_COMMON.logger.warn({
-      msg: 'Live LISTEN/NOTIFY for "@ponder/client" is unavailable with PONDER_DATABASE_DRIVER=bun; use the Bun /v1 SQL API or the pg driver',
-    });
+    const channel = getLiveQueryChannelName(
+      globalThis.PONDER_NAMESPACE_BUILD.schema,
+    );
+    const invalidateFromPayload = (payload: unknown) => {
+      const tables = (
+        typeof payload === "string" ? JSON.parse(payload) : payload
+      ) as string[];
+      tables.push("_ponder_checkpoint");
+      let invalidQueryCount = 0;
+
+      for (const [queryString, referencedTables] of perQueryReferences) {
+        let isQueryInvalid = false;
+        for (const table of tables) {
+          if (referencedTables.has(table)) {
+            isQueryInvalid = true;
+            break;
+          }
+        }
+
+        if (isQueryInvalid) {
+          invalidQueryCount++;
+
+          const resultPromise = cache.get(queryString)?.deref();
+          if (resultPromise) registry.unregister(resultPromise);
+
+          cache.delete(queryString);
+          perQueryReferences.delete(queryString);
+        }
+      }
+
+      for (const table of tables) {
+        perTableResolver.get(table)?.resolve();
+        perTableResolver.set(table, promiseWithResolvers<void>());
+      }
+
+      if (invalidQueryCount > 0) {
+        globalThis.PONDER_COMMON.logger.debug({
+          msg: "Updated live queries",
+          tables: JSON.stringify(Array.from(tables)),
+          query_count: invalidQueryCount,
+        });
+      }
+    };
+
+    void (async () => {
+      try {
+        const subscription = await driver.readonly.listen(
+          channel,
+          invalidateFromPayload,
+        );
+        globalThis.PONDER_COMMON.apiShutdown.add(() => {
+          void subscription.unlisten();
+        });
+      } catch (error) {
+        globalThis.PONDER_COMMON.logger.warn({
+          msg: 'Failed to start Bun.SQL LISTEN for "@ponder/client" middleware',
+          error: error as Error,
+        });
+      }
+    })();
   } else {
     (async () => {
       let client: pg.PoolClient | undefined;
@@ -372,26 +413,44 @@ export const client = ({
     })();
   }
 
-  const getQueryResult = (query: QueryWithTypings): Promise<QueryResult> => {
+  const normalizeQueryResult = (result: unknown): QueryResult => {
+    // drizzle-orm/bun-sql returns row arrays; node-postgres returns { rows }.
+    if (Array.isArray(result)) {
+      return { rows: result };
+    }
+    return result;
+  };
+
+  const getQueryResult = async (
+    query: QueryWithTypings,
+  ): Promise<QueryResult> => {
     if (driver.dialect === "pglite") {
-      return session.prepareQuery(query, undefined, undefined, false).execute();
-    } else {
-      return globalThis.PONDER_DATABASE.readonlyQB.raw.transaction(
-        (tx) => {
-          const preparedQuery = tx._.session.prepareQuery(
-            query,
-            undefined,
-            undefined,
-            false,
-          );
-          // Note: The extended query protocol rejects multiple statements.
-          // @ts-expect-error
-          preparedQuery.rawQueryConfig.queryMode = "extended";
-          return preparedQuery.execute();
-        },
-        { accessMode: "read only" },
+      return normalizeQueryResult(
+        await session
+          .prepareQuery(query, undefined, undefined, false)
+          .execute(),
       );
     }
+
+    return globalThis.PONDER_DATABASE.readonlyQB.raw.transaction(
+      async (tx) => {
+        const preparedQuery = tx._.session.prepareQuery(
+          query,
+          undefined,
+          undefined,
+          false,
+        );
+        // node-postgres extended protocol rejects multiple statements.
+        // Bun.SQL's prepared query has no rawQueryConfig — skip the tweak.
+        // @ts-expect-error
+        if (preparedQuery.rawQueryConfig !== undefined) {
+          // @ts-expect-error
+          preparedQuery.rawQueryConfig.queryMode = "extended";
+        }
+        return normalizeQueryResult(await preparedQuery.execute());
+      },
+      { accessMode: "read only" },
+    );
   };
 
   return createMiddleware(async (c, next) => {
