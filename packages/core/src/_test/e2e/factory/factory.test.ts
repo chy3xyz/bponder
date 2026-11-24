@@ -1,6 +1,6 @@
 import path from "node:path";
 import { createClient } from "bponder-client";
-import { rimrafSync } from "rimraf";
+import { rmSync } from "node:fs";
 import { beforeEach, expect, test } from "vitest";
 import { ALICE } from "@/_test/constants.js";
 import {
@@ -14,8 +14,8 @@ import { start } from "@/bin/commands/start.js";
 
 const rootDir = path.join(".", "src", "_test", "e2e", "factory");
 beforeEach(() => {
-  rimrafSync(path.join(rootDir, ".ponder"));
-  rimrafSync(path.join(rootDir, "generated"));
+  rmSync(path.join(rootDir, ".ponder"), { recursive: true, force: true });
+  rmSync(path.join(rootDir, "generated"), { recursive: true, force: true });
 });
 
 beforeEach(setupCommon);

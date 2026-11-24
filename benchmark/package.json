@@ -10,6 +10,6 @@
     "commander": "^12.0.0",
     "drizzle-orm": "0.41.0",
     "pg": "^8.16.2",
-    "bponder": "workspace:*"
+    "bponder": "file:../packages/core"
   }
 }

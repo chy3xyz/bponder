@@ -1,9 +1,9 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { watch } from "chokidar";
 import { execa } from "execa";
 import pc from "picocolors";
-import { rimraf } from "rimraf";
 
 const PACKAGE_NAME = "@PONDER/REACT";
 
@@ -37,7 +37,7 @@ async function build() {
     log.cli("Build start");
     const startTime = Date.now();
 
-    await rimraf("dist");
+    await fs.promises.rm("dist", { recursive: true, force: true });
     log.cli("Cleaned output folder");
 
     const tscResult = await execa("tsc", ["--project", TSCONFIG], {

@@ -9,10 +9,10 @@ import { execa } from "execa";
 import fs from "fs-extra";
 import { oraPromise } from "ora";
 import pico from "picocolors";
-import prettier from "prettier";
 import { default as prompts } from "prompts";
 import rootPackageJson from "../package.json" with { type: "json" };
 
+import { formatGenerated } from "./helpers/formatGenerated.js";
 import { getPackageManager } from "./helpers/getPackageManager.js";
 import { mergeAbis } from "./helpers/mergeAbis.js";
 import { notifyUpdate } from "./helpers/notifyUpdate.js";
@@ -290,7 +290,7 @@ export async function run({
 
     writeFileSync(
       path.join(projectPath, "ponder.config.ts"),
-      await prettier.format(configContent, { parser: "typescript" }),
+      formatGenerated(configContent),
     );
 
     // Write the indexing function files.
@@ -323,9 +323,7 @@ export async function run({
 
       writeFileSync(
         path.join(projectPath, "src", `${name}.ts`),
-        await prettier.format(indexingFunctionFileContents, {
-          parser: "typescript",
-        }),
+        formatGenerated(indexingFunctionFileContents),
       );
     }
   }

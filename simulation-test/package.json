@@ -20,7 +20,7 @@
     "drizzle-kit": "^0.30.6",
     "drizzle-orm": "0.41.0",
     "pg": "^8.16.2",
-    "bponder": "workspace:*",
+    "bponder": "file:../packages/core",
     "seedrandom": "^3.0.5"
   }
 }

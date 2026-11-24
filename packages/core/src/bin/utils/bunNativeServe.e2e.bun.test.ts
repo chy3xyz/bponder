@@ -6,7 +6,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { rimrafSync } from "rimraf";
+import { rmSync } from "node:fs";
 import {
   setupAnvil,
   setupCommon,
@@ -32,8 +32,8 @@ if (skip) {
 } else {
   describe("bunNativeServe loads Hono + /v1", () => {
     beforeAll(() => {
-      rimrafSync(path.join(rootDir, ".ponder"));
-      rimrafSync(path.join(rootDir, "generated"));
+      rmSync(path.join(rootDir, ".ponder"), { recursive: true, force: true });
+      rmSync(path.join(rootDir, "generated"), { recursive: true, force: true });
       setupCommon();
       setupAnvil();
     });

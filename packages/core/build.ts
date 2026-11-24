@@ -5,7 +5,6 @@ import { watch } from "chokidar";
 import { execa } from "execa";
 import { glob } from "glob";
 import pc from "picocolors";
-import { rimraf } from "rimraf";
 
 const PACKAGE_NAME = "@PONDER/CORE";
 
@@ -39,7 +38,7 @@ async function build() {
     log.cli("Build start");
     const startTime = Date.now();
 
-    await rimraf("dist");
+    await fs.promises.rm("dist", { recursive: true, force: true });
     log.cli("Cleaned output folder");
 
     const tscResult = await execa("tsc", ["--project", TSCONFIG], {

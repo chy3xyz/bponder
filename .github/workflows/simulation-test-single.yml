@@ -26,7 +26,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - run: bun run build
-      - run: bun install
+      - run: bun install --cwd simulation-test
 
       - name: Simulation Test ${{ github.event.inputs.app }}
         run: |

@@ -50,7 +50,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - run: bun run build
-      - run: bun install
+      - run: bun install --cwd simulation-test
 
       - name: Test ${{ matrix.app_id }} ${{ matrix.seed }}
         run: |
@@ -93,7 +93,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - run: bun run build
-      - run: bun install
+      - run: bun install --cwd simulation-test
 
       - name: Test ${{ matrix.app_id }} ${{ matrix.iteration }}
         run: |
@@ -121,6 +121,7 @@ jobs:
         with:
           bun-version: 1.4.5
       - run: bun install --frozen-lockfile
+      - run: bun install --cwd simulation-test
       - run: |
           cd simulation-test
           bun run src/cleanup-database.ts

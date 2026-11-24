@@ -3,7 +3,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { startProxy } from "@viem/anvil";
 import dotenv from "dotenv";
-import { execa } from "execa";
 import { Pool } from "pg";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -13,10 +12,12 @@ async function globalSetup() {
 
   const generatedFilePath = join(__dirname, "generated.ts");
   if (!existsSync(generatedFilePath)) {
-    const coreRoot = join(__dirname, "../..");
-    await execa(join(coreRoot, "node_modules/.bin/wagmi"), ["generate"], {
-      cwd: coreRoot,
-    });
+    // `generated.ts` is committed. To regenerate after contract changes:
+    //   bunx @wagmi/cli generate
+    // (from packages/core; requires Foundry artifacts under src/_test/contracts).
+    throw new Error(
+      `Missing ${generatedFilePath}. Run \`bunx @wagmi/cli generate\` in packages/core.`,
+    );
   }
 
   const shutdownProxy = await startProxy({

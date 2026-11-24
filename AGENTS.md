@@ -2,7 +2,7 @@
 
 ## Repository Shape
 - This is a **Bun** workspace (`packageManager: bun@1.4.5`); install with `bun install --frozen-lockfile` to match CI. Bun `>=1.4.0` is required for both the package manager and the `ponder` runtime. CI pins runner images (`ubuntu-24.04`, `windows-2025`), uses the Postgres preinstalled on the runner (16 on Linux, 17 on Windows), and sets up Bun and Foundry versions inline in each workflow job. Repo settings require every third-party action to be pinned to a full-length commit SHA (with the version tag in a trailing comment).
-- Workspace packages are `packages/*`, `simulation-test`, and `benchmark` (see root `package.json` `workspaces`). `examples/` and `docs/` are **not** workspace packages — install inside an example when needed (`bun install` in that directory).
+- Workspace packages are `packages/*` only (see root `package.json` `workspaces`). `examples/`, `docs/`, `simulation-test/`, and `benchmark/` are **not** workspace packages — install inside those directories when needed (`bun install` in that directory; they use `file:` deps into `packages/*`).
 - `packages/core` publishes the `ponder` npm package. Public exports start in `packages/core/src/index.ts`; the CLI bin starts in `packages/core/src/bin/ponder.ts`.
 - `packages/core` and `packages/react` build with custom `build.ts` scripts. `packages/client`, `packages/utils`, and `packages/create-bponder` build with tsup.
 - Core source uses `@/*` path aliases. The core build rewrites these aliases in `dist/esm` and `dist/types`, so do not replace source aliases just to satisfy package output.
@@ -18,10 +18,10 @@
 
 ## Tests And Environment
 - Core Vitest setup (`packages/core/vite.config.ts`) caps threads at 4, loads `packages/core/src/_test/setup.ts`, and runs `packages/core/src/_test/globalSetup.ts`.
-- Core global setup generates `packages/core/src/_test/generated.ts` with `bunx wagmi generate` if missing, then starts an Anvil proxy. Foundry/Anvil must be installed for core tests.
+- Core global setup requires committed `packages/core/src/_test/generated.ts` (regenerate with `bunx @wagmi/cli generate` in `packages/core` after contract changes), then starts an Anvil proxy. Foundry/Anvil must be installed for core tests.
 - Core database tests default to in-memory PGlite. Set `DATABASE_URL` in `packages/core/.env.local` only when intentionally testing Postgres; tests create and drop `vitest_*` databases/roles.
 - `packages/utils/src/_test/*` contains live RPC-provider tests that require `RPC_URL_*` values from `packages/utils/.env.example`; avoid broad utils/root test runs unless those env vars and network access are intended.
-- `simulation-test` and `benchmark` use Bun scripts and external Postgres/RPC env from their `.env.example` files. Their `DATABASE_URL` should omit a database name; scripts append app-specific database names.
+- `simulation-test` and `benchmark` are outside the workspace; run `bun install` in each directory after `bun run build`. They use Bun scripts and external Postgres/RPC env from their `.env.example` files. Their `DATABASE_URL` should omit a database name; scripts append app-specific database names.
 
 ## Memory Profiling
 - Profile memory while running an example app, such as `feature-multichain`. Run it for several minutes so finalization occurs; temporarily comment out chains when necessary to keep the workload practical.

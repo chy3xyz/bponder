@@ -87,7 +87,7 @@ In the root directory, run the build command:
 bun run build
 ```
 
-After the build completes, Bun links workspace packages (`packages/*`, `benchmark`, `simulation-test`) for development. `examples/` is **outside** the workspace graph (keeps root installs lean); each example uses `file:` deps into `packages/*`, so run `bun install` inside an example directory when you need it.
+After the build completes, Bun links workspace packages under `packages/*` for development. `examples/`, `simulation-test/`, and `benchmark/` are **outside** the workspace graph (keeps root installs lean); each uses `file:` deps into `packages/*`, so run `bun install` inside those directories when you need them.
 
 <div align="right">
   <a href="#get-started">&uarr; back to top</a></b>

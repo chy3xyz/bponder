@@ -1,45 +1,86 @@
 # bponder
 
 [![License][license-badge]][license-url]
+[![npm][npm-badge]][npm-url]
 
 **bponder** is a **Bun-native** fork of [Ponder](https://github.com/ponder-sh/ponder) for EVM indexing.
 
-It is **not** the official [ponder.sh](https://ponder.sh) project. Published package names are `bponder`, `bponder-client`, `bponder-react`, … (not upstream `ponder` / `@ponder/*`), and the supported runtime and HTTP/database defaults diverge (see below).
+It is **not** the official [ponder.sh](https://ponder.sh) project. Published names are `bponder`, `bponder-client`, `bponder-react`, … (not upstream `ponder` / `@ponder/*`).
 
-| | **bponder** (this repo) | **Ponder** ([ponder.sh](https://ponder.sh)) |
+| | **bponder** | **Ponder** ([ponder.sh](https://ponder.sh)) |
 | --- | --- | --- |
 | Runtime | **Bun only** (`>=1.4.0`) | Node / Bun |
-| Postgres driver (default) | **Bun.SQL** | `pg` (node-postgres) |
+| Postgres (default) | **Bun.SQL** | `pg` |
 | HTTP query API | **`/v1`** (`Bun.serve`) | Classic Hono / SQL-over-HTTP |
-| Config/indexing load | Bun `import()` + plugin (no Vite by default) | Vite SSR loader |
-| Upstream | Fork of `ponder-sh/ponder` | Canonical project |
+| Config load | Bun `import()` (no Vite by default) | Vite SSR |
 
-Repo: [github.com/chy3xyz/bponder](https://github.com/chy3xyz/bponder) · Default branch: `main`
+## Install
 
-## Why this fork
+Requires [Bun](https://bun.sh) `>=1.4.0` for apps. PostgreSQL 14–17 for production (PGlite is fine locally).
 
-- Run indexing and HTTP on **Bun** end-to-end
-- Default Postgres path through **Bun.SQL** (`PONDER_DATABASE_DRIVER=pg` restores node-postgres)
-- Default `/v1` stack: `GET /v1/status`, `POST /v1/sql`, `GET /v1/live`
-- Vite optional only: `PONDER_USE_VITE=1`
+### Option A — New project (recommended)
 
-For conceptual guides that still match shared APIs, you can read [ponder.sh/docs](https://ponder.sh/docs). Prefer this repository’s plain Markdown under [`docs/`](./docs/README.md) (including [`docs/plans/`](./docs/plans/)) for Bun-native behavior, cutover notes, and acceptance status.
+```bash
+bun create bponder
+# or: bunx create-bponder
+```
 
-## Install CLI (GitHub Release binary)
+Then:
+
+```bash
+cd <your-project>
+bun install
+bun run dev
+```
+
+### Option B — Add to an existing Bun app
+
+```bash
+bun add bponder hono viem
+# optional client / React helpers
+bun add bponder-client
+bun add bponder-react @tanstack/react-query
+```
+
+`package.json` scripts typically look like:
+
+```json
+{
+  "scripts": {
+    "dev": "bponder dev",
+    "start": "bponder start",
+    "serve": "bponder serve",
+    "codegen": "bponder codegen"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  }
+}
+```
+
+The `bponder` CLI comes from the `bponder` package (`#!/usr/bin/env bun`). Run it with Bun — do **not** use `bun --bun` as a workaround.
+
+### Option C — Standalone CLI binary (GitHub Release)
+
+No npm install required for the CLI itself (runtime is embedded):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chy3xyz/bponder/main/install.sh | bash
 ```
 
-Installs a standalone `bponder` executable (Bun-compiled) into `~/.bponder/bin`. Pin a version with `BPONDER_VERSION=0.18.9`. App projects still use `bun add bponder` (or workspace install) for the library API.
+Installs to `~/.bponder/bin`. Add it to `PATH` if the script prompts you to.
 
-## Requirements
+```bash
+# pin a release
+curl -fsSL https://raw.githubusercontent.com/chy3xyz/bponder/main/install.sh | BPONDER_VERSION=1.0.0 bash
 
-- [Bun](https://bun.sh) `>=1.4.0` (runtime for apps; the Release binary embeds its own Bun runtime)
-- PostgreSQL 14–17 for production (PGlite OK for local/tests)
-- Workspace install: `bun install --frozen-lockfile` (Bun is package manager + runtime)
+bponder --version
+bponder --help
+```
 
-## Quickstart (from this repo)
+App code still needs the library from npm (`bun add bponder`) if you import `createConfig` / schema APIs.
+
+### From this monorepo (contributors)
 
 ```bash
 git clone https://github.com/chy3xyz/bponder.git
@@ -48,14 +89,15 @@ bun install --frozen-lockfile
 bun run build
 ```
 
-Example Bun smokes (need local Postgres + `DATABASE_URL`):
+Examples are **outside** the workspace graph. To run one:
 
 ```bash
-cd examples/feature-bun-slice && bun run smoke
-cd examples/feature-bun-live && bun run smoke
+cd examples/feature-filter
+bun install
+bun run dev
 ```
 
-Minimal app shape (same schema/config surface as Ponder, Bun runtime):
+## Quickstart shape
 
 ```ts
 // ponder.config.ts
@@ -81,12 +123,11 @@ export default createConfig({
 ```
 
 ```bash
-# production / dev under Bun (Vite-free by default)
-DATABASE_URL=postgres://... DATABASE_SCHEMA=my_schema bponder start
-bponder serve   # Bun-native /v1 by default under Bun
+DATABASE_URL=postgres://... DATABASE_SCHEMA=my_schema bun run start
+bun run serve   # Bun-native /v1 by default
 ```
 
-Query with `bponder-client` against the **app origin** (client appends `/v1/*`):
+Query with `bponder-client` (client appends `/v1/*` to the app origin):
 
 ```ts
 import { createClient } from "bponder-client";
@@ -95,45 +136,36 @@ const client = createClient({ url: "http://localhost:42069" });
 const { rows } = await client.sql("SELECT * FROM ens_name LIMIT 10");
 ```
 
-## Publishing
-
-CI releases use npm Trusted Publishing (OIDC) via `.github/workflows/release.yml`. After a successful `bponder` npm publish, `.github/workflows/release-binaries.yml` builds multi-platform CLI zips and attaches them to a `v*` GitHub Release for `install.sh`. Setup: [Publishing to npm](./docs/guides/npm-publish.md).
+More detail: [`docs/get-started.md`](./docs/get-started.md) · [`docs/guides/bun.md`](./docs/guides/bun.md) · index of all docs in [`docs/README.md`](./docs/README.md).
 
 ## Escape hatches
 
-`vite`, `pg`, and `pg-connection-string` are **optional peers**. Install them only when you use an escape hatch.
-
-| Env | Effect | Install |
+| Env | Effect | Extra install |
 | --- | --- | --- |
-| `PONDER_USE_VITE=1` | Classic Vite loader / Hono serve path | `bun add vite` |
-| `PONDER_DATABASE_DRIVER=pg` | Force node-postgres instead of Bun.SQL | `bun add pg pg-connection-string` |
-| `PONDER_BUN_NATIVE=1` / `--native` | Force Bun-native path (already default under Bun) | — |
+| `PONDER_USE_VITE=1` | Classic Vite loader / Hono serve | `bun add vite` |
+| `PONDER_DATABASE_DRIVER=pg` | node-postgres instead of Bun.SQL | `bun add pg pg-connection-string` |
 
-## Status
+## Packages
 
-Bun-native defaults are wired and covered by focused bun tests + example smokes. `simulation-test` and `benchmark` are **not** claimed green on this branch yet. See:
-
-- `docs/plans/2026-11-21-bun-native-acceptance.md`
-- `docs/plans/2026-11-21-task-5.1-deferred-node-deletions.md`
-- `docs/guides/bun.md`
-- `docs/migration-guide.md`
-
-## Packages (workspace)
-
-- `packages/core` → npm name `bponder` (CLI: `bponder`)
-- `packages/client` → `bponder-client`
-- `packages/react` → `bponder-react`
-- `packages/utils` → `bponder-utils`
-- `packages/schema` → `bponder-schema`
-- `packages/create-bponder` → `create-bponder`
+| npm | Role |
+| --- | --- |
+| [`bponder`](https://www.npmjs.com/package/bponder) | Core + CLI |
+| [`create-bponder`](https://www.npmjs.com/package/create-bponder) | Project scaffold |
+| [`bponder-client`](https://www.npmjs.com/package/bponder-client) | `/v1` SQL client |
+| [`bponder-react`](https://www.npmjs.com/package/bponder-react) | React hooks |
+| `bponder-utils` / `bponder-schema` | Shared helpers |
 
 Virtual modules: `bponder:registry`, `bponder:schema`, `bponder:api`.
 
+Releases: [GitHub Releases](https://github.com/chy3xyz/bponder/releases) · publish notes: [`docs/guides/npm-publish.md`](./docs/guides/npm-publish.md).
+
 ## Upstream & license
 
-Forked from [ponder-sh/ponder](https://github.com/ponder-sh/ponder). Upstream product, docs site, and community live at [ponder.sh](https://ponder.sh) / [t.me/pondersh](https://t.me/pondersh).
+Forked from [ponder-sh/ponder](https://github.com/ponder-sh/ponder). Upstream product and community: [ponder.sh](https://ponder.sh) / [t.me/pondersh](https://t.me/pondersh).
 
-MIT-licensed (see [LICENSE](./LICENSE)). Copyright notices from upstream are retained.
+MIT — see [LICENSE](./LICENSE).
 
 [license-badge]: https://img.shields.io/github/license/chy3xyz/bponder?label=License
 [license-url]: https://github.com/chy3xyz/bponder/blob/main/LICENSE
+[npm-badge]: https://img.shields.io/npm/v/bponder.svg
+[npm-url]: https://www.npmjs.com/package/bponder

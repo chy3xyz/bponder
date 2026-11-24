@@ -1,5 +1,13 @@
 # ponder
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated `graphql` to `16.15.0`.
+  
+  Removed the `prettier` dependency from `create-bponder`; generated project files are formatted with a built-in dedent helper instead.
+
 ## 1.0.0
 
 ### Major Changes

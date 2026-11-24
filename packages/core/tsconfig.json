@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.build.json",
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["src/**/*.bun.test.ts"],
+  "exclude": ["src/**/*.bun.test.ts", "src/**/*.bench.ts"],
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
