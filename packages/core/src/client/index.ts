@@ -18,6 +18,7 @@ import { createMiddleware } from "hono/factory";
 import { streamSSE } from "hono/streaming";
 import type * as pg from "pg";
 import superjson from "superjson";
+import { normalizeExecuteRows } from "@/database/executeResult.js";
 import type { PonderApp6 } from "@/database/index.js";
 import { getLiveQueryChannelName, jsonb } from "@/drizzle/onchain.js";
 import type { Schema } from "@/internal/types.js";
@@ -416,7 +417,7 @@ export const client = ({
   const normalizeQueryResult = (result: unknown): QueryResult => {
     // drizzle-orm/bun-sql returns row arrays; node-postgres returns { rows }.
     if (Array.isArray(result)) {
-      return { rows: result };
+      return { rows: normalizeExecuteRows(result) };
     }
     return result;
   };

@@ -11,6 +11,7 @@ import {
   isBunSqlDatabaseDriver,
   resolveBunSqlConnectionUrl,
 } from "./bunSqlDriver.js";
+import { normalizeExecuteRows } from "./executeResult.js";
 import { createDatabase } from "./index.js";
 
 test("isBunSqlDatabaseDriver defaults on under Bun and honors env", () => {
@@ -136,10 +137,18 @@ if (skip) {
 
       await database.migrateSync();
 
-      const rows = await database.adminQB.wrap((db) =>
+      const result = await database.adminQB.wrap((db) =>
         db.execute(sql`select 1::int as value`),
       );
-      expect(rows).toBeDefined();
+      // drizzle-orm/bun-sql returns a row array (not { rows }); indexing code must normalize.
+      expect(Array.isArray(result)).toBe(true);
+      expect(normalizeExecuteRows<{ value: number }>(result)[0]?.value).toBe(1);
+
+      const raw = await database.adminQB.wrap((db) =>
+        db.execute(`select 2::int as value`),
+      );
+      expect(Array.isArray(raw)).toBe(true);
+      expect(normalizeExecuteRows<{ value: number }>(raw)[0]?.value).toBe(2);
     });
   });
 }

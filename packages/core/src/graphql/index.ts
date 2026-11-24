@@ -67,6 +67,7 @@ import {
   type SelectionNode,
 } from "graphql";
 import superjson from "superjson";
+import { normalizeExecuteRows } from "@/database/executeResult.js";
 import type { QB } from "@/database/queryBuilder.js";
 import { getPrimaryKeyColumns } from "@/drizzle/index.js";
 import type { OnchainTable } from "@/drizzle/onchain.js";
@@ -632,16 +633,16 @@ export function buildGraphQLSchema({
     type: GraphQLMeta,
     resolve: async (_source, _args, context) => {
       // Note: This is done to avoid non-browser compatible dependencies
-      const checkpoints = (await context.qb.raw
-        .execute(
-          "SELECT chain_name, chain_id, latest_checkpoint, safe_checkpoint from _ponder_checkpoint",
-        )
-        .then((res) => res.rows)) as {
+      const checkpoints = normalizeExecuteRows<{
         chain_name: string;
         chain_id: string;
         latest_checkpoint: string;
         safe_checkpoint: string;
-      }[];
+      }>(
+        await context.qb.raw.execute(
+          "SELECT chain_name, chain_id, latest_checkpoint, safe_checkpoint from _ponder_checkpoint",
+        ),
+      );
 
       const status: Status = {};
       for (const {

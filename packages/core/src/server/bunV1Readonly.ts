@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { normalizeExecuteRows } from "@/database/executeResult.js";
 import { getPonderCheckpointTable } from "@/database/index.js";
 import type { QB } from "@/database/queryBuilder.js";
 import { decodeCheckpoint } from "@/utils/checkpoint.js";
@@ -8,18 +9,8 @@ import {
   isReadonlySelectSql,
 } from "./bunV1Api.js";
 
-const toRows = (result: unknown): Record<string, unknown>[] => {
-  if (Array.isArray(result)) return result as Record<string, unknown>[];
-  if (
-    result !== null &&
-    typeof result === "object" &&
-    "rows" in result &&
-    Array.isArray((result as { rows: unknown }).rows)
-  ) {
-    return (result as { rows: Record<string, unknown>[] }).rows;
-  }
-  return [];
-};
+const toRows = (result: unknown): Record<string, unknown>[] =>
+  normalizeExecuteRows(result);
 
 const toBunV1Status = (
   checkpoints: {

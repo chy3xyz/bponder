@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import { drizzle } from "drizzle-orm/pg-proxy";
+import { normalizeExecuteRows } from "@/database/executeResult.js";
 import type { QB } from "@/database/queryBuilder.js";
 import { getPrimaryKeyColumns } from "@/drizzle/index.js";
 import { onchain } from "@/drizzle/onchain.js";
@@ -644,13 +645,17 @@ export const createIndexingStore = ({
                   .execute(),
               );
 
+              const rows = normalizeExecuteRows(result);
+
               if (method === "all") {
                 return {
-                  // @ts-expect-error
-                  ...result,
-                  // @ts-expect-error
-                  rows: result.rows.map((row) => Object.values(row)),
+                  rows: rows.map((row) => Object.values(row)),
                 };
+              }
+
+              // bun-sql returns a bare row array; drizzle's pg-proxy expects { rows }.
+              if (Array.isArray(result)) {
+                return { rows };
               }
 
               return result;

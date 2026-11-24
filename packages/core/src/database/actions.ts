@@ -34,6 +34,7 @@ import type {
   SchemaBuild,
 } from "@/internal/types.js";
 import { decodeCheckpoint, MAX_CHECKPOINT_STRING } from "@/utils/checkpoint.js";
+import { normalizeExecuteRows } from "./executeResult.js";
 import {
   getPonderCheckpointTable,
   PONDER_CHECKPOINT_TABLE_NAME,
@@ -404,8 +405,7 @@ WITH reverted1 AS (
 ), ${getRevertSql({ table })};`),
         );
 
-        // @ts-expect-error
-        counts.push(result.rows[0]!.count);
+        counts.push(normalizeExecuteRows<{ count: number }>(result)[0]!.count);
       }
 
       return counts;
@@ -447,7 +447,9 @@ AND checkpoint > '${checkpoint}'`,
   .join(" UNION ALL ")}) AS all_mins;`),
         )
         .then((result) => {
-          return result.rows[0]?.operation_id as string | null;
+          return normalizeExecuteRows<{ operation_id: string | null }>(
+            result,
+          )[0]?.operation_id as string | null;
         });
 
       for (const table of tables) {
@@ -473,8 +475,7 @@ WITH reverted1 AS (
 ), ${getRevertSql({ table })};`),
         );
 
-        // @ts-expect-error
-        counts.push(result.rows[0]!.count);
+        counts.push(normalizeExecuteRows<{ count: number }>(result)[0]!.count);
       }
 
       return counts;
@@ -524,8 +525,7 @@ WITH reverted1 AS (
 ), ${getRevertSql({ table })};`),
         );
 
-        // @ts-expect-error
-        counts.push(result.rows[0]!.count);
+        counts.push(normalizeExecuteRows<{ count: number }>(result)[0]!.count);
       }
 
       return counts;
@@ -642,7 +642,9 @@ WHERE checkpoint > (
   .join(" UNION ALL ")}) AS all_mins;`),
         )
         .then((result) => {
-          return result.rows[0]?.operation_id as string | null;
+          return normalizeExecuteRows<{ operation_id: string | null }>(
+            result,
+          )[0]?.operation_id as string | null;
         });
 
       const result = await tx.wrap((tx) =>
@@ -667,7 +669,10 @@ WHERE checkpoint > (
     GROUP BY SUBSTRING(checkpoint, 11, 16)::numeric;`),
       );
 
-      for (const { chain_id, safe_checkpoint } of result.rows) {
+      for (const { chain_id, safe_checkpoint } of normalizeExecuteRows<{
+        chain_id: number;
+        safe_checkpoint: string;
+      }>(result)) {
         await tx.wrap((tx) =>
           tx
             .update(PONDER_CHECKPOINT)
