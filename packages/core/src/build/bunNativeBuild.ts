@@ -67,6 +67,82 @@ let ponderPluginSchemaEpoch = 0;
 
 const toPosixPath = (filePath: string) => filePath.replace(/\\/g, "/");
 
+const isExistingFile = (filePath: string) => {
+  try {
+    return fs.statSync(filePath).isFile();
+  } catch {
+    return false;
+  }
+};
+
+const resolveExistingModulePath = (baseDir: string, specifier: string) => {
+  const bare = path.resolve(baseDir, specifier);
+  const withoutExt = bare.replace(/\.(js|mjs|cjs|jsx|ts|tsx|mts|cts)$/i, "");
+  const candidates = [
+    bare,
+    withoutExt,
+    `${withoutExt}.ts`,
+    `${withoutExt}.tsx`,
+    `${withoutExt}.mts`,
+    `${withoutExt}.cts`,
+    `${withoutExt}.js`,
+    `${withoutExt}.mjs`,
+    `${withoutExt}.cjs`,
+    `${withoutExt}.jsx`,
+    path.join(withoutExt, "index.ts"),
+    path.join(withoutExt, "index.tsx"),
+    path.join(withoutExt, "index.mts"),
+    path.join(withoutExt, "index.js"),
+    path.join(withoutExt, "index.mjs"),
+  ];
+  for (const candidate of candidates) {
+    // Skip directories: `existsSync("./utils")` is true for `utils/` and would
+    // beat `utils/index.ts` (and confuse Bun's loader).
+    if (isExistingFile(candidate)) return candidate;
+  }
+  // Prefer a .ts guess so Bun's error message stays useful for TS projects.
+  return `${withoutExt}.ts`;
+};
+
+/**
+ * Rewrite relative `./` / `../` specifiers to `ponder-index:<abs>::<epoch>` so
+ * sibling modules stay in the plugin namespace (bare imports like "hono" still
+ * resolve from the CLI package). Bun ignores resolveDir for ponder-index.
+ */
+const rewriteRelativeSpecifiers = (
+  source: string,
+  baseDir: string,
+  epoch: string,
+) => {
+  const rewriteOne = (specifier: string) => {
+    if (!(specifier.startsWith("./") || specifier.startsWith("../"))) {
+      return specifier;
+    }
+    const resolved = resolveExistingModulePath(baseDir, specifier);
+    return `ponder-index:${toPosixPath(resolved)}::${epoch}`;
+  };
+
+  // `from "./x"` (covers import/export … from)
+  let out = source.replace(
+    /(\bfrom\s*)(["'])(\.\.?\/[^"']+)\2/g,
+    (_m, prefix: string, quote: string, spec: string) =>
+      `${prefix}${quote}${rewriteOne(spec)}${quote}`,
+  );
+  // side-effect: `import "./x"`
+  out = out.replace(
+    /(\bimport\s*)(["'])(\.\.?\/[^"']+)\2/g,
+    (_m, prefix: string, quote: string, spec: string) =>
+      `${prefix}${quote}${rewriteOne(spec)}${quote}`,
+  );
+  // dynamic: `import("./x")` or `import("./x", { with: … })`
+  out = out.replace(
+    /(\bimport\s*\(\s*)(["'])(\.\.?\/[^"']+)\2/g,
+    (_m, prefix: string, quote: string, spec: string) =>
+      `${prefix}${quote}${rewriteOne(spec)}${quote}`,
+  );
+  return out;
+};
+
 const asError = (error: unknown) =>
   error instanceof Error ? error : new Error(String(error));
 
@@ -119,9 +195,14 @@ export function registerPonderBunPlugin({
       build.onLoad(
         { filter: /.*/, namespace: "ponder-index" },
         async (args) => {
-          const filePath = args.path.split("::")[0]!;
-          const contents = await bun.file(filePath).text();
-          const ext = path.extname(filePath);
+          const [filePath, epoch = "0"] = args.path.split("::");
+          const baseDir = path.dirname(filePath!);
+          let contents = await bun.file(filePath!).text();
+          // Bun ignores resolveDir for ponder-index virtual modules, so
+          // `./foo` fails. Rewrite relatives to ponder-index:<abs>::epoch so
+          // siblings stay in-namespace (bare imports still resolve from CLI).
+          contents = rewriteRelativeSpecifiers(contents, baseDir, epoch);
+          const ext = path.extname(filePath!);
           const loader =
             ext === ".ts" || ext === ".mts" || ext === ".tsx" ? "ts" : "js";
           return { contents, loader };

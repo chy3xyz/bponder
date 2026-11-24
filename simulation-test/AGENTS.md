@@ -8,11 +8,12 @@
 
 ## Prerequisites
 - Use the repository toolchain from the root `AGENTS.md`: Bun `>=1.4.0` (package manager + runtime).
-- Install workspace dependencies from the repository root with `bun install`.
-- Build the publishable packages before running simulations with `bun run build`; the simulation apps depend on the workspace `ponder` package.
+- `simulation-test/` is **outside** the root workspace: after `bun run build` at the repo root, run `bun install` inside `simulation-test/` (it uses `file:` deps into `packages/*`).
+- Build the publishable packages before running simulations with `bun run build`.
 - Provide a Postgres server connection in `DATABASE_URL`. The URL should omit the app/run database name because scripts append database names themselves, for example `postgresql://postgres@localhost:55432`.
 - Provide RPC URLs used by the app under test. Current env names are `PONDER_RPC_URL_1`, `PONDER_RPC_URL_10`, `PONDER_RPC_URL_130`, and `PONDER_RPC_URL_8453`.
 - Copy `simulation-test/.env.example` to `simulation-test/.env.local` for local runs, or export the variables in your shell.
+- Fault injection uses the programmatic `onBuild` hook, which runs **only on the Vite path**. Always set `PONDER_USE_VITE=1` for `bun run test`. The harness also replaces `pg` drizzle clients, so set `PONDER_DATABASE_DRIVER=pg` (and install `pg` via the local `simulation-test` install).
 
 ## Local Postgres
 - Prefer an isolated local Postgres instance for simulation-test work. Do not reuse unrelated local databases such as `ffca-postgres`.

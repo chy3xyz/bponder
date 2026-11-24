@@ -223,12 +223,145 @@ export default app;
     });
 
     expect(result.status).toBe("success");
-    if (result.status !== "success") return;
+    if (result.status !== "success") {
+      throw result.error;
+    }
     expect(result.result.app).toBeDefined();
     const res = await result.result.app!.fetch(
       new Request("http://localhost/hello"),
     );
     expect(await res.text()).toBe("ok");
+  });
+
+  test("loads a multi-file Hono API via relative imports", async () => {
+    const dir = makeTempDir();
+    const schemaFile = join(dir, "ponder.schema.ts");
+    writeProject({
+      dir,
+      config: "export default { chains: {} };\n",
+      schema: `import { onchainTable } from ${JSON.stringify(onchainTablePath)};
+export const account = onchainTable("account", (t) => ({
+  id: t.text().primaryKey(),
+}));
+`,
+      api: `import { Hono } from "hono";
+import { db } from "bponder:api";
+import schema from "bponder:schema";
+import { mountHello } from "./hello.js";
+
+const app = new Hono();
+mountHello(app);
+app.get("/ping", (c) => {
+  void db;
+  void schema;
+  return c.text("pong");
+});
+export default app;
+`,
+    });
+    writeFileSync(
+      join(dir, "src", "api", "hello.ts"),
+      `import type { Hono } from "hono";
+export function mountHello(app: Hono) {
+  app.get("/hello", (c) => c.text("ok"));
+}
+`,
+    );
+
+    registerPonderBunPlugin({ schemaFile });
+    const fakeDatabase = {
+      readonlyQB: { raw: { select: () => ({ from: () => [] }) } },
+    };
+    const fakeIndexingBuild = {
+      chains: [{ name: "mainnet", viemChain: undefined }],
+      rpcs: [{ request: async () => null }],
+    };
+
+    const result = await loadBunApiApp({
+      apiFile: join(dir, "src", "api", "index.ts"),
+      common: createCommon(dir) as never,
+      database: fakeDatabase as never,
+      indexingBuild: fakeIndexingBuild as never,
+      preBuild: {
+        databaseConfig: { kind: "postgres" },
+        ordering: "multichain",
+      } as never,
+      namespaceBuild: { schema: "public", viewsSchema: undefined },
+    });
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") {
+      throw result.error;
+    }
+    expect(result.result.app).toBeDefined();
+    const hello = await result.result.app!.fetch(
+      new Request("http://localhost/hello"),
+    );
+    expect(await hello.text()).toBe("ok");
+    const ping = await result.result.app!.fetch(
+      new Request("http://localhost/ping"),
+    );
+    expect(await ping.text()).toBe("pong");
+  });
+
+  test("loads a directory index module via relative import", async () => {
+    const dir = makeTempDir();
+    const schemaFile = join(dir, "ponder.schema.ts");
+    writeProject({
+      dir,
+      config: "export default { chains: {} };\n",
+      schema: `import { onchainTable } from ${JSON.stringify(onchainTablePath)};
+export const account = onchainTable("account", (t) => ({
+  id: t.text().primaryKey(),
+}));
+`,
+      api: `import { Hono } from "hono";
+import { mountRoutes } from "./routes";
+
+const app = new Hono();
+mountRoutes(app);
+export default app;
+`,
+    });
+    mkdirSync(join(dir, "src", "api", "routes"), { recursive: true });
+    writeFileSync(
+      join(dir, "src", "api", "routes", "index.ts"),
+      `import type { Hono } from "hono";
+export function mountRoutes(app: Hono) {
+  app.get("/nested", (c) => c.text("nested"));
+}
+`,
+    );
+
+    registerPonderBunPlugin({ schemaFile });
+    const fakeDatabase = {
+      readonlyQB: { raw: { select: () => ({ from: () => [] }) } },
+    };
+    const fakeIndexingBuild = {
+      chains: [{ name: "mainnet", viemChain: undefined }],
+      rpcs: [{ request: async () => null }],
+    };
+
+    const result = await loadBunApiApp({
+      apiFile: join(dir, "src", "api", "index.ts"),
+      common: createCommon(dir) as never,
+      database: fakeDatabase as never,
+      indexingBuild: fakeIndexingBuild as never,
+      preBuild: {
+        databaseConfig: { kind: "postgres" },
+        ordering: "multichain",
+      } as never,
+      namespaceBuild: { schema: "public", viewsSchema: undefined },
+    });
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") {
+      throw result.error;
+    }
+    const res = await result.result.app!.fetch(
+      new Request("http://localhost/nested"),
+    );
+    expect(await res.text()).toBe("nested");
   });
 
   test("allows a missing API file", async () => {

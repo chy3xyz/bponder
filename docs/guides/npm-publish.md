@@ -71,5 +71,8 @@ Snapshot publishes use the same npm workflow on non-`main` refs (`workflow_dispa
 ## Troubleshooting
 
 - **ENEEDAUTH / Unable to authenticate**: Trusted Publisher fields must match exactly (including `release.yml` and environment `npm`). Use GitHub-hosted runners only.
+- **`E404 Not Found` on `PUT https://registry.npmjs.org/<pkg>` during CI**: Almost always means the job published **without** a valid OIDC trusted-publisher grant (npm returns 404 instead of 401). Check each package’s Trusted Publisher row still lists `chy3xyz/bponder`, workflow `release.yml`, environment `npm`, and that the config was created/refreshed within npm’s validity window. Confirm GitHub Environment `npm` exists. Do not set `NPM_TOKEN` / `NODE_AUTH_TOKEN` on the Release job.
+- **`Cannot publish over previously staged version`**: A prior publish reserved the version but never went public. Prefer `npm stage list` / npmjs.com **Staged Packages** approval, or bump the version (do not keep republishing the same staged version). Local OTP/web publish can also stage; wait a few minutes and re-check `npm view <pkg> version` before bumping.
 - **Package not found on Trusted Publisher UI**: Finish the first manual publish first.
 - Do **not** set `NPM_TOKEN` / `NODE_AUTH_TOKEN` in the Release job if you want OIDC; a write token can force the OTP/token path instead.
+- **Fallback**: maintainers can still publish from a trusted machine with `npm login --auth-type=web` then `npm publish` per package (rewrite `workspace:*` first, or use `bunx changeset publish` after `bun run build`). Prefer fixing Trusted Publisher so CI remains the default.

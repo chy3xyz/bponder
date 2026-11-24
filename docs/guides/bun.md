@@ -124,4 +124,6 @@ If you encounter an issue with bponder that might be caused by Bun, please [open
 - Under Bun.SQL, `database.poolConfig` mainly applies `connectionString` (or `DATABASE_URL`) and `max`. Other node-postgres `PoolConfig` fields (for example `ssl`, idle timeouts, and custom connection options) are ignored by the Bun.SQL client.
 - The `/metrics` endpoint omits the default Node.js Prometheus metrics that `prom-client` used to attach (names prefixed with `nodejs_` or `process_`).
 - Native `ponder dev` remounts the Hono API on `src/api` changes; indexing / config / schema changes require a process restart. Use `PONDER_USE_VITE=1` for full Vite hot reload.
+- The programmatic `onBuild` hook (used by `simulation-test` fault injection) runs only on the Vite path. Bun-native `start` / `dev` return before `onBuild`. For harnesses that need `onBuild`, set `PONDER_USE_VITE=1` (and typically `PONDER_DATABASE_DRIVER=pg` when the hook replaces `pg` drizzle clients).
 - Escape hatches remain optional peers: install `vite` for `PONDER_USE_VITE=1`, and `pg` + `pg-connection-string` for `PONDER_DATABASE_DRIVER=pg`.
+- Relative imports under `src/api` and indexing sources are supported on the Bun-native path (rewritten into the `ponder-index` plugin namespace). Prefer normal `./` / `../` imports; bare package imports still resolve from the CLI install.

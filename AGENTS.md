@@ -22,6 +22,7 @@
 - Core database tests default to in-memory PGlite. Set `DATABASE_URL` in `packages/core/.env.local` only when intentionally testing Postgres; tests create and drop `vitest_*` databases/roles.
 - `packages/utils/src/_test/*` contains live RPC-provider tests that require `RPC_URL_*` values from `packages/utils/.env.example`; avoid broad utils/root test runs unless those env vars and network access are intended.
 - `simulation-test` and `benchmark` are outside the workspace; run `bun install` in each directory after `bun run build`. They use Bun scripts and external Postgres/RPC env from their `.env.example` files. Their `DATABASE_URL` should omit a database name; scripts append app-specific database names.
+- `simulation-test` fault injection needs `PONDER_USE_VITE=1` and typically `PONDER_DATABASE_DRIVER=pg` (`onBuild` is Vite-path only; see `docs/guides/bun.md`).
 
 ## Memory Profiling
 - Profile memory while running an example app, such as `feature-multichain`. Run it for several minutes so finalization occurs; temporarily comment out chains when necessary to keep the workload practical.

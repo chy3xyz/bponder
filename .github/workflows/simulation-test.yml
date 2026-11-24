@@ -25,20 +25,25 @@ jobs:
             seed: 4ae5cc4f3594b76798249f1adb56d42dc1b544975a781f4c93b7e565507bd9cf
           - app_id: feature-multichain
             seed: e1802a439f23d2706e1a50b4b13aa743b931f8e2dcf1d7e39ea4b6e7dbd34640
-          # Failed because of bug in crash recovery database migration when `ordering: "experimental_isolated"`.
-          # https://github.com/ponder-sh/ponder/blob/e8eae6394a9c73a16d14f7ecf6317cdcd69aa9fd/packages/core/src/database/index.ts#L917
+          # Known-fail: crash recovery / migrate under `ordering: "experimental_isolated"`.
+          # Upstream note: ponder-sh/ponder@e8eae639 database/index.ts (~L917 era). Current fork still
+          # has the migrate/lock path in packages/core/src/database/index.ts (line drift; logic retained).
+          # Status 2026-11-24: not re-verified green — keep until a local/CI seed pass.
           - app_id: assessment
             seed: 3938fff044d4feb11b33dbdb57bae142ec6d73029611ddff14d9d4b11ada2fe6
-          # Failed because of a bug in reorg handling when `ordering: "multichain"`.
-          # https://github.com/ponder-sh/ponder/blob/e8eae6394a9c73a16d14f7ecf6317cdcd69aa9fd/packages/core/src/runtime/realtime.ts#L572-L585
+          # Known-fail: multichain reorg moves executed→pending (`realtime.ts` reorg case).
+          # Upstream: ponder-sh/ponder@e8eae639 realtime.ts:572-585. Current: packages/core/src/runtime/realtime.ts
+          # still has the same reorgIndex / pendingEvents concat pattern (~L295+). Status 2026-11-24: open.
           - app_id: assessment
             seed: 8d07d00f53fe5beaf19c06696ea4e00120112ef753404e576372fc1fe18f4d13
-          # Failed because of a bug in checkpoint calculation for pending events when `ordering: "omnichain"`.
-          # https://github.com/ponder-sh/ponder/blob/e8eae6394a9c73a16d14f7ecf6317cdcd69aa9fd/packages/core/src/runtime/historical.ts#L281-L303
+          # Known-fail: omnichain pending-event checkpoint while historical sync (`historical.ts`).
+          # Upstream: ponder-sh/ponder@e8eae639 historical.ts:281-303. Current: packages/core/src/runtime/historical.ts
+          # still partitions events onto pendingEvents when checkpoint > omnichainTo (~L270+). Status 2026-11-24: open.
           - app_id: uniswap-v4
             seed: 31752f35f6443147d8fda82cb9b3c4a878292e9b3c52f2e36c582dba943872ed
-          # Failed because of incorrect finalized block calculation in the test script after a crash recovery.
-          # https://github.com/ponder-sh/ponder/blob/e8eae6394a9c73a16d14f7ecf6317cdcd69aa9fd/integration-test/src/index.ts#L1248-L1270
+          # Known-fail: harness finalized-block calc after crash recovery (simulation-test script, not core).
+          # Upstream: ponder-sh/ponder@e8eae639 integration-test/.../index.ts:1248-1270 → simulation-test/src/index.ts.
+          # Status 2026-11-24: open (test infra).
           - app_id: project-uniswap-v3-flash
             seed: 98c5c3716e33ba8ea2a8ba8d36f942cf1c2fb368f2d33a5f6bf434e087487bce
 
@@ -63,6 +68,9 @@ jobs:
           PONDER_RPC_URL_10: ${{ secrets.PONDER_RPC_URL_10 }}
           PONDER_RPC_URL_130: ${{ secrets.PONDER_RPC_URL_130 }}
           PONDER_RPC_URL_8453: ${{ secrets.PONDER_RPC_URL_8453 }}
+          # onBuild fault injection is Vite-path only; harness also swaps pg drizzle clients.
+          PONDER_USE_VITE: "1"
+          PONDER_DATABASE_DRIVER: pg
           PGDATABASE: railway
           PGSSLMODE: disable
           NODE_ENV: ci
@@ -105,6 +113,8 @@ jobs:
           PONDER_RPC_URL_10: ${{ secrets.PONDER_RPC_URL_10 }}
           PONDER_RPC_URL_130: ${{ secrets.PONDER_RPC_URL_130 }}
           PONDER_RPC_URL_8453: ${{ secrets.PONDER_RPC_URL_8453 }}
+          PONDER_USE_VITE: "1"
+          PONDER_DATABASE_DRIVER: pg
           PGDATABASE: railway
           PGSSLMODE: disable
           NODE_ENV: ci

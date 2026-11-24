@@ -39,6 +39,8 @@ jobs:
           PONDER_RPC_URL_10: ${{ secrets.PONDER_RPC_URL_10 }}
           PONDER_RPC_URL_130: ${{ secrets.PONDER_RPC_URL_130 }}
           PONDER_RPC_URL_8453: ${{ secrets.PONDER_RPC_URL_8453 }}
+          PONDER_USE_VITE: "1"
+          PONDER_DATABASE_DRIVER: pg
           PGDATABASE: railway
           PGSSLMODE: disable
           PONDER_LOG_LEVEL: debug

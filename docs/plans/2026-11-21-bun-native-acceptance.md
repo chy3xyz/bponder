@@ -42,7 +42,7 @@ As of `feat/bun-native` @ HEAD. Task 6.2 checklist above is unchanged; this is t
 | Item | Why it remains |
 |---|---|
 | `PONDER_DATABASE_DRIVER=pg` escape | Node-postgres remains available; not deleted. |
-| `simulation-test` / benchmark | Still **not run**. Needs `DATABASE_URL` (no DB name; scripts append), `PONDER_RPC_URL_{1,10,130,8453}`, templates/cache, typically self-hosted. **simulation-test** also needs `PONDER_USE_VITE=1` (or native `onBuild`) because fault injection depends on `onBuild`, which Bun-native drops. |
+| `simulation-test` / benchmark | Still **not run**. Needs `DATABASE_URL` (no DB name; scripts append), `PONDER_RPC_URL_{1,10,130,8453}`, templates/cache, typically self-hosted. **simulation-test requires `PONDER_USE_VITE=1` and typically `PONDER_DATABASE_DRIVER=pg`**: fault injection uses `onBuild`, which Bun-native skips by design (documented in `docs/guides/bun.md`). Native `onBuild` is not planned until the harness can target Bun.SQL drivers. |
 | Utils live `getLogsRetryHelper` | Needs `RPC_URL_ALCHEMY_1` / `INFURA` / `QUICKNODE` repo secrets; workflow skips cleanly when unset. Public RPC assertion drift remains out of band. |
 
 ### Parallel follow-ups landed (post-acceptance)
