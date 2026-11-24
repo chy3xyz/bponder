@@ -75,7 +75,7 @@ jobs:
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           # Use system npm (OIDC). Do not set NPM_TOKEN / NODE_AUTH_TOKEN.
-          publish: bunx changeset publish
+          publish-script: bunx changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
