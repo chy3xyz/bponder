@@ -1,11 +1,5 @@
 # ponder
 
-## 1.0.5
-
-### Patch Changes
-
-- Published the `1.0.4` changes after an npm staging fault blocked that version from becoming installable.
-
 ## 1.0.4
 
 ### Patch Changes
