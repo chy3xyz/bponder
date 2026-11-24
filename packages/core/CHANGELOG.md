@@ -1,5 +1,11 @@
 # ponder
 
+## 1.0.3
+
+### Patch Changes
+
+- [`fb9fbca`](https://github.com/chy3xyz/bponder/commit/fb9fbca3e841f72c5e23da20ad95538acf195690) - Fixed a bug that caused Bun-native apps with relative imports in `src/api` (for example `import { mountHello } from "./hello.js"`) to fail loading under the `ponder-index` Bun plugin. Sibling modules are rewritten to stay in the plugin namespace.
+
 ## 1.0.2
 
 ### Patch Changes
