@@ -1,5 +1,11 @@
 # create-bponder
 
+## 1.0.5
+
+### Patch Changes
+
+- Published the `1.0.4` changes after an npm staging fault delayed that version from becoming installable on every package in the fixed release group.
+
 ## 1.0.4
 
 ### Patch Changes
