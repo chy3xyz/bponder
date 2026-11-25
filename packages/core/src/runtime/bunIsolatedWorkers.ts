@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import type { OnchainTable } from "bponder-schema";
 import type { BunSqlDatabase, BunSqlTransaction } from "../database/bunSql.js";
 
@@ -179,9 +181,20 @@ export const syncBunIsolatedEvents = async ({
 }): Promise<BunIsolatedCheckpoint | undefined> => {
   if (shards.length === 0) return undefined;
 
-  const workers = shards.map(
-    () => new Worker(new URL("./bunIsolatedWorker.ts", import.meta.url).href),
-  );
+  // Source layout uses `.ts`; published `dist/esm` only ships `.js`.
+  const workerEntry =
+    ["./bunIsolatedWorker.ts", "./bunIsolatedWorker.js"]
+      .map((rel) => fileURLToPath(new URL(rel, import.meta.url)))
+      .find((candidate) => {
+        try {
+          return fs.statSync(candidate).isFile();
+        } catch {
+          return false;
+        }
+      }) ?? fileURLToPath(new URL("./bunIsolatedWorker.ts", import.meta.url));
+  const workerHref = pathToFileURL(workerEntry).href;
+
+  const workers = shards.map(() => new Worker(workerHref));
   const clients = workers.map(createWorkerClient);
 
   let checkpoint: BunIsolatedCheckpoint | undefined;

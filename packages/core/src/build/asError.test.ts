@@ -20,3 +20,17 @@ test("asError stringifies plain objects", () => {
   expect(out.message).toContain("RESOLVE");
   expect(out.message).toContain("missing.ts");
 });
+
+test("asError copies subclass Errors into plain Errors for safe logging", () => {
+  class ResolveMessage extends Error {
+    override name = "ResolveMessage";
+  }
+  const weird = new ResolveMessage("Cannot find module ./app/ponder.ts");
+  const out = asError(weird);
+  expect(out).not.toBe(weird);
+  expect(out).toBeInstanceOf(Error);
+  expect(out.constructor).toBe(Error);
+  expect(out.name).toBe("ResolveMessage");
+  expect(out.message).toContain("Cannot find module");
+  expect(out.stack).toContain("Cannot find module");
+});

@@ -7,7 +7,7 @@ import {
 
 test("spawns a Bun indexing worker and completes kill/done handshake", async () => {
   expect(isBunRuntime()).toBe(true);
-  expect(getIndexingWorkerEntryUrl()).toContain("isolatedWorker.bun.ts");
+  expect(getIndexingWorkerEntryUrl()).toMatch(/isolatedWorker\.bun\.(ts|js)$/);
 
   const worker = createIndexingWorker();
   const messages: Array<{ type: string; worker?: string }> = [];

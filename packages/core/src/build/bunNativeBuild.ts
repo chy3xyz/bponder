@@ -35,10 +35,6 @@ import { safeBuildSchema } from "./schema.js";
 
 const BUILD_ID_VERSION = "2";
 
-const defaultRegistryFile = fileURLToPath(
-  new URL("../app/ponder.ts", import.meta.url),
-);
-
 type BunPluginBuilder = {
   onResolve: (
     options: { filter: RegExp; namespace?: string },
@@ -61,12 +57,6 @@ type BunRuntime = {
   }) => void;
 };
 
-let ponderPluginRegistered = false;
-let ponderPluginSchemaFile = "";
-let ponderPluginRegistryFile = defaultRegistryFile;
-/** Bumped on every `registerPonderBunPlugin` so Bun does not reuse a stale `bponder:schema`. */
-let ponderPluginSchemaEpoch = 0;
-
 const toPosixPath = (filePath: string) => filePath.replace(/\\/g, "/");
 
 const isExistingFile = (filePath: string) => {
@@ -76,6 +66,22 @@ const isExistingFile = (filePath: string) => {
     return false;
   }
 };
+
+// Prefer the on-disk sibling of this module. Source layout uses `ponder.ts`;
+// the published `dist/esm` layout only ships `ponder.js`. Hard-coding `.ts`
+// breaks Bun-native builds from the npm package (and the real error is often
+// masked by a circular-serialize failure).
+const defaultRegistryFile =
+  ["../app/ponder.ts", "../app/ponder.js"]
+    .map((rel) => fileURLToPath(new URL(rel, import.meta.url)))
+    .find(isExistingFile) ??
+  fileURLToPath(new URL("../app/ponder.ts", import.meta.url));
+
+let ponderPluginRegistered = false;
+let ponderPluginSchemaFile = "";
+let ponderPluginRegistryFile = defaultRegistryFile;
+/** Bumped on every `registerPonderBunPlugin` so Bun does not reuse a stale `bponder:schema`. */
+let ponderPluginSchemaEpoch = 0;
 
 const resolveExistingModulePath = (baseDir: string, specifier: string) => {
   const bare = path.resolve(baseDir, specifier);

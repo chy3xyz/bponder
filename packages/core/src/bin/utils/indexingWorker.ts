@@ -1,5 +1,6 @@
+import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { Worker as NodeWorker } from "node:worker_threads";
 import { isBunRuntime } from "./assertBun.js";
 
@@ -21,14 +22,24 @@ export type IndexingWorkerHandle = {
 let nextBunThreadId = 1;
 
 export function getIndexingWorkerEntryUrl(): string {
+  const dir = path.dirname(fileURLToPath(import.meta.url));
+
   if (isBunRuntime()) {
+    // Source layout: isolatedWorker.bun.ts. Published dist: isolatedWorker.bun.js.
+    for (const name of [
+      "isolatedWorker.bun.ts",
+      "isolatedWorker.bun.js",
+      "isolatedWorker.js",
+    ]) {
+      const candidate = path.join(dir, "..", name);
+      if (fs.existsSync(candidate)) {
+        return pathToFileURL(candidate).href;
+      }
+    }
     return new URL("../isolatedWorker.bun.ts", import.meta.url).href;
   }
 
-  return path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../isolatedWorker.js",
-  );
+  return path.join(dir, "../isolatedWorker.js");
 }
 
 export function createIndexingWorker(

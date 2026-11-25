@@ -203,7 +203,12 @@ export default app;
 
     registerPonderBunPlugin({ schemaFile });
     const fakeDatabase = {
-      readonlyQB: { raw: { select: () => ({ from: () => [] }) } },
+      readonlyQB: {
+        raw: {
+          select: () => ({ from: () => [] }),
+          execute: async () => [],
+        },
+      },
     };
     const fakeIndexingBuild = {
       chains: [{ name: "mainnet", viemChain: undefined }],
@@ -270,7 +275,12 @@ export function mountHello(app: Hono) {
 
     registerPonderBunPlugin({ schemaFile });
     const fakeDatabase = {
-      readonlyQB: { raw: { select: () => ({ from: () => [] }) } },
+      readonlyQB: {
+        raw: {
+          select: () => ({ from: () => [] }),
+          execute: async () => [],
+        },
+      },
     };
     const fakeIndexingBuild = {
       chains: [{ name: "mainnet", viemChain: undefined }],
@@ -335,7 +345,12 @@ export function mountRoutes(app: Hono) {
 
     registerPonderBunPlugin({ schemaFile });
     const fakeDatabase = {
-      readonlyQB: { raw: { select: () => ({ from: () => [] }) } },
+      readonlyQB: {
+        raw: {
+          select: () => ({ from: () => [] }),
+          execute: async () => [],
+        },
+      },
     };
     const fakeIndexingBuild = {
       chains: [{ name: "mainnet", viemChain: undefined }],

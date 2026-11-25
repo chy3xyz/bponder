@@ -238,9 +238,17 @@ const format = (log: Log) => {
   }
 
   if (log.error) {
-    if (log.error.stack) {
-      prettyLog.push(log.error.stack);
-    } else {
+    // Bun ResolveMessage/BuildMessage can throw from `.stack` with
+    // "unable to serialize, circular reference…". Prefer message, then String.
+    let rendered: string | undefined;
+    try {
+      if (typeof log.error.stack === "string" && log.error.stack.length > 0) {
+        rendered = log.error.stack;
+      }
+    } catch {
+      // fall through
+    }
+    if (rendered === undefined) {
       const name =
         typeof log.error.name === "string" && log.error.name.length > 0
           ? log.error.name
@@ -249,8 +257,9 @@ const format = (log: Log) => {
         typeof log.error.message === "string" && log.error.message.length > 0
           ? log.error.message
           : String(log.error);
-      prettyLog.push(`${name}: ${message}`);
+      rendered = `${name}: ${message}`;
     }
+    prettyLog.push(rendered);
 
     if (typeof log.error === "object" && "where" in log.error) {
       prettyLog.push(`where: ${log.error.where as string}`);

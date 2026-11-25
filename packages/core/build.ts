@@ -68,6 +68,26 @@ async function build() {
       return false;
     }
 
+    // `src/bin/ponder.ts` imports `../../package.json` (package root). After tsc
+    // emits `dist/esm/bin/ponder.js`, that same relative path resolves to the
+    // non-existent `dist/package.json`. Standalone `bun build --compile`
+    // still uses the src entry, so keep the source import and only rewrite dist.
+    const binJs = path.join("dist/esm/bin/ponder.js");
+    if (fs.existsSync(binJs)) {
+      const before = fs.readFileSync(binJs, "utf8");
+      const after = before.replaceAll(
+        'from "../../package.json"',
+        'from "../../../package.json"',
+      );
+      if (after === before) {
+        log.error(
+          `Expected ${binJs} to import "../../package.json" for rewrite to package root`,
+        );
+        return false;
+      }
+      fs.writeFileSync(binJs, after);
+    }
+
     // tsc does not copy SQL files, which migrations load relative to the compiled module.
     fs.cpSync("src/sync-store/sql", "dist/esm/sync-store/sql", {
       recursive: true,
