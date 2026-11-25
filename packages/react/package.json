@@ -12,6 +12,7 @@
     "build": "tsx build.ts",
     "prepack": "node ../../scripts/rewrite-workspace-deps.mjs",
     "postpack": "node ../../scripts/restore-workspace-deps.mjs",
+    "postpublish": "node ../../scripts/restore-workspace-deps.mjs",
     "test": "bun test",
     "test:bun": "bun test",
     "test:typecheck": "tsc --noEmit",

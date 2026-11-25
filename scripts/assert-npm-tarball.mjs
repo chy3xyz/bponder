@@ -81,5 +81,17 @@ if (pkg.bin?.bponder !== "./dist/esm/bin/ponder.js") {
   process.exit(1);
 }
 
+// prepack rewrites workspace:* for the tarball; restore source tree afterwards
+// (publish uses postpublish for the same restore — postpack is too early and
+ // would poison registry metadata if used before upload).
+try {
+  execFileSync("node", ["../../scripts/restore-workspace-deps.mjs"], {
+    cwd: coreDir,
+    stdio: "inherit",
+  });
+} catch {
+  // backup may already be gone
+}
+
 fs.unlinkSync(tgz);
 console.log(`assert-npm-tarball: ok (${filename})`);
