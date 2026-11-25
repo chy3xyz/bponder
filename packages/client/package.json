@@ -1,6 +1,6 @@
 {
   "name": "bponder-client",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Client library for Ponder SQL over HTTP queries",
   "license": "MIT",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "bponder",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "An open-source TypeScript framework for EVM data indexing",
   "license": "MIT",
   "type": "module",
