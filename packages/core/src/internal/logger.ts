@@ -241,7 +241,15 @@ const format = (log: Log) => {
     if (log.error.stack) {
       prettyLog.push(log.error.stack);
     } else {
-      prettyLog.push(`${log.error.name}: ${log.error.message}`);
+      const name =
+        typeof log.error.name === "string" && log.error.name.length > 0
+          ? log.error.name
+          : "Error";
+      const message =
+        typeof log.error.message === "string" && log.error.message.length > 0
+          ? log.error.message
+          : String(log.error);
+      prettyLog.push(`${name}: ${message}`);
     }
 
     if (typeof log.error === "object" && "where" in log.error) {

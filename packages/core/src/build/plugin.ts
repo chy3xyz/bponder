@@ -1,3 +1,4 @@
+import { API_DB_EXPORT_SOURCE } from "@/database/pgExecuteShape.js";
 import type { Common } from "@/internal/common.js";
 import type { VitePlugin } from "@/types/vite-plugin.js";
 
@@ -37,7 +38,7 @@ for (let i = 0; i < globalThis.PONDER_INDEXING_BUILD.chains.length; i++) {
   })
 }
 
-export const db = globalThis.PONDER_DATABASE.readonlyQB.raw;
+${API_DB_EXPORT_SOURCE}
 export { publicClients };
 `;
 

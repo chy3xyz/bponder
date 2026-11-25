@@ -12,6 +12,7 @@
   "files": [
     "dist",
     "src/**/*.ts",
+    "src/**/sql/**/*.sql",
     "!src/_test/**/*",
     "!**/*.test.ts",
     "!**/*.bench.ts",
@@ -23,7 +24,7 @@
     "LICENSE"
   ],
   "bin": {
-    "bponder": "./src/bin/ponder.ts"
+    "bponder": "./dist/esm/bin/ponder.js"
   },
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -39,6 +40,8 @@
   },
   "scripts": {
     "build": "tsx build.ts",
+    "prepack": "node ../../scripts/rewrite-workspace-deps.mjs",
+    "postpack": "node ../../scripts/restore-workspace-deps.mjs",
     "test": "vitest",
     "test:bun": "bun test",
     "test:typecheck": "vitest --typecheck.only",

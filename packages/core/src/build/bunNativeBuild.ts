@@ -9,6 +9,7 @@ import { ponder } from "@/app/ponder.js";
 import type { PonderConfig } from "@/config/defineConfig.js";
 import type { Config } from "@/config/index.js";
 import type { Database } from "@/database/index.js";
+import { API_DB_EXPORT_SOURCE } from "@/database/pgExecuteShape.js";
 import { MAX_DATABASE_OBJECT_NAME_LENGTH } from "@/drizzle/onchain.js";
 import type { Common } from "@/internal/common.js";
 import { BuildError } from "@/internal/errors.js";
@@ -26,6 +27,7 @@ import {
 } from "@/server/bunNativeHttp.js";
 import { PONDER_SYNC_SCHEMAS } from "@/sync-store/schema.js";
 import type { Result } from "@/utils/result.js";
+import { asError } from "./asError.js";
 import { loadBunConfig, loadBunSchema } from "./bunLoader.js";
 import { safeBuildConfig, safeBuildIndexingFunctions } from "./config.js";
 import { safeBuildPre } from "./pre.js";
@@ -143,9 +145,6 @@ const rewriteRelativeSpecifiers = (
   return out;
 };
 
-const asError = (error: unknown) =>
-  error instanceof Error ? error : new Error(String(error));
-
 const buildError = (message: string) => {
   const error = new BuildError(message);
   error.stack = undefined;
@@ -247,7 +246,7 @@ for (let i = 0; i < globalThis.PONDER_INDEXING_BUILD.chains.length; i++) {
   })
 }
 
-export const db = globalThis.PONDER_DATABASE.readonlyQB.raw;
+${API_DB_EXPORT_SOURCE}
 export { publicClients };
 `,
         loader: "js",
